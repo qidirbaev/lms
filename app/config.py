@@ -6,7 +6,7 @@ DATA_DIR = BASE_DIR / "data"
 STATIC_DIR = BASE_DIR / "static"
 
 # AI provider: "gemma" or "mock"
-AI_PROVIDER = os.getenv("AI_PROVIDER", "mock")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "mock").lower()
 
 # Vertex AI / Gemma config
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "diplom-tuit")
