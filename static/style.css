@@ -8,11 +8,40 @@ h1 {
   margin-bottom: 24px;
 }
 
+nav {
+  margin-bottom: 20px;
+}
+
+nav button {
+  margin-right: 8px;
+}
+
 section {
   background: white;
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.card {
+  background: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.card p {
+  font-size: 28px;
+  font-weight: bold;
 }
 
 textarea {
@@ -25,9 +54,10 @@ button {
   cursor: pointer;
 }
 
-select {
+select,
+input {
   padding: 6px;
-  min-width: 300px;
+  min-width: 120px;
 }
 
 pre {

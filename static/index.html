@@ -6,9 +6,44 @@
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <h1>LMS Feedback AI Analyzer — Primitive Test</h1>
+  <h1>LMS Feedback AI Analyzer — MVP Primitive</h1>
 
-  <section>
+  <nav>
+    <button onclick="showTab('dashboard')">Dashboard</button>
+    <button onclick="showTab('file')">File Analysis</button>
+    <button onclick="showTab('batch')">Batch Processing</button>
+    <button onclick="showTab('custom')">Custom Test</button>
+    <button onclick="showTab('logs')">Logs</button>
+  </nav>
+
+  <section id="dashboard" class="tab">
+    <h2>Dashboard</h2>
+    <button onclick="loadDashboard()">Refresh Dashboard</button>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Processed</h3>
+        <p id="totalProcessed">0</p>
+      </div>
+      <div class="card">
+        <h3>Sentiment</h3>
+        <pre id="sentimentCounts">{}</pre>
+      </div>
+      <div class="card">
+        <h3>Severity</h3>
+        <pre id="severityCounts">{}</pre>
+      </div>
+      <div class="card">
+        <h3>Issues</h3>
+        <pre id="issueCounts">{}</pre>
+      </div>
+    </div>
+
+    <h3>Latest Results</h3>
+    <pre id="latestResults">[]</pre>
+  </section>
+
+  <section id="file" class="tab hidden">
     <h2>Analyze From File</h2>
 
     <label>Source:</label>
@@ -27,11 +62,40 @@
     <button onclick="analyzeSelected()">Analyze Selected</button>
   </section>
 
-  <section>
+  <section id="batch" class="tab hidden">
+    <h2>Batch Processing</h2>
+
+    <label>Source:</label>
+    <select id="batchSource">
+      <option value="batch">batch_30.json</option>
+      <option value="seed">seed_1000.json</option>
+    </select>
+
+    <label>Limit:</label>
+    <input id="batchLimit" type="number" value="30" min="1" max="1000" />
+
+    <button onclick="processBatch()">Process Batch</button>
+
+    <h3>Batch Result</h3>
+    <pre id="batchResult">No batch processed yet.</pre>
+  </section>
+
+  <section id="custom" class="tab hidden">
     <h2>Custom Jury Test</h2>
     <textarea id="customText" placeholder="Type feedback here..."></textarea>
-    <br>
+
+    <br><br>
+
+    <label>Rating:</label>
+    <input id="customRating" type="number" value="4" min="1" max="5" />
+
     <button onclick="analyzeCustom()">Analyze Custom Feedback</button>
+  </section>
+
+  <section id="logs" class="tab hidden">
+    <h2>Logs</h2>
+    <button onclick="loadLogs()">Refresh Logs</button>
+    <pre id="logsBox">No logs yet.</pre>
   </section>
 
   <section>
