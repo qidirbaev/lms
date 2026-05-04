@@ -1,0 +1,467 @@
+[
+  {
+    "feedback_id": "batch-00001",
+    "processed_at": "2026-05-04T12:44:40.196077+00:00",
+    "provider": "mock",
+    "used_fallback": false,
+    "raw_text": "Domla darsni yaxshi tushuntiradi, lekin baholashda ba'zida tushunarsiz holatlar bo'lyapti. Shuni aniqlashtirib olsak yaxshi bo'lardi.",
+    "rating": 4,
+    "course_id": "AM-201",
+    "teacher_id": "T-18",
+    "teacher_fullname": "Nazarova Maftuna",
+    "course_name": "Linear Algebra",
+    "course_level": "undergraduate",
+    "course_delivery_mode": "online",
+    "teacher_role": "assistant",
+    "feedback_channel": "anonymous_form",
+    "is_anonymous": true,
+    "department": "Applied Mathematics",
+    "student_year": 2,
+    "gpa": 4.9,
+    "attendance_rate": 0.83,
+    "timestamp": "2024-02-17T18:48:00Z",
+    "input_to_system": {
+      "schema_version": "1.2.0",
+      "feedback_id": "batch-00001",
+      "content": {
+        "raw_text": "Domla darsni yaxshi tushuntiradi, lekin baholashda ba'zida tushunarsiz holatlar bo'lyapti. Shuni aniqlashtirib olsak yaxshi bo'lardi.",
+        "rating": 4
+      },
+      "metadata": {
+        "timestamp": "2024-02-17T18:48:00Z",
+        "semester_id": "2024-SPRING",
+        "course_id": "AM-201",
+        "teacher_id": "T-18",
+        "teacher_fullname": "Nazarova Maftuna",
+        "student_context": {
+          "year": 2,
+          "gender": "female",
+          "group_id": "AM-24-03",
+          "department_name": "Applied Mathematics",
+          "course_points": 96,
+          "gpa": 4.9,
+          "course_attendance_rate": 0.83
+        },
+        "feedback_context": {
+          "feedback_channel": "anonymous_form",
+          "is_anonymous": true
+        },
+        "course_context": {
+          "course_name": "Linear Algebra",
+          "course_level": "undergraduate",
+          "course_delivery_mode": "online"
+        },
+        "teacher_context": {
+          "teacher_role": "assistant",
+          "teaching_experience_years": 3,
+          "teacher_department_id": "DEP-MATH"
+        }
+      },
+      "generation_controls": {
+        "gpa_band": "high",
+        "attendance_band": "high",
+        "theme_hint": "unfair_grading",
+        "lang_profile": "uz_only",
+        "noise": {
+          "sarcasm": false,
+          "contradiction": false,
+          "vague": false,
+          "typos": false,
+          "off_topic": false,
+          "spam_like": false
+        },
+        "exception_case": false
+      }
+    },
+    "input_to_ai": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00001",
+      "content": {
+        "raw_text": "Domla darsni yaxshi tushuntiradi, lekin baholashda ba'zida tushunarsiz holatlar bo'lyapti. Shuni aniqlashtirib olsak yaxshi bo'lardi."
+      },
+      "context": {
+        "rating": 4,
+        "course_id": "AM-201",
+        "teacher_id": "T-18",
+        "teacher_fullname": "Nazarova Maftuna",
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true,
+        "course_name": "Linear Algebra",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online",
+        "teacher_role": "assistant",
+        "student_year": 2,
+        "department": "Applied Mathematics",
+        "group_id": "AM-24-03",
+        "gpa": 4.9,
+        "attendance_rate": 0.83,
+        "course_points": 96
+      }
+    },
+    "output": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00001",
+      "language": "uz",
+      "feedback_credibility": {
+        "score": 0.6
+      },
+      "feedback_fairness": {
+        "score": 0.55,
+        "is_one_sided": false,
+        "has_constructive_tone": false
+      },
+      "sentiment": "positive",
+      "sentiment_score": 0.8,
+      "emotion": "confidence",
+      "emotion_intensity": 0.5,
+      "subtopics": [
+        "teaching method"
+      ],
+      "keywords": [
+        "domla",
+        "darsni",
+        "yaxshi",
+        "tushuntiradi",
+        "lekin",
+        "baholashda",
+        "ba'zida",
+        "tushunarsiz",
+        "holatlar",
+        "bo'lyapti"
+      ],
+      "topics": [
+        "teaching style",
+        "positive experience"
+      ],
+      "issue_category": "teaching_style",
+      "risk": {
+        "types": [],
+        "probability": 0.0,
+        "impact_scope": "none"
+      },
+      "satisfaction_dimensions": {
+        "teaching_quality": 0.62,
+        "clarity": 0.47,
+        "engagement": 0.65,
+        "fairness": 0.5,
+        "materials": 0.55
+      },
+      "severity": "low",
+      "confidence": 0.75,
+      "summary_uz": "Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 4/5.",
+      "representative_label": "praise",
+      "requires_admin_attention": false,
+      "recommended_action": "no_action_needed"
+    },
+    "raw_output": "{\"schema_version\": \"1.0.0\", \"feedback_id\": \"batch-00001\", \"language\": \"uz\", \"feedback_credibility\": {\"score\": 0.6}, \"feedback_fairness\": {\"score\": 0.55, \"is_one_sided\": false, \"has_constructive_tone\": false}, \"sentiment\": \"positive\", \"sentiment_score\": 0.8, \"emotion\": \"confidence\", \"emotion_intensity\": 0.5, \"subtopics\": [\"teaching method\"], \"keywords\": [\"domla\", \"darsni\", \"yaxshi\", \"tushuntiradi\", \"lekin\", \"baholashda\", \"ba'zida\", \"tushunarsiz\", \"holatlar\", \"bo'lyapti\"], \"topics\": [\"teaching style\", \"positive experience\"], \"issue_category\": \"teaching_style\", \"risk\": {\"types\": [], \"probability\": 0.0, \"impact_scope\": \"none\"}, \"satisfaction_dimensions\": {\"teaching_quality\": 0.62, \"clarity\": 0.47, \"engagement\": 0.65, \"fairness\": 0.5, \"materials\": 0.55}, \"severity\": \"low\", \"confidence\": 0.75, \"summary_uz\": \"Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 4/5.\", \"representative_label\": \"praise\", \"requires_admin_attention\": false, \"recommended_action\": \"no_action_needed\"}",
+    "corrections": []
+  },
+  {
+    "feedback_id": "batch-00002",
+    "processed_at": "2026-05-04T12:44:40.196714+00:00",
+    "provider": "mock",
+    "used_fallback": false,
+    "raw_text": "Amaliy mashg'ulotlar juda foydali bo'ldi, ayniqsa real loyihalar ustida ishlaganimiz zo'r. Rahmat ustoz.",
+    "rating": 5,
+    "course_id": "IS-202",
+    "teacher_id": "T-07",
+    "teacher_fullname": "Xasanova Zulfiya",
+    "course_name": "Data Modeling",
+    "course_level": "undergraduate",
+    "course_delivery_mode": "hybrid",
+    "teacher_role": "professor",
+    "feedback_channel": "lms_popup",
+    "is_anonymous": false,
+    "department": "Information Systems",
+    "student_year": 1,
+    "gpa": 4.1,
+    "attendance_rate": 0.85,
+    "timestamp": "2024-02-20T19:21:00Z",
+    "input_to_system": {
+      "schema_version": "1.2.0",
+      "feedback_id": "batch-00002",
+      "content": {
+        "raw_text": "Amaliy mashg'ulotlar juda foydali bo'ldi, ayniqsa real loyihalar ustida ishlaganimiz zo'r. Rahmat ustoz.",
+        "rating": 5
+      },
+      "metadata": {
+        "timestamp": "2024-02-20T19:21:00Z",
+        "semester_id": "2024-SPRING",
+        "course_id": "IS-202",
+        "teacher_id": "T-07",
+        "teacher_fullname": "Xasanova Zulfiya",
+        "student_context": {
+          "year": 1,
+          "gender": "female",
+          "group_id": "IS-25-05",
+          "department_name": "Information Systems",
+          "course_points": 97,
+          "gpa": 4.1,
+          "course_attendance_rate": 0.85
+        },
+        "feedback_context": {
+          "feedback_channel": "lms_popup",
+          "is_anonymous": false
+        },
+        "course_context": {
+          "course_name": "Data Modeling",
+          "course_level": "undergraduate",
+          "course_delivery_mode": "hybrid"
+        },
+        "teacher_context": {
+          "teacher_role": "professor",
+          "teaching_experience_years": 21,
+          "teacher_department_id": "DEP-IS"
+        }
+      },
+      "generation_controls": {
+        "gpa_band": "high",
+        "attendance_band": "high",
+        "theme_hint": "useful_practicals",
+        "lang_profile": "uz_only",
+        "noise": {
+          "sarcasm": false,
+          "contradiction": false,
+          "vague": false,
+          "typos": false,
+          "off_topic": false,
+          "spam_like": false
+        },
+        "exception_case": false
+      }
+    },
+    "input_to_ai": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00002",
+      "content": {
+        "raw_text": "Amaliy mashg'ulotlar juda foydali bo'ldi, ayniqsa real loyihalar ustida ishlaganimiz zo'r. Rahmat ustoz."
+      },
+      "context": {
+        "rating": 5,
+        "course_id": "IS-202",
+        "teacher_id": "T-07",
+        "teacher_fullname": "Xasanova Zulfiya",
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false,
+        "course_name": "Data Modeling",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "hybrid",
+        "teacher_role": "professor",
+        "student_year": 1,
+        "department": "Information Systems",
+        "group_id": "IS-25-05",
+        "gpa": 4.1,
+        "attendance_rate": 0.85,
+        "course_points": 97
+      }
+    },
+    "output": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00002",
+      "language": "uz",
+      "feedback_credibility": {
+        "score": 0.7
+      },
+      "feedback_fairness": {
+        "score": 0.6,
+        "is_one_sided": false,
+        "has_constructive_tone": false
+      },
+      "sentiment": "positive",
+      "sentiment_score": 0.95,
+      "emotion": "inspiration",
+      "emotion_intensity": 0.7,
+      "subtopics": [],
+      "keywords": [
+        "amaliy",
+        "mashg'ulotlar",
+        "foydali",
+        "bo'ldi",
+        "ayniqsa",
+        "loyihalar",
+        "ustida",
+        "ishlaganimiz",
+        "zo'r",
+        "rahmat"
+      ],
+      "topics": [
+        "positive experience"
+      ],
+      "issue_category": "none",
+      "risk": {
+        "types": [],
+        "probability": 0.0,
+        "impact_scope": "none"
+      },
+      "satisfaction_dimensions": {
+        "teaching_quality": 0.9,
+        "clarity": 0.85,
+        "engagement": 0.93,
+        "fairness": 0.5,
+        "materials": 0.6
+      },
+      "severity": "low",
+      "confidence": 0.75,
+      "summary_uz": "Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 5/5.",
+      "representative_label": "praise",
+      "requires_admin_attention": false,
+      "recommended_action": "no_action_needed"
+    },
+    "raw_output": "{\"schema_version\": \"1.0.0\", \"feedback_id\": \"batch-00002\", \"language\": \"uz\", \"feedback_credibility\": {\"score\": 0.7}, \"feedback_fairness\": {\"score\": 0.6, \"is_one_sided\": false, \"has_constructive_tone\": false}, \"sentiment\": \"positive\", \"sentiment_score\": 0.95, \"emotion\": \"inspiration\", \"emotion_intensity\": 0.7, \"subtopics\": [], \"keywords\": [\"amaliy\", \"mashg'ulotlar\", \"foydali\", \"bo'ldi\", \"ayniqsa\", \"loyihalar\", \"ustida\", \"ishlaganimiz\", \"zo'r\", \"rahmat\"], \"topics\": [\"positive experience\"], \"issue_category\": \"none\", \"risk\": {\"types\": [], \"probability\": 0.0, \"impact_scope\": \"none\"}, \"satisfaction_dimensions\": {\"teaching_quality\": 0.9, \"clarity\": 0.85, \"engagement\": 0.93, \"fairness\": 0.5, \"materials\": 0.6}, \"severity\": \"low\", \"confidence\": 0.75, \"summary_uz\": \"Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 5/5.\", \"representative_label\": \"praise\", \"requires_admin_attention\": false, \"recommended_action\": \"no_action_needed\"}",
+    "corrections": []
+  },
+  {
+    "feedback_id": "batch-00003",
+    "processed_at": "2026-05-04T12:44:40.197781+00:00",
+    "provider": "mock",
+    "used_fallback": false,
+    "raw_text": "Dars sur'ati biroz tezroqdek tuyuldi, lekin mavzular juda qiziqarli. Keyingi safar sekinroq o'tsak maqsadga muvofiq bo'lardi.",
+    "rating": 5,
+    "course_id": "DS-202",
+    "teacher_id": "T-11",
+    "teacher_fullname": "Tursunova Malika",
+    "course_name": "Statistics for DS",
+    "course_level": "undergraduate",
+    "course_delivery_mode": "offline",
+    "teacher_role": "lecturer",
+    "feedback_channel": "midterm_survey",
+    "is_anonymous": false,
+    "department": "Data Science",
+    "student_year": 2,
+    "gpa": 4.6,
+    "attendance_rate": 0.94,
+    "timestamp": "2024-02-01T09:22:00Z",
+    "input_to_system": {
+      "schema_version": "1.2.0",
+      "feedback_id": "batch-00003",
+      "content": {
+        "raw_text": "Dars sur'ati biroz tezroqdek tuyuldi, lekin mavzular juda qiziqarli. Keyingi safar sekinroq o'tsak maqsadga muvofiq bo'lardi.",
+        "rating": 5
+      },
+      "metadata": {
+        "timestamp": "2024-02-01T09:22:00Z",
+        "semester_id": "2024-SPRING",
+        "course_id": "DS-202",
+        "teacher_id": "T-11",
+        "teacher_fullname": "Tursunova Malika",
+        "student_context": {
+          "year": 2,
+          "gender": "male",
+          "group_id": "DS-24-05",
+          "department_name": "Data Science",
+          "course_points": 94,
+          "gpa": 4.6,
+          "course_attendance_rate": 0.94
+        },
+        "feedback_context": {
+          "feedback_channel": "midterm_survey",
+          "is_anonymous": false
+        },
+        "course_context": {
+          "course_name": "Statistics for DS",
+          "course_level": "undergraduate",
+          "course_delivery_mode": "offline"
+        },
+        "teacher_context": {
+          "teacher_role": "lecturer",
+          "teaching_experience_years": 3,
+          "teacher_department_id": "DEP-DS"
+        }
+      },
+      "generation_controls": {
+        "gpa_band": "high",
+        "attendance_band": "high",
+        "theme_hint": "pace_too_fast",
+        "lang_profile": "uz_only",
+        "noise": {
+          "sarcasm": false,
+          "contradiction": false,
+          "vague": false,
+          "typos": false,
+          "off_topic": false,
+          "spam_like": false
+        },
+        "exception_case": false
+      }
+    },
+    "input_to_ai": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00003",
+      "content": {
+        "raw_text": "Dars sur'ati biroz tezroqdek tuyuldi, lekin mavzular juda qiziqarli. Keyingi safar sekinroq o'tsak maqsadga muvofiq bo'lardi."
+      },
+      "context": {
+        "rating": 5,
+        "course_id": "DS-202",
+        "teacher_id": "T-11",
+        "teacher_fullname": "Tursunova Malika",
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false,
+        "course_name": "Statistics for DS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline",
+        "teacher_role": "lecturer",
+        "student_year": 2,
+        "department": "Data Science",
+        "group_id": "DS-24-05",
+        "gpa": 4.6,
+        "attendance_rate": 0.94,
+        "course_points": 94
+      }
+    },
+    "output": {
+      "schema_version": "1.0.0",
+      "feedback_id": "batch-00003",
+      "language": "uz",
+      "feedback_credibility": {
+        "score": 0.6
+      },
+      "feedback_fairness": {
+        "score": 0.6,
+        "is_one_sided": false,
+        "has_constructive_tone": false
+      },
+      "sentiment": "positive",
+      "sentiment_score": 0.85,
+      "emotion": "gratitude",
+      "emotion_intensity": 0.5,
+      "subtopics": [],
+      "keywords": [
+        "sur'ati",
+        "biroz",
+        "tezroqdek",
+        "tuyuldi",
+        "lekin",
+        "mavzular",
+        "qiziqarli",
+        "keyingi",
+        "safar",
+        "sekinroq"
+      ],
+      "topics": [
+        "positive experience"
+      ],
+      "issue_category": "none",
+      "risk": {
+        "types": [],
+        "probability": 0.0,
+        "impact_scope": "none"
+      },
+      "satisfaction_dimensions": {
+        "teaching_quality": 0.7,
+        "clarity": 0.65,
+        "engagement": 0.73,
+        "fairness": 0.5,
+        "materials": 0.5
+      },
+      "severity": "low",
+      "confidence": 0.75,
+      "summary_uz": "Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 5/5.",
+      "representative_label": "praise",
+      "requires_admin_attention": false,
+      "recommended_action": "no_action_needed"
+    },
+    "raw_output": "{\"schema_version\": \"1.0.0\", \"feedback_id\": \"batch-00003\", \"language\": \"uz\", \"feedback_credibility\": {\"score\": 0.6}, \"feedback_fairness\": {\"score\": 0.6, \"is_one_sided\": false, \"has_constructive_tone\": false}, \"sentiment\": \"positive\", \"sentiment_score\": 0.85, \"emotion\": \"gratitude\", \"emotion_intensity\": 0.5, \"subtopics\": [], \"keywords\": [\"sur'ati\", \"biroz\", \"tezroqdek\", \"tuyuldi\", \"lekin\", \"mavzular\", \"qiziqarli\", \"keyingi\", \"safar\", \"sekinroq\"], \"topics\": [\"positive experience\"], \"issue_category\": \"none\", \"risk\": {\"types\": [], \"probability\": 0.0, \"impact_scope\": \"none\"}, \"satisfaction_dimensions\": {\"teaching_quality\": 0.7, \"clarity\": 0.65, \"engagement\": 0.73, \"fairness\": 0.5, \"materials\": 0.5}, \"severity\": \"low\", \"confidence\": 0.75, \"summary_uz\": \"Talaba kurs va o'qituvchi haqida ijobiy fikr bildirgan. Ball: 5/5.\", \"representative_label\": \"praise\", \"requires_admin_attention\": false, \"recommended_action\": \"no_action_needed\"}",
+    "corrections": []
+  }
+]

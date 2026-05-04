@@ -1,118 +1,453 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>LMS Feedback AI Analyzer</title>
-  <link rel="stylesheet" href="/static/style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS Feedback AI Analyzer</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <h1>LMS Feedback AI Analyzer — MVP Primitive</h1>
 
-  <nav>
-    <button onclick="showTab('dashboard')">Dashboard</button>
-    <button onclick="showTab('file')">File Analysis</button>
-    <button onclick="showTab('batch')">Batch Processing</button>
-    <button onclick="showTab('custom')">Custom Test</button>
-    <button onclick="showTab('logs')">Logs</button>
-  </nav>
+<!-- ── Login ─────────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">LMS <span>AI</span></div>
+    <h1>Welcome back</h1>
+    <p>Sign in to the Feedback Analysis Command Center</p>
+    <div class="field">
+      <label>Username</label>
+      <input class="input" id="login-user" type="text" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input class="input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="login-err" class="alert alert-err" style="display:none;margin-bottom:.75rem"></div>
+    <button class="btn btn-primary" style="width:100%" id="login-btn" onclick="doLogin()">Sign in</button>
+    <p style="margin-top:.75rem;font-size:.7rem;color:var(--text-3);text-align:center">Default: admin / admin123</p>
+  </div>
+</div>
 
-  <section id="dashboard" class="tab">
-    <h2>Dashboard</h2>
-    <button onclick="loadDashboard()">Refresh Dashboard</button>
+<!-- ── App Shell ──────────────────────────────────────────────────────────── -->
+<div id="app">
 
-    <div class="cards">
-      <div class="card">
-        <h3>Total Processed</h3>
-        <p id="totalProcessed">0</p>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div>LMS AI Analyzer</div>
+      <div class="version">v2.0 · Diploma Demo</div>
+      <div id="ai-badge" class="ai-badge">● Loading…</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Analytics</div>
+      <button class="nav-item active" onclick="showPage('overview')" id="nav-overview">
+        <span class="nav-icon">📊</span> Overview
+      </button>
+      <button class="nav-item" onclick="showPage('mood')" id="nav-mood">
+        <span class="nav-icon">🎭</span> University Mood
+      </button>
+      <button class="nav-item" onclick="showPage('courses')" id="nav-courses">
+        <span class="nav-icon">📚</span> Courses
+      </button>
+      <button class="nav-item" onclick="showPage('teachers')" id="nav-teachers">
+        <span class="nav-icon">👨‍🏫</span> Teachers
+      </button>
+      <button class="nav-item" onclick="showPage('trends')" id="nav-trends">
+        <span class="nav-icon">📈</span> Trends
+      </button>
+      <button class="nav-item" onclick="showPage('issues')" id="nav-issues">
+        <span class="nav-icon">⚠️</span> Issues
+      </button>
+      <button class="nav-item" onclick="showPage('risks')" id="nav-risks">
+        <span class="nav-icon">🚨</span> Risk Alerts <span class="badge" id="risk-badge" style="display:none">!</span>
+      </button>
+      <button class="nav-item" onclick="showPage('keywords')" id="nav-keywords">
+        <span class="nav-icon">🏷️</span> Keywords
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Operations</div>
+      <button class="nav-item" onclick="showPage('records')" id="nav-records">
+        <span class="nav-icon">🗂️</span> Records
+      </button>
+      <button class="nav-item" onclick="showPage('batch')" id="nav-batch">
+        <span class="nav-icon">⚡</span> Batch
+      </button>
+      <button class="nav-item" onclick="showPage('test')" id="nav-test">
+        <span class="nav-icon">🧪</span> Test Analysis
+      </button>
+      <button class="nav-item" onclick="showPage('simulate')" id="nav-simulate">
+        <span class="nav-icon">🤖</span> Simulation
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">System</div>
+      <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
+        <span class="nav-icon">📋</span> Logs
+      </button>
+      <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
+        <span class="nav-icon">⚙️</span> Settings
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-info">
+          <div class="name" id="user-name">admin</div>
+          <div class="role">Administrator</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">↩</button>
       </div>
-      <div class="card">
-        <h3>Sentiment</h3>
-        <pre id="sentimentCounts">{}</pre>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+
+    <!-- ── OVERVIEW ──────────────────────────────────────────────────────── -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div><h2>Overview</h2><div class="subtitle">System-wide analytics dashboard</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">↺ Refresh</button>
       </div>
-      <div class="card">
-        <h3>Severity</h3>
-        <pre id="severityCounts">{}</pre>
-      </div>
-      <div class="card">
-        <h3>Issues</h3>
-        <pre id="issueCounts">{}</pre>
+      <div class="page-body" id="overview-body">
+        <div class="empty-state"><div class="icon">📊</div><p>Loading dashboard…</p></div>
       </div>
     </div>
 
-    <h3>Latest Results</h3>
-    <pre id="latestResults">[]</pre>
-  </section>
+    <!-- ── MOOD ─────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-mood">
+      <div class="page-header"><div><h2>University Mood</h2><div class="subtitle">Aggregate student sentiment & emotion analysis</div></div></div>
+      <div class="page-body" id="mood-body"><div class="empty-state"><div class="icon">🎭</div><p>Loading…</p></div></div>
+    </div>
 
-  <section id="file" class="tab hidden">
-    <h2>Analyze From File</h2>
+    <!-- ── COURSES ───────────────────────────────────────────────────────── -->
+    <div class="page" id="page-courses">
+      <div class="page-header"><div><h2>Courses</h2><div class="subtitle">Per-course feedback analytics</div></div></div>
+      <div class="page-body" id="courses-body"><div class="empty-state"><div class="icon">📚</div><p>Loading…</p></div></div>
+    </div>
 
-    <label>Source:</label>
-    <select id="source">
-      <option value="batch">batch_30.json</option>
-      <option value="seed">seed_1000.json</option>
-    </select>
+    <!-- ── TEACHERS ──────────────────────────────────────────────────────── -->
+    <div class="page" id="page-teachers">
+      <div class="page-header">
+        <div><h2>Teachers</h2><div class="subtitle">AI-assisted monitoring signal — not final judgment</div></div>
+      </div>
+      <div class="page-body" id="teachers-body"><div class="empty-state"><div class="icon">👨‍🏫</div><p>Loading…</p></div></div>
+    </div>
 
-    <button onclick="loadFeedbacks()">Load Feedbacks</button>
+    <!-- ── TRENDS ────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-trends">
+      <div class="page-header"><div><h2>Trends</h2><div class="subtitle">Feedback volume and sentiment over time</div></div></div>
+      <div class="page-body" id="trends-body"><div class="empty-state"><div class="icon">📈</div><p>Loading…</p></div></div>
+    </div>
 
-    <br><br>
+    <!-- ── ISSUES ────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-issues">
+      <div class="page-header"><div><h2>Issues</h2><div class="subtitle">Top problems and institutional recommendations</div></div></div>
+      <div class="page-body" id="issues-body"><div class="empty-state"><div class="icon">⚠️</div><p>Loading…</p></div></div>
+    </div>
 
-    <label>Feedback:</label>
-    <select id="feedbackSelect"></select>
+    <!-- ── RISKS ─────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-risks">
+      <div class="page-header">
+        <div><h2>Risk Alerts</h2><div class="subtitle">⚠ AI-generated signals — require human review before action</div></div>
+      </div>
+      <div class="page-body" id="risks-body"><div class="empty-state"><div class="icon">🚨</div><p>Loading…</p></div></div>
+    </div>
 
-    <button onclick="analyzeSelected()">Analyze Selected</button>
-  </section>
+    <!-- ── KEYWORDS ──────────────────────────────────────────────────────── -->
+    <div class="page" id="page-keywords">
+      <div class="page-header"><div><h2>Keywords & Topics</h2><div class="subtitle">Most frequent terms and topic clusters</div></div></div>
+      <div class="page-body" id="keywords-body"><div class="empty-state"><div class="icon">🏷️</div><p>Loading…</p></div></div>
+    </div>
 
-  <section id="batch" class="tab hidden">
-    <h2>Batch Processing</h2>
+    <!-- ── RECORDS ───────────────────────────────────────────────────────── -->
+    <div class="page" id="page-records">
+      <div class="page-header"><div><h2>Records Explorer</h2><div class="subtitle">Search and filter analyzed feedback records</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="loadRecords()">↺ Refresh</button>
+      </div>
+      <div class="page-body">
+        <div class="card mb-3" style="padding:.75rem">
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end">
+            <div class="field" style="margin:0;min-width:120px">
+              <label>Sentiment</label>
+              <select class="select" id="filter-sentiment" style="height:34px">
+                <option value="">All</option>
+                <option value="positive">Positive</option>
+                <option value="neutral">Neutral</option>
+                <option value="negative">Negative</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;min-width:120px">
+              <label>Severity</label>
+              <select class="select" id="filter-severity" style="height:34px">
+                <option value="">All</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;min-width:150px">
+              <label>Issue Category</label>
+              <select class="select" id="filter-issue" style="height:34px">
+                <option value="">All</option>
+                <option value="none">None</option>
+                <option value="teaching_style">Teaching Style</option>
+                <option value="content_quality">Content Quality</option>
+                <option value="assessment">Assessment</option>
+                <option value="materials">Materials</option>
+                <option value="communication">Communication</option>
+                <option value="technical_issue">Technical Issue</option>
+                <option value="classroom_management">Classroom Mgmt</option>
+                <option value="fairness_concern">Fairness Concern</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;min-width:120px">
+              <label>Admin Attn</label>
+              <select class="select" id="filter-admin" style="height:34px">
+                <option value="">All</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="loadRecords()">Filter</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+          </div>
+        </div>
+        <div id="records-list"></div>
+      </div>
+    </div>
 
-    <label>Source:</label>
-    <select id="batchSource">
-      <option value="batch">batch_30.json</option>
-      <option value="seed">seed_1000.json</option>
-    </select>
+    <!-- ── BATCH ─────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-batch">
+      <div class="page-header"><div><h2>Batch Processing</h2><div class="subtitle">Process feedback files with AI analysis</div></div></div>
+      <div class="page-body">
+        <div class="grid-2" style="gap:1rem">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Configuration</div></div>
+            <div class="field">
+              <label>Data Source</label>
+              <select class="select" id="batch-source">
+                <option value="batch">batch_30.json (demo batch)</option>
+                <option value="seed">seed_1600.json (main dataset)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Limit (items to process)</label>
+              <input class="input" id="batch-limit" type="number" value="30" min="1" max="200">
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-primary" id="process-btn" onclick="processBatch()">⚡ Process Batch</button>
+              <button class="btn btn-secondary" onclick="previewSource()">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card" id="batch-status-card">
+            <div class="card-header"><div class="card-title">Status</div></div>
+            <div id="batch-status"><div class="text-muted text-sm">No batch running</div></div>
+          </div>
+        </div>
 
-    <label>Limit:</label>
-    <input id="batchLimit" type="number" value="30" min="1" max="1000" />
+        <div class="card mt-3" id="source-preview" style="display:none">
+          <div class="card-header">
+            <div class="card-title" id="preview-title">Source Preview</div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('source-preview').style.display='none'">✕</button>
+          </div>
+          <div id="preview-items"></div>
+        </div>
+      </div>
+    </div>
 
-    <button onclick="processBatch()">Process Batch</button>
+    <!-- ── TEST ANALYSIS ────────────────────────────────────────────────── -->
+    <div class="page" id="page-test">
+      <div class="page-header"><div><h2>Test Analysis</h2><div class="subtitle">Submit custom feedback for jury testing</div></div></div>
+      <div class="page-body">
+        <div class="grid-2" style="gap:1rem;align-items:start">
+          <div>
+            <div class="card mb-3">
+              <div class="card-header">
+                <div class="card-title">Feedback Input</div>
+                <button class="btn btn-ghost btn-sm" onclick="generateRandomContext()">🎲 Random Context</button>
+              </div>
+              <div class="field">
+                <label>Feedback Text <span style="color:var(--neg)">*</span></label>
+                <textarea class="textarea" id="test-text" placeholder="Enter student feedback in Uzbek, Russian or English…" style="min-height:100px"></textarea>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Feedback ID</label>
+                  <input class="input" id="test-fid" type="text" placeholder="custom-001">
+                </div>
+                <div class="field">
+                  <label>Rating (1–5)</label>
+                  <input class="input" id="test-rating" type="number" min="1" max="5" value="3">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Course ID</label>
+                  <input class="input" id="test-course" type="text" value="CS-101">
+                </div>
+                <div class="field">
+                  <label>Teacher ID</label>
+                  <input class="input" id="test-teacher" type="text" value="T-01">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Teacher Name</label>
+                  <input class="input" id="test-tname" type="text" value="Aziz Karimov">
+                </div>
+                <div class="field">
+                  <label>Course Name</label>
+                  <input class="input" id="test-cname" type="text" value="Calculus I">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Department</label>
+                  <input class="input" id="test-dept" type="text" value="Computer Science">
+                </div>
+                <div class="field">
+                  <label>GPA</label>
+                  <input class="input" id="test-gpa" type="number" step="0.1" value="3.5">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>Attendance</label>
+                  <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.85">
+                </div>
+                <div class="field">
+                  <label>Channel</label>
+                  <select class="select" id="test-channel">
+                    <option value="jury_test_form">Jury Test</option>
+                    <option value="end_course_survey">End Survey</option>
+                    <option value="complaint_form">Complaint</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-primary" style="width:100%" id="analyze-btn" onclick="analyzeCustom()">🔍 Analyze Feedback</button>
+            </div>
+          </div>
+          <div id="test-result-panel">
+            <div class="empty-state card"><div class="icon">🧪</div><p>Analysis result will appear here</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <h3>Batch Result</h3>
-    <pre id="batchResult">No batch processed yet.</pre>
-  </section>
+    <!-- ── SIMULATION ────────────────────────────────────────────────────── -->
+    <div class="page" id="page-simulate">
+      <div class="page-header"><div><h2>Simulation</h2><div class="subtitle">Generate synthetic feedback for demo purposes</div></div></div>
+      <div class="page-body">
+        <div class="grid-2" style="gap:1rem;align-items:start">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Generator Settings</div></div>
+            <div class="field">
+              <label>Count</label>
+              <input class="input" id="sim-count" type="number" min="1" max="50" value="10">
+            </div>
+            <div class="field">
+              <label>Sentiment Style</label>
+              <select class="select" id="sim-sentiment">
+                <option value="mixed">Mixed</option>
+                <option value="positive">Mostly Positive</option>
+                <option value="negative">Mostly Negative</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Issue Theme</label>
+              <select class="select" id="sim-theme">
+                <option value="mixed">Mixed</option>
+                <option value="teaching_style">Teaching Style</option>
+                <option value="assessment">Assessment</option>
+                <option value="technical_issue">Technical Issues</option>
+                <option value="content_quality">Content Quality</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-primary" onclick="generateSim()">🤖 Generate</button>
+              <button class="btn btn-secondary" id="analyze-sim-btn" style="display:none" onclick="analyzeSim()">⚡ Analyze All</button>
+            </div>
+          </div>
+          <div id="sim-result-panel">
+            <div class="empty-state card"><div class="icon">🤖</div><p>Generated feedbacks will appear here</p></div>
+          </div>
+        </div>
+        <div id="sim-items-panel" style="display:none" class="mt-3"></div>
+      </div>
+    </div>
 
-  <section id="custom" class="tab hidden">
-    <h2>Custom Jury Test</h2>
-    <textarea id="customText" placeholder="Type feedback here..."></textarea>
+    <!-- ── LOGS ──────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-logs">
+      <div class="page-header">
+        <div><h2>System Logs</h2><div class="subtitle">Timestamped activity log</div></div>
+        <div style="display:flex;gap:.5rem">
+          <select class="select" id="log-level-filter" style="height:34px;width:100px">
+            <option value="">All</option>
+            <option value="INFO">INFO</option>
+            <option value="WARN">WARN</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="loadLogs()">↺ Refresh</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="card" style="padding:.75rem">
+          <div id="logs-list"><div class="text-muted text-sm">Loading logs…</div></div>
+        </div>
+      </div>
+    </div>
 
-    <br><br>
+    <!-- ── SETTINGS ──────────────────────────────────────────────────────── -->
+    <div class="page" id="page-settings">
+      <div class="page-header"><div><h2>Settings</h2><div class="subtitle">System configuration and demo controls</div></div></div>
+      <div class="page-body">
+        <div class="grid-2" style="gap:1rem;align-items:start">
+          <div class="card">
+            <div class="card-header"><div class="card-title">System Info</div></div>
+            <div id="health-info"><div class="text-muted text-sm">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Demo Controls</div></div>
+            <p class="text-sm text-muted mb-3">Reset will clear all processed results. Seed and batch files are preserved.</p>
+            <button class="btn btn-danger" onclick="resetDemo()">🗑 Reset Demo State</button>
+          </div>
+        </div>
+        <div class="card mt-3">
+          <div class="card-header"><div class="card-title">Environment Variables</div></div>
+          <table style="font-size:.75rem">
+            <tbody>
+              <tr><td style="color:var(--text-3);padding:.4rem .5rem">AI_PROVIDER</td><td id="s-provider">—</td></tr>
+              <tr><td style="color:var(--text-3);padding:.4rem .5rem">GOOGLE_CLOUD_PROJECT</td><td id="s-project">—</td></tr>
+              <tr><td style="color:var(--text-3);padding:.4rem .5rem">VERTEX_MODEL</td><td id="s-model">—</td></tr>
+              <tr><td style="color:var(--text-3);padding:.4rem .5rem">Processed Records</td><td id="s-count">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-    <label>Rating:</label>
-    <input id="customRating" type="number" value="4" min="1" max="5" />
+  </div><!-- /main-content -->
+</div><!-- /app -->
 
-    <button onclick="analyzeCustom()">Analyze Custom Feedback</button>
-  </section>
+<!-- ── Toast Container ──────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
 
-  <section id="logs" class="tab hidden">
-    <h2>Logs</h2>
-    <button onclick="loadLogs()">Refresh Logs</button>
-    <pre id="logsBox">No logs yet.</pre>
-  </section>
+<!-- ── Record Detail Modal ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="record-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Record Detail</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
 
-  <section>
-    <h2>Input</h2>
-    <pre id="inputBox">No input yet.</pre>
-  </section>
-
-  <section>
-    <h2>Structured Output</h2>
-    <pre id="outputBox">No output yet.</pre>
-  </section>
-
-  <section>
-    <h2>Raw Model Output</h2>
-    <pre id="rawBox">No raw output yet.</pre>
-  </section>
-
-  <script src="/static/app.js"></script>
+<script src="/static/app.js"></script>
 </body>
 </html>

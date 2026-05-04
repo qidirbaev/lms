@@ -1,0 +1,156 @@
+[
+  {
+    "timestamp": "2026-05-04T12:43:17.658018+00:00",
+    "level": "INFO",
+    "event": "app_startup",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:17.659259+00:00",
+    "level": "INFO",
+    "event": "data_service_init",
+    "details": {
+      "loaded_results": 0
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:17.659850+00:00",
+    "level": "INFO",
+    "event": "config_loaded",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3,
+      "fallback": true
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:17.826431+00:00",
+    "level": "INFO",
+    "event": "login_success",
+    "details": {
+      "username": "admin"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:17.847898+00:00",
+    "level": "INFO",
+    "event": "analyze_file_item_success",
+    "details": {
+      "feedback_id": "batch-00001",
+      "source": "batch"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:30.773975+00:00",
+    "level": "INFO",
+    "event": "app_startup",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:30.775326+00:00",
+    "level": "INFO",
+    "event": "data_service_init",
+    "details": {
+      "loaded_results": 1
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:30.776060+00:00",
+    "level": "INFO",
+    "event": "config_loaded",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3,
+      "fallback": true
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:31.157773+00:00",
+    "level": "INFO",
+    "event": "login_success",
+    "details": {
+      "username": "admin"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:43:31.171870+00:00",
+    "level": "INFO",
+    "event": "analyze_file_item_success",
+    "details": {
+      "feedback_id": "batch-00001",
+      "source": "batch"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.040585+00:00",
+    "level": "INFO",
+    "event": "app_startup",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.042230+00:00",
+    "level": "INFO",
+    "event": "data_service_init",
+    "details": {
+      "loaded_results": 1
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.042695+00:00",
+    "level": "INFO",
+    "event": "config_loaded",
+    "details": {
+      "ai_provider": "mock",
+      "concurrency": 3,
+      "fallback": true
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.127681+00:00",
+    "level": "INFO",
+    "event": "login_success",
+    "details": {
+      "username": "admin"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.185073+00:00",
+    "level": "INFO",
+    "event": "analyze_file_item_success",
+    "details": {
+      "feedback_id": "batch-00001",
+      "source": "batch"
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.192187+00:00",
+    "level": "INFO",
+    "event": "batch_started",
+    "details": {
+      "source": "batch",
+      "total": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-04T12:44:40.198972+00:00",
+    "level": "INFO",
+    "event": "batch_completed",
+    "details": {
+      "source": "batch",
+      "total": 3,
+      "success": 3,
+      "failed": 0,
+      "fallback": 0,
+      "duration_s": 0.01
+    }
+  }
+]
