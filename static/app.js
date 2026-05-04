@@ -93,9 +93,9 @@ function renderOverview() {
     </div>
     <div class="grid-2">
       <div class="card"><div class="card-header"><div class="card-title">Executive Summary</div></div><p>${esc(o.executive_summary || 'No processed feedback yet.')}</p></div>
-      <div class="card"><div class="card-header"><div class="card-title">Satisfaction Dimensions</div></div><canvas id="chart-dims" height="180"></canvas></div>
-      <div class="card"><div class="card-header"><div class="card-title">Sentiment Distribution</div></div><canvas id="chart-sentiment" height="180"></canvas></div>
-      <div class="card"><div class="card-header"><div class="card-title">Issue Distribution</div></div><canvas id="chart-issues" height="180"></canvas></div>
+      <div class="card chart-card"><div class="card-header"><div class="card-title">Satisfaction Dimensions</div></div><div class="chart-box"><canvas id="chart-dims"></canvas></div></div>
+      <div class="card chart-card"><div class="card-header"><div class="card-title">Sentiment Distribution</div></div><div class="chart-box"><canvas id="chart-sentiment"></canvas></div></div>
+      <div class="card chart-card"><div class="card-header"><div class="card-title">Issue Distribution</div></div><div class="chart-box"><canvas id="chart-issues"></canvas></div></div>
     </div>
     <div class="card mt-3"><div class="card-header"><div class="card-title">Latest AI-analyzed feedbacks</div></div>${recordsTable(o.latest || [])}</div>`;
   drawCharts();
@@ -104,7 +104,7 @@ function renderMood() {
   const m = state.dashboard.university_mood || {};
   $('mood-body').innerHTML = `
     <div class="kpi-grid">${kpi('Dominant emotion', m.dominant_emotion || 'none')}${kpi('University score', fmt(m.university_satisfaction_score))}${kpi('Teaching quality', fmt(m.satisfaction_dimensions?.teaching_quality))}${kpi('Fairness', fmt(m.satisfaction_dimensions?.fairness))}</div>
-    <div class="grid-2"><div class="card"><div class="card-title">Emotion distribution</div>${statList(m.emotion_distribution || {})}</div><div class="card"><div class="card-title">Mood trend</div><canvas id="chart-mood-trend" height="220"></canvas></div></div>`;
+    <div class="grid-2"><div class="card"><div class="card-title">Emotion distribution</div>${statList(m.emotion_distribution || {})}</div><div class="card chart-card"><div class="card-title">Mood trend</div><div class="chart-box"><canvas id="chart-mood-trend"></canvas></div></div></div>`;
   drawCharts();
 }
 function renderCourses() {
@@ -122,7 +122,7 @@ function renderTeachers() {
 function renderTrends() {
   const t = state.dashboard.trends || {};
   const series = t.sentiment_over_time || t.daily || t.monthly || [];
-  $('trends-body').innerHTML = `<div class="grid-2"><div class="card"><div class="card-title">Sentiment over time</div><canvas id="chart-trend" height="240"></canvas></div><div class="card"><div class="card-title">Trend data</div><div class="json-viewer">${esc(JSON.stringify(series, null, 2))}</div></div></div>`;
+  $('trends-body').innerHTML = `<div class="grid-2"><div class="card chart-card"><div class="card-title">Sentiment over time</div><div class="chart-box"><canvas id="chart-trend"></canvas></div></div><div class="card"><div class="card-title">Trend data</div><div class="json-viewer">${esc(JSON.stringify(series, null, 2))}</div></div></div>`;
   drawCharts();
 }
 function renderIssues() {
@@ -147,10 +147,44 @@ function renderKeywords() {
 function statList(obj) { return Object.entries(obj).map(([k, v]) => `<div class="stat-row"><span class="stat-label">${esc(k)}</span><span class="stat-val">${v}</span></div>`).join('') || '<p class="text-muted">No data</p>'; }
 
 function chart(id, type, labels, data, label = '') {
-  const el = $(id); if (!el || !window.Chart) return;
-  if (state.charts[id]) state.charts[id].destroy();
-  state.charts[id] = new Chart(el, { type, data: { labels, datasets: [{ label, data, borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, resizeDelay: 200, plugins: { legend: { labels: { color: '#ddd' } } }, scales: type === 'doughnut' ? {} : { x: { ticks: { color: '#999' }, grid: { color: '#222' } }, y: { ticks: { color: '#999' }, grid: { color: '#222' } } } } });
+  const el = $(id);
+  if (!el || !window.Chart) return;
+
+  if (state.charts[id]) {
+    state.charts[id].destroy();
+    delete state.charts[id];
+  }
+
+  el.removeAttribute('height');
+  el.removeAttribute('width');
+  el.style.height = '240px';
+  el.style.maxHeight = '240px';
+  el.style.width = '100%';
+
+  state.charts[id] = new Chart(el, {
+    type,
+    data: {
+      labels,
+      datasets: [{ label, data, borderWidth: 1 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      resizeDelay: 200,
+      animation: false,
+      plugins: {
+        legend: { labels: { color: '#ddd' } }
+      },
+      scales: type === 'doughnut'
+        ? {}
+        : {
+            x: { ticks: { color: '#999' }, grid: { color: '#222' } },
+            y: { ticks: { color: '#999' }, grid: { color: '#222' }, beginAtZero: true }
+          }
+    }
+  });
 }
+
 function drawCharts() {
   const d = state.dashboard; if (!d) return;
   chart('chart-sentiment', 'doughnut', Object.keys(d.overview?.sentiment_counts || d.overview?.sentiments || {}), Object.values(d.overview?.sentiment_counts || d.overview?.sentiments || {}), 'Sentiment');
