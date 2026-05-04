@@ -232,8 +232,21 @@ async def call_vertex_genai_once(input_to_system: Dict[str, Any]) -> Dict[str, A
     }
 
 
+_loop = None
+
+def get_reusable_loop():
+    global _loop
+
+    if _loop is None or _loop.is_closed():
+        _loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_loop)
+
+    return _loop
+
+
 def call_vertex_genai_sync(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
-    return asyncio.run(call_vertex_genai_once(input_to_system))
+    loop = get_reusable_loop()
+    return loop.run_until_complete(call_vertex_genai_once(input_to_system))
 
 
 def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
