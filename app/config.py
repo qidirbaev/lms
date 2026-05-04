@@ -11,7 +11,7 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "mock").lower()
 # Vertex AI / Gemma config
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "diplom-tuit")
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
-VERTEX_MODEL = os.getenv("VERTEX_MODEL", "google/gemma-4-26b-a4b-it-maas")
+VERTEX_MODEL = os.getenv("VERTEX_MODEL", "gemini-3.1-flash-lite-preview")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 
 # Processing config
