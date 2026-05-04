@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from ai_service import call_gemma
+from .ai_service import call_gemma
 
 app = FastAPI()
 
@@ -7,6 +7,9 @@ app = FastAPI()
 def root():
     return {"status": "ok"}
 
+@app.get("/health")
+def health():
+    return {"health": "running"}
 
 @app.get("/test-gemma")
 def test_gemma():
