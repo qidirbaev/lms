@@ -1,3 +1,5 @@
+const chartInstances = {};
+
 const pages = ['overview', 'mood', 'courses', 'teachers', 'trends', 'issues', 'risks', 'keywords', 'records', 'batch', 'test', 'simulate', 'logs', 'settings'];
 let state = { token: localStorage.getItem('lms_token') || '', dashboard: null, currentPage: 'overview', simulated: [], charts: {} };
 
