@@ -1,0 +1,23 @@
+[
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-00001",
+    "content": {
+      "raw_text": "Domla darsni yaxshi tushuntiradi, lekin baholashda ba'zida tushunarsiz holatlar bo'lyapti. Shuni aniqlashtirib olsak yaxshi bo'lardi."
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-00002",
+    "content": {
+      "raw_text": "Amaliy mashg'ulotlar juda foydali bo'ldi, ayniqsa real loyihalar ustida ishlaganimiz zo'r. Rahmat ustoz."
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-00003",
+    "content": {
+      "raw_text": "Dars sur'ati biroz tezroqdek tuyuldi, lekin mavzular juda qiziqarli. Keyingi safar sekinroq o'tsak maqsadga muvofiq bo'lardi."
+    }
+  }
+]

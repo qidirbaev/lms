@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>LMS Feedback AI Analyzer</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <h1>LMS Feedback AI Analyzer — Primitive Test</h1>
+
+  <section>
+    <h2>Analyze From File</h2>
+
+    <label>Source:</label>
+    <select id="source">
+      <option value="batch">batch_30.json</option>
+      <option value="seed">seed_1000.json</option>
+    </select>
+
+    <button onclick="loadFeedbacks()">Load Feedbacks</button>
+
+    <br><br>
+
+    <label>Feedback:</label>
+    <select id="feedbackSelect"></select>
+
+    <button onclick="analyzeSelected()">Analyze Selected</button>
+  </section>
+
+  <section>
+    <h2>Custom Jury Test</h2>
+    <textarea id="customText" placeholder="Type feedback here..."></textarea>
+    <br>
+    <button onclick="analyzeCustom()">Analyze Custom Feedback</button>
+  </section>
+
+  <section>
+    <h2>Input</h2>
+    <pre id="inputBox">No input yet.</pre>
+  </section>
+
+  <section>
+    <h2>Structured Output</h2>
+    <pre id="outputBox">No output yet.</pre>
+  </section>
+
+  <section>
+    <h2>Raw Model Output</h2>
+    <pre id="rawBox">No raw output yet.</pre>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
