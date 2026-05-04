@@ -1,327 +1,487 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LMS Feedback AI Analyzer</title>
-<link rel="stylesheet" href="/static/style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMS AI Tahlilchi</title>
+
+  <link rel="stylesheet" href="/static/style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
+  <div id="toast-container"></div>
 
-<!-- ── Login ─────────────────────────────────────────────────────────────── -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">LMS <span>AI</span></div>
-    <h1>Welcome back</h1>
-    <p>Sign in to the Feedback Analysis Command Center</p>
-    <div class="field">
-      <label>Username</label>
-      <input class="input" id="login-user" type="text" placeholder="admin" autocomplete="username">
+  <!-- Login -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="logo-mark">AI</span>
+        <div>
+          <div id="login-app-title">LMS AI Tahlilchi</div>
+          <small>Feedback Analysis Command Center</small>
+        </div>
+      </div>
+
+      <h1>Xush kelibsiz</h1>
+      <p>Fikr-mulohazalarni AI orqali tahlil qilish tizimiga kiring</p>
+
+      <div class="field">
+        <label id="login-user-label">Foydalanuvchi nomi</label>
+        <input class="input" id="login-user" type="text" placeholder="admin" autocomplete="username" />
+      </div>
+
+      <div class="field">
+        <label id="login-pass-label">Parol</label>
+        <input class="input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <div id="login-err" class="alert alert-err" style="display:none;margin-bottom:.75rem"></div>
+
+      <button class="btn btn-primary" style="width:100%" id="login-btn" onclick="doLogin()">
+        Kirish
+      </button>
+
+      <p class="login-hint">Standart: admin / admin123</p>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input class="input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <div id="login-err" class="alert alert-err" style="display:none;margin-bottom:.75rem"></div>
-    <button class="btn btn-primary" style="width:100%" id="login-btn" onclick="doLogin()">Sign in</button>
-    <p style="margin-top:.75rem;font-size:.7rem;color:var(--text-3);text-align:center">Default: admin / admin123</p>
   </div>
-</div>
 
-<!-- ── App Shell ──────────────────────────────────────────────────────────── -->
-<div id="app">
+  <!-- App -->
+  <div id="app">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div>LMS AI Analyzer</div>
-      <div class="version">v2.0 · Diploma Demo</div>
-      <div id="ai-badge" class="ai-badge">● Loading…</div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Analytics</div>
-      <button class="nav-item active" onclick="showPage('overview')" id="nav-overview">
-        <span class="nav-icon">📊</span> Overview
-      </button>
-      <button class="nav-item" onclick="showPage('mood')" id="nav-mood">
-        <span class="nav-icon">🎭</span> University Mood
-      </button>
-      <button class="nav-item" onclick="showPage('courses')" id="nav-courses">
-        <span class="nav-icon">📚</span> Courses
-      </button>
-      <button class="nav-item" onclick="showPage('teachers')" id="nav-teachers">
-        <span class="nav-icon">👨‍🏫</span> Teachers
-      </button>
-      <button class="nav-item" onclick="showPage('trends')" id="nav-trends">
-        <span class="nav-icon">📈</span> Trends
-      </button>
-      <button class="nav-item" onclick="showPage('issues')" id="nav-issues">
-        <span class="nav-icon">⚠️</span> Issues
-      </button>
-      <button class="nav-item" onclick="showPage('risks')" id="nav-risks">
-        <span class="nav-icon">🚨</span> Risk Alerts <span class="badge" id="risk-badge" style="display:none">!</span>
-      </button>
-      <button class="nav-item" onclick="showPage('keywords')" id="nav-keywords">
-        <span class="nav-icon">🏷️</span> Keywords
-      </button>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Operations</div>
-      <button class="nav-item" onclick="showPage('records')" id="nav-records">
-        <span class="nav-icon">🗂️</span> Records
-      </button>
-      <button class="nav-item" onclick="showPage('batch')" id="nav-batch">
-        <span class="nav-icon">⚡</span> Batch
-      </button>
-      <button class="nav-item" onclick="showPage('test')" id="nav-test">
-        <span class="nav-icon">🧪</span> Test Analysis
-      </button>
-      <button class="nav-item" onclick="showPage('simulate')" id="nav-simulate">
-        <span class="nav-icon">🤖</span> Simulation
-      </button>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">System</div>
-      <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
-        <span class="nav-icon">📋</span> Logs
-      </button>
-      <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
-        <span class="nav-icon">⚙️</span> Settings
-      </button>
-    </div>
-    <div class="sidebar-footer">
-      <div class="user-row">
-        <div class="user-avatar" id="user-avatar">A</div>
-        <div class="user-info">
-          <div class="name" id="user-name">admin</div>
-          <div class="role">Administrator</div>
-        </div>
-        <button class="logout-btn" onclick="doLogout()">↩</button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <div class="main-content">
-
-    <!-- ── OVERVIEW ──────────────────────────────────────────────────────── -->
-    <div class="page active" id="page-overview">
-      <div class="page-header">
-        <div><h2>Overview</h2><div class="subtitle">System-wide analytics dashboard</div></div>
-        <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">↺ Refresh</button>
-      </div>
-      <div class="page-body" id="overview-body">
-        <div class="empty-state"><div class="icon">📊</div><p>Loading dashboard…</p></div>
-      </div>
-    </div>
-
-    <!-- ── MOOD ─────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-mood">
-      <div class="page-header"><div><h2>University Mood</h2><div class="subtitle">Aggregate student sentiment & emotion analysis</div></div></div>
-      <div class="page-body" id="mood-body"><div class="empty-state"><div class="icon">🎭</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── COURSES ───────────────────────────────────────────────────────── -->
-    <div class="page" id="page-courses">
-      <div class="page-header"><div><h2>Courses</h2><div class="subtitle">Per-course feedback analytics</div></div></div>
-      <div class="page-body" id="courses-body"><div class="empty-state"><div class="icon">📚</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── TEACHERS ──────────────────────────────────────────────────────── -->
-    <div class="page" id="page-teachers">
-      <div class="page-header">
-        <div><h2>Teachers</h2><div class="subtitle">AI-assisted monitoring signal — not final judgment</div></div>
-      </div>
-      <div class="page-body" id="teachers-body"><div class="empty-state"><div class="icon">👨‍🏫</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── TRENDS ────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-trends">
-      <div class="page-header"><div><h2>Trends</h2><div class="subtitle">Feedback volume and sentiment over time</div></div></div>
-      <div class="page-body" id="trends-body"><div class="empty-state"><div class="icon">📈</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── ISSUES ────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-issues">
-      <div class="page-header"><div><h2>Issues</h2><div class="subtitle">Top problems and institutional recommendations</div></div></div>
-      <div class="page-body" id="issues-body"><div class="empty-state"><div class="icon">⚠️</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── RISKS ─────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-risks">
-      <div class="page-header">
-        <div><h2>Risk Alerts</h2><div class="subtitle">⚠ AI-generated signals — require human review before action</div></div>
-      </div>
-      <div class="page-body" id="risks-body"><div class="empty-state"><div class="icon">🚨</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── KEYWORDS ──────────────────────────────────────────────────────── -->
-    <div class="page" id="page-keywords">
-      <div class="page-header"><div><h2>Keywords & Topics</h2><div class="subtitle">Most frequent terms and topic clusters</div></div></div>
-      <div class="page-body" id="keywords-body"><div class="empty-state"><div class="icon">🏷️</div><p>Loading…</p></div></div>
-    </div>
-
-    <!-- ── RECORDS ───────────────────────────────────────────────────────── -->
-    <div class="page" id="page-records">
-      <div class="page-header"><div><h2>Records Explorer</h2><div class="subtitle">Search and filter analyzed feedback records</div></div>
-        <button class="btn btn-secondary btn-sm" onclick="loadRecords()">↺ Refresh</button>
-      </div>
-      <div class="page-body">
-        <div class="card mb-3" style="padding:.75rem">
-          <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end">
-            <div class="field" style="margin:0;min-width:120px">
-              <label>Sentiment</label>
-              <select class="select" id="filter-sentiment" style="height:34px">
-                <option value="">All</option>
-                <option value="positive">Positive</option>
-                <option value="neutral">Neutral</option>
-                <option value="negative">Negative</option>
-              </select>
-            </div>
-            <div class="field" style="margin:0;min-width:120px">
-              <label>Severity</label>
-              <select class="select" id="filter-severity" style="height:34px">
-                <option value="">All</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-            <div class="field" style="margin:0;min-width:150px">
-              <label>Issue Category</label>
-              <select class="select" id="filter-issue" style="height:34px">
-                <option value="">All</option>
-                <option value="none">None</option>
-                <option value="teaching_style">Teaching Style</option>
-                <option value="content_quality">Content Quality</option>
-                <option value="assessment">Assessment</option>
-                <option value="materials">Materials</option>
-                <option value="communication">Communication</option>
-                <option value="technical_issue">Technical Issue</option>
-                <option value="classroom_management">Classroom Mgmt</option>
-                <option value="fairness_concern">Fairness Concern</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="field" style="margin:0;min-width:120px">
-              <label>Admin Attn</label>
-              <select class="select" id="filter-admin" style="height:34px">
-                <option value="">All</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="loadRecords()">Filter</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
-          </div>
-        </div>
-        <div id="records-list"></div>
-      </div>
-    </div>
-
-    <!-- ── BATCH ─────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-batch">
-      <div class="page-header"><div><h2>Batch Processing</h2><div class="subtitle">Process feedback files with AI analysis</div></div></div>
-      <div class="page-body">
-        <div class="grid-2" style="gap:1rem">
-          <div class="card">
-            <div class="card-header"><div class="card-title">Configuration</div></div>
-            <div class="field">
-              <label>Data Source</label>
-              <select class="select" id="batch-source">
-                <option value="batch">batch_30.json (demo batch)</option>
-                <option value="seed">seed_1600.json (main dataset)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Limit (items to process)</label>
-              <input class="input" id="batch-limit" type="number" value="30" min="1" max="200">
-            </div>
-            <div style="display:flex;gap:.5rem">
-              <button class="btn btn-primary" id="process-btn" onclick="processBatch()">⚡ Process Batch</button>
-              <button class="btn btn-secondary" onclick="previewSource()">👁 Preview</button>
-            </div>
-          </div>
-          <div class="card" id="batch-status-card">
-            <div class="card-header"><div class="card-title">Status</div></div>
-            <div id="batch-status"><div class="text-muted text-sm">No batch running</div></div>
-          </div>
-        </div>
-
-        <div class="card mt-3" id="source-preview" style="display:none">
-          <div class="card-header">
-            <div class="card-title" id="preview-title">Source Preview</div>
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('source-preview').style.display='none'">✕</button>
-          </div>
-          <div id="preview-items"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TEST ANALYSIS ────────────────────────────────────────────────── -->
-    <div class="page" id="page-test">
-      <div class="page-header"><div><h2>Test Analysis</h2><div class="subtitle">Submit custom feedback for jury testing</div></div></div>
-      <div class="page-body">
-        <div class="grid-2" style="gap:1rem;align-items:start">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-row">
+          <div class="brand-mark">AI</div>
           <div>
-            <div class="card mb-3">
-              <div class="card-header">
-                <div class="card-title">Feedback Input</div>
-                <button class="btn btn-ghost btn-sm" onclick="generateRandomContext()">🎲 Random Context</button>
-              </div>
+            <div id="app-title">LMS AI Tahlilchi</div>
+            <div id="app-version" class="version">v2.0 · Diplom demo</div>
+          </div>
+        </div>
+
+        <div id="ai-badge" class="ai-badge">● Loading</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Analitika</div>
+
+        <button class="nav-item active" onclick="showPage('overview')" id="nav-overview">
+          <i data-lucide="layout-dashboard" class="nav-svg"></i><span>Umumiy ko‘rinish</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('mood')" id="nav-mood">
+          <i data-lucide="activity" class="nav-svg"></i><span>Universitet kayfiyati</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('courses')" id="nav-courses">
+          <i data-lucide="book-open" class="nav-svg"></i><span>Fanlar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('teachers')" id="nav-teachers">
+          <i data-lucide="users" class="nav-svg"></i><span>O‘qituvchilar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('trends')" id="nav-trends">
+          <i data-lucide="trending-up" class="nav-svg"></i><span>Trendlar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('issues')" id="nav-issues">
+          <i data-lucide="triangle-alert" class="nav-svg"></i><span>Muammolar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('risks')" id="nav-risks">
+          <i data-lucide="shield-alert" class="nav-svg"></i><span>Xavf signallari</span>
+          <span class="badge" id="risk-badge" style="display:none">!</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('keywords')" id="nav-keywords">
+          <i data-lucide="tags" class="nav-svg"></i><span>Kalit so‘zlar</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Operatsiyalar</div>
+
+        <button class="nav-item" onclick="showPage('records')" id="nav-records">
+          <i data-lucide="database" class="nav-svg"></i><span>Yozuvlar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('batch')" id="nav-batch">
+          <i data-lucide="zap" class="nav-svg"></i><span>Batch tahlil</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('test')" id="nav-test">
+          <i data-lucide="flask-conical" class="nav-svg"></i><span>Test tahlil</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('simulate')" id="nav-simulate">
+          <i data-lucide="bot" class="nav-svg"></i><span>Simulyatsiya</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Tizim</div>
+
+        <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
+          <i data-lucide="list-checks" class="nav-svg"></i><span>Loglar</span>
+        </button>
+
+        <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
+          <i data-lucide="settings" class="nav-svg"></i><span>Sozlamalar</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-row">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-info">
+            <div class="name" id="user-name">admin</div>
+            <div class="role" id="user-role">Administrator</div>
+          </div>
+          <button class="logout-btn" onclick="doLogout()" title="Logout">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="system-dot"></span>
+          <span>AI Feedback Intelligence Platform</span>
+        </div>
+
+        <div class="topbar-actions">
+          <select id="lang-select" class="select topbar-select">
+            <option value="uz">UZ</option>
+            <option value="en">EN</option>
+            <option value="ru">RU</option>
+          </select>
+
+          <button id="theme-toggle" class="btn btn-secondary btn-sm" type="button">
+            <i data-lucide="sun-moon"></i>
+            Theme
+          </button>
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <section class="page active" id="page-overview">
+        <div class="page-header">
+          <div>
+            <h2>Umumiy ko‘rinish</h2>
+            <div class="subtitle">Tizim bo‘yicha umumiy tahlil paneli</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadDashboard()">
+            <i data-lucide="refresh-cw"></i> Yangilash
+          </button>
+        </div>
+
+        <div class="page-body" id="overview-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Mood -->
+      <section class="page" id="page-mood">
+        <div class="page-header">
+          <div>
+            <h2>Universitet kayfiyati</h2>
+            <div class="subtitle">Talabalar kayfiyati va emotsional signallar</div>
+          </div>
+        </div>
+        <div class="page-body" id="mood-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Courses -->
+      <section class="page" id="page-courses">
+        <div class="page-header">
+          <div>
+            <h2>Fanlar</h2>
+            <div class="subtitle">Fanlar bo‘yicha fikr-mulohaza tahlili</div>
+          </div>
+        </div>
+        <div class="page-body" id="courses-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Teachers -->
+      <section class="page" id="page-teachers">
+        <div class="page-header">
+          <div>
+            <h2>O‘qituvchilar</h2>
+            <div class="subtitle">AI yordamidagi monitoring signali — yakuniy baho emas</div>
+          </div>
+        </div>
+        <div class="page-body" id="teachers-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Trends -->
+      <section class="page" id="page-trends">
+        <div class="page-header">
+          <div>
+            <h2>Trendlar</h2>
+            <div class="subtitle">Vaqt bo‘yicha sentiment va feedback oqimi</div>
+          </div>
+        </div>
+        <div class="page-body" id="trends-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Issues -->
+      <section class="page" id="page-issues">
+        <div class="page-header">
+          <div>
+            <h2>Muammolar</h2>
+            <div class="subtitle">Top muammolar va institutsional tavsiyalar</div>
+          </div>
+        </div>
+        <div class="page-body" id="issues-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Risks -->
+      <section class="page" id="page-risks">
+        <div class="page-header">
+          <div>
+            <h2>Xavf signallari</h2>
+            <div class="subtitle">AI signallari inson tomonidan tekshirilishi kerak</div>
+          </div>
+        </div>
+        <div class="page-body" id="risks-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Keywords -->
+      <section class="page" id="page-keywords">
+        <div class="page-header">
+          <div>
+            <h2>Kalit so‘zlar</h2>
+            <div class="subtitle">Eng ko‘p uchraydigan so‘zlar va mavzu klasterlari</div>
+          </div>
+        </div>
+        <div class="page-body" id="keywords-body">
+          <div class="empty-state card"><div class="empty-icon"></div><p>Yuklanmoqda...</p></div>
+        </div>
+      </section>
+
+      <!-- Records -->
+      <section class="page" id="page-records">
+        <div class="page-header">
+          <div>
+            <h2>Yozuvlar</h2>
+            <div class="subtitle">Tahlil qilingan feedback yozuvlari</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadRecords()">
+            <i data-lucide="refresh-cw"></i> Yangilash
+          </button>
+        </div>
+
+        <div class="page-body">
+          <div class="card mb-3 compact-card">
+            <div class="filter-row">
               <div class="field">
-                <label>Feedback Text <span style="color:var(--neg)">*</span></label>
-                <textarea class="textarea" id="test-text" placeholder="Enter student feedback in Uzbek, Russian or English…" style="min-height:100px"></textarea>
+                <label>Sentiment</label>
+                <select class="select" id="filter-sentiment">
+                  <option value="">Barchasi</option>
+                  <option value="positive">Positive</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="negative">Negative</option>
+                </select>
               </div>
-              <div class="grid-2">
+
+              <div class="field">
+                <label>Jiddiylik</label>
+                <select class="select" id="filter-severity">
+                  <option value="">Barchasi</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Muammo turi</label>
+                <select class="select" id="filter-issue">
+                  <option value="">Barchasi</option>
+                  <option value="none">None</option>
+                  <option value="teaching_style">Teaching Style</option>
+                  <option value="content_quality">Content Quality</option>
+                  <option value="assessment">Assessment</option>
+                  <option value="materials">Materials</option>
+                  <option value="communication">Communication</option>
+                  <option value="technical_issue">Technical Issue</option>
+                  <option value="classroom_management">Classroom Mgmt</option>
+                  <option value="fairness_concern">Fairness Concern</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Admin e’tibori</label>
+                <select class="select" id="filter-admin">
+                  <option value="">Barchasi</option>
+                  <option value="true">Ha</option>
+                  <option value="false">Yo‘q</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary btn-sm" onclick="loadRecords()">
+                <i data-lucide="filter"></i> Filtrlash
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Tozalash</button>
+            </div>
+          </div>
+
+          <div id="records-list"></div>
+        </div>
+      </section>
+
+      <!-- Batch -->
+      <section class="page" id="page-batch">
+        <div class="page-header">
+          <div>
+            <h2>Batch tahlil</h2>
+            <div class="subtitle">JSON fayllarni AI orqali tahlil qilish</div>
+          </div>
+        </div>
+
+        <div class="page-body">
+          <div class="grid-2 responsive-grid">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Konfiguratsiya</div></div>
+
+              <div class="field">
+                <label>Ma’lumot manbasi</label>
+                <select class="select" id="batch-source">
+                  <option value="batch">batch_30.json — demo batch</option>
+                  <option value="seed">seed_1600.json — asosiy dataset</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Limit</label>
+                <input class="input" id="batch-limit" type="number" value="30" min="1" max="200" />
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-primary" id="process-btn" onclick="processBatch()">
+                  <i data-lucide="zap"></i> Batchni tahlil qilish
+                </button>
+                <button class="btn btn-secondary" onclick="previewSource()">
+                  <i data-lucide="eye"></i> Ko‘rish
+                </button>
+              </div>
+            </div>
+
+            <div class="card" id="batch-status-card">
+              <div class="card-header"><div class="card-title">Holat</div></div>
+              <div id="batch-status"><div class="text-muted text-sm">Batch ishlamayapti</div></div>
+            </div>
+          </div>
+
+          <div class="card mt-3" id="source-preview" style="display:none">
+            <div class="card-header">
+              <div class="card-title" id="preview-title">Manba ko‘rinishi</div>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('source-preview').style.display='none'">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+            <div id="preview-items"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Test -->
+      <section class="page" id="page-test">
+        <div class="page-header">
+          <div>
+            <h2>Test tahlil</h2>
+            <div class="subtitle">Jury uchun custom feedback tekshirish oynasi</div>
+          </div>
+        </div>
+
+        <div class="page-body">
+          <div class="grid-2 responsive-grid">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Fikr-mulohaza kiritish</div>
+                <button class="btn btn-ghost btn-sm" onclick="generateRandomContext()">
+                  <i data-lucide="shuffle"></i> Tasodifiy kontekst
+                </button>
+              </div>
+
+              <div class="field">
+                <label>Fikr matni <span class="required">*</span></label>
+                <textarea class="textarea" id="test-text" placeholder="Talaba fikrini o‘zbek, rus yoki ingliz tilida kiriting..."></textarea>
+              </div>
+
+              <div class="grid-2 form-grid">
                 <div class="field">
                   <label>Feedback ID</label>
-                  <input class="input" id="test-fid" type="text" placeholder="custom-001">
+                  <input class="input" id="test-fid" type="text" placeholder="custom-001" />
                 </div>
                 <div class="field">
-                  <label>Rating (1–5)</label>
-                  <input class="input" id="test-rating" type="number" min="1" max="5" value="3">
-                </div>
-              </div>
-              <div class="grid-2">
-                <div class="field">
-                  <label>Course ID</label>
-                  <input class="input" id="test-course" type="text" value="CS-101">
-                </div>
-                <div class="field">
-                  <label>Teacher ID</label>
-                  <input class="input" id="test-teacher" type="text" value="T-01">
+                  <label>Baho</label>
+                  <input class="input" id="test-rating" type="number" min="1" max="5" value="3" />
                 </div>
               </div>
-              <div class="grid-2">
+
+              <div class="grid-2 form-grid">
                 <div class="field">
-                  <label>Teacher Name</label>
-                  <input class="input" id="test-tname" type="text" value="Aziz Karimov">
+                  <label>Fan ID</label>
+                  <input class="input" id="test-course" type="text" value="CS-101" />
                 </div>
                 <div class="field">
-                  <label>Course Name</label>
-                  <input class="input" id="test-cname" type="text" value="Calculus I">
+                  <label>O‘qituvchi ID</label>
+                  <input class="input" id="test-teacher" type="text" value="T-01" />
                 </div>
               </div>
-              <div class="grid-2">
+
+              <div class="grid-2 form-grid">
                 <div class="field">
-                  <label>Department</label>
-                  <input class="input" id="test-dept" type="text" value="Computer Science">
+                  <label>O‘qituvchi ismi</label>
+                  <input class="input" id="test-tname" type="text" value="Aziz Karimov" />
+                </div>
+                <div class="field">
+                  <label>Fan nomi</label>
+                  <input class="input" id="test-cname" type="text" value="Calculus I" />
+                </div>
+              </div>
+
+              <div class="grid-2 form-grid">
+                <div class="field">
+                  <label>Kafedra</label>
+                  <input class="input" id="test-dept" type="text" value="Computer Science" />
                 </div>
                 <div class="field">
                   <label>GPA</label>
-                  <input class="input" id="test-gpa" type="number" step="0.1" value="3.5">
+                  <input class="input" id="test-gpa" type="number" step="0.1" value="3.5" />
                 </div>
               </div>
-              <div class="grid-2">
+
+              <div class="grid-2 form-grid">
                 <div class="field">
-                  <label>Attendance</label>
-                  <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.85">
+                  <label>Davomat</label>
+                  <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.85" />
                 </div>
                 <div class="field">
-                  <label>Channel</label>
+                  <label>Kanal</label>
                   <select class="select" id="test-channel">
                     <option value="jury_test_form">Jury Test</option>
                     <option value="end_course_survey">End Survey</option>
@@ -329,125 +489,163 @@
                   </select>
                 </div>
               </div>
-              <button class="btn btn-primary" style="width:100%" id="analyze-btn" onclick="analyzeCustom()">🔍 Analyze Feedback</button>
+
+              <button class="btn btn-primary full-width" id="analyze-btn" onclick="analyzeCustom()">
+                <i data-lucide="search-check"></i> Fikrni tahlil qilish
+              </button>
+            </div>
+
+            <div id="test-result-panel">
+              <div class="empty-state card"><div class="empty-icon"></div><p>Tahlil natijasi shu yerda chiqadi</p></div>
             </div>
           </div>
-          <div id="test-result-panel">
-            <div class="empty-state card"><div class="icon">🧪</div><p>Analysis result will appear here</p></div>
+        </div>
+      </section>
+
+      <!-- Simulation -->
+      <section class="page" id="page-simulate">
+        <div class="page-header">
+          <div>
+            <h2>Simulyatsiya</h2>
+            <div class="subtitle">Demo uchun vaqtinchalik feedback obyektlari</div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ── SIMULATION ────────────────────────────────────────────────────── -->
-    <div class="page" id="page-simulate">
-      <div class="page-header"><div><h2>Simulation</h2><div class="subtitle">Generate synthetic feedback for demo purposes</div></div></div>
-      <div class="page-body">
-        <div class="grid-2" style="gap:1rem;align-items:start">
-          <div class="card">
-            <div class="card-header"><div class="card-title">Generator Settings</div></div>
-            <div class="field">
-              <label>Count</label>
-              <input class="input" id="sim-count" type="number" min="1" max="50" value="10">
+        <div class="page-body">
+          <div class="grid-2 responsive-grid">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Generator sozlamalari</div></div>
+
+              <div class="field">
+                <label>Soni</label>
+                <input class="input" id="sim-count" type="number" min="1" max="50" value="10" />
+              </div>
+
+              <div class="field">
+                <label>Sentiment turi</label>
+                <select class="select" id="sim-sentiment">
+                  <option value="mixed">Mixed</option>
+                  <option value="positive">Mostly Positive</option>
+                  <option value="negative">Mostly Negative</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Muammo mavzusi</label>
+                <select class="select" id="sim-theme">
+                  <option value="mixed">Mixed</option>
+                  <option value="teaching_style">Teaching Style</option>
+                  <option value="assessment">Assessment</option>
+                  <option value="technical_issue">Technical Issues</option>
+                  <option value="content_quality">Content Quality</option>
+                </select>
+              </div>
+
+              <div class="action-row">
+                <button class="btn btn-primary" onclick="generateSim()">
+                  <i data-lucide="bot"></i> Generate
+                </button>
+                <button class="btn btn-secondary" id="analyze-sim-btn" style="display:none" onclick="analyzeSim()">
+                  <i data-lucide="zap"></i> Analyze All
+                </button>
+              </div>
             </div>
-            <div class="field">
-              <label>Sentiment Style</label>
-              <select class="select" id="sim-sentiment">
-                <option value="mixed">Mixed</option>
-                <option value="positive">Mostly Positive</option>
-                <option value="negative">Mostly Negative</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Issue Theme</label>
-              <select class="select" id="sim-theme">
-                <option value="mixed">Mixed</option>
-                <option value="teaching_style">Teaching Style</option>
-                <option value="assessment">Assessment</option>
-                <option value="technical_issue">Technical Issues</option>
-                <option value="content_quality">Content Quality</option>
-              </select>
-            </div>
-            <div style="display:flex;gap:.5rem">
-              <button class="btn btn-primary" onclick="generateSim()">🤖 Generate</button>
-              <button class="btn btn-secondary" id="analyze-sim-btn" style="display:none" onclick="analyzeSim()">⚡ Analyze All</button>
+
+            <div id="sim-result-panel">
+              <div class="empty-state card"><div class="empty-icon"></div><p>Generated feedbacks will appear here</p></div>
             </div>
           </div>
-          <div id="sim-result-panel">
-            <div class="empty-state card"><div class="icon">🤖</div><p>Generated feedbacks will appear here</p></div>
+
+          <div id="sim-items-panel" style="display:none" class="mt-3"></div>
+        </div>
+      </section>
+
+      <!-- Logs -->
+      <section class="page" id="page-logs">
+        <div class="page-header">
+          <div>
+            <h2>Tizim loglari</h2>
+            <div class="subtitle">Vaqt belgili faoliyat jurnali</div>
+          </div>
+
+          <div class="action-row">
+            <select class="select topbar-select" id="log-level-filter">
+              <option value="">All</option>
+              <option value="INFO">INFO</option>
+              <option value="WARN">WARN</option>
+              <option value="ERROR">ERROR</option>
+            </select>
+
+            <button class="btn btn-secondary btn-sm" onclick="loadLogs()">
+              <i data-lucide="refresh-cw"></i> Yangilash
+            </button>
           </div>
         </div>
-        <div id="sim-items-panel" style="display:none" class="mt-3"></div>
-      </div>
-    </div>
 
-    <!-- ── LOGS ──────────────────────────────────────────────────────────── -->
-    <div class="page" id="page-logs">
-      <div class="page-header">
-        <div><h2>System Logs</h2><div class="subtitle">Timestamped activity log</div></div>
-        <div style="display:flex;gap:.5rem">
-          <select class="select" id="log-level-filter" style="height:34px;width:100px">
-            <option value="">All</option>
-            <option value="INFO">INFO</option>
-            <option value="WARN">WARN</option>
-            <option value="ERROR">ERROR</option>
-          </select>
-          <button class="btn btn-secondary btn-sm" onclick="loadLogs()">↺ Refresh</button>
-        </div>
-      </div>
-      <div class="page-body">
-        <div class="card" style="padding:.75rem">
-          <div id="logs-list"><div class="text-muted text-sm">Loading logs…</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SETTINGS ──────────────────────────────────────────────────────── -->
-    <div class="page" id="page-settings">
-      <div class="page-header"><div><h2>Settings</h2><div class="subtitle">System configuration and demo controls</div></div></div>
-      <div class="page-body">
-        <div class="grid-2" style="gap:1rem;align-items:start">
-          <div class="card">
-            <div class="card-header"><div class="card-title">System Info</div></div>
-            <div id="health-info"><div class="text-muted text-sm">Loading…</div></div>
-          </div>
-          <div class="card">
-            <div class="card-header"><div class="card-title">Demo Controls</div></div>
-            <p class="text-sm text-muted mb-3">Reset will clear all processed results. Seed and batch files are preserved.</p>
-            <button class="btn btn-danger" onclick="resetDemo()">🗑 Reset Demo State</button>
+        <div class="page-body">
+          <div class="card compact-card">
+            <div id="logs-list"><div class="text-muted text-sm">Yuklanmoqda...</div></div>
           </div>
         </div>
-        <div class="card mt-3">
-          <div class="card-header"><div class="card-title">Environment Variables</div></div>
-          <table style="font-size:.75rem">
-            <tbody>
-              <tr><td style="color:var(--text-3);padding:.4rem .5rem">AI_PROVIDER</td><td id="s-provider">—</td></tr>
-              <tr><td style="color:var(--text-3);padding:.4rem .5rem">GOOGLE_CLOUD_PROJECT</td><td id="s-project">—</td></tr>
-              <tr><td style="color:var(--text-3);padding:.4rem .5rem">VERTEX_MODEL</td><td id="s-model">—</td></tr>
-              <tr><td style="color:var(--text-3);padding:.4rem .5rem">Processed Records</td><td id="s-count">—</td></tr>
-            </tbody>
-          </table>
+      </section>
+
+      <!-- Settings -->
+      <section class="page" id="page-settings">
+        <div class="page-header">
+          <div>
+            <h2>Sozlamalar</h2>
+            <div class="subtitle">Tizim holati va demo boshqaruvi</div>
+          </div>
         </div>
-      </div>
-    </div>
 
-  </div><!-- /main-content -->
-</div><!-- /app -->
+        <div class="page-body">
+          <div class="grid-2 responsive-grid">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Runtime</div></div>
+              <div class="stat-row"><span class="stat-label">Provider</span><span class="stat-val" id="s-provider">—</span></div>
+              <div class="stat-row"><span class="stat-label">Project</span><span class="stat-val" id="s-project">—</span></div>
+              <div class="stat-row"><span class="stat-label">Model</span><span class="stat-val" id="s-model">—</span></div>
+              <div class="stat-row"><span class="stat-label">Processed</span><span class="stat-val" id="s-count">—</span></div>
+            </div>
 
-<!-- ── Toast Container ──────────────────────────────────────────────────── -->
-<div id="toast-container"></div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Demo Control</div></div>
+              <button class="btn btn-danger" onclick="resetDemo()">
+                <i data-lucide="trash-2"></i> Reset Demo State
+              </button>
+              <p class="text-muted text-sm mt-3">Processed results and dashboard state will be cleared. Source JSON files remain unchanged.</p>
+            </div>
+          </div>
 
-<!-- ── Record Detail Modal ──────────────────────────────────────────────── -->
-<div class="modal-overlay" id="record-modal" style="display:none" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-title">Record Detail</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
+          <div class="card mt-3">
+            <div class="card-header"><div class="card-title">Health</div></div>
+            <div id="health-info"><div class="text-muted">—</div></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
-</div>
 
-<script src="/static/app.js"></script>
+  <!-- Record Modal -->
+  <div class="modal-overlay" id="record-modal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Record</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 500);
+    });
+  </script>
 </body>
 </html>
