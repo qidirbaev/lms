@@ -353,51 +353,153 @@
       </section>
 
       <!-- Batch -->
+      <!-- Batch -->
       <section class="page" id="page-batch">
         <div class="page-header">
           <div>
             <h2>Batch tahlil</h2>
-            <div class="subtitle">JSON fayllarni AI orqali tahlil qilish</div>
+            <div class="subtitle">JSON datasetlarni yuklash, mapping qilish, validatsiya qilish va AI orqali ommaviy tahlil qilish</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="previewSource()">
+              <i data-lucide="eye"></i> Source preview
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('records')">
+              <i data-lucide="database"></i> Processed records
+            </button>
           </div>
         </div>
 
-        <div class="page-body">
-          <div class="grid-2 responsive-grid">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Konfiguratsiya</div></div>
+        <div class="page-body batch-lab">
+
+          <div class="batch-hero card">
+            <div>
+              <div class="eyebrow">BATCH OPERATIONS CENTER</div>
+              <h3>Feedback dataset ingestion pipeline</h3>
+              <p>
+                Fayl yuklanadi → schema tekshiriladi → flat/raw obyektlar inputToSystem ga mapping qilinadi →
+                batch AI tahlil bajariladi → dashboard avtomatik yangilanadi.
+              </p>
+            </div>
+
+            <div class="batch-pipeline">
+              <div class="batch-pipeline-node active"><i data-lucide="upload-cloud"></i><span>Upload</span></div>
+              <div class="batch-pipeline-line"></div>
+              <div class="batch-pipeline-node active"><i data-lucide="scan-search"></i><span>Validate</span></div>
+              <div class="batch-pipeline-line"></div>
+              <div class="batch-pipeline-node active"><i data-lucide="waypoints"></i><span>Map</span></div>
+              <div class="batch-pipeline-line"></div>
+              <div class="batch-pipeline-node active"><i data-lucide="brain-circuit"></i><span>AI Batch</span></div>
+            </div>
+          </div>
+
+          <div class="batch-main-grid">
+            <div class="card batch-upload-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Dataset source</div>
+                  <div class="text-muted text-sm">Demo fayl yoki o‘zingizning JSON faylingiz</div>
+                </div>
+                <span class="badge badge-outline">JSON only</span>
+              </div>
 
               <div class="field">
                 <label>Ma’lumot manbasi</label>
                 <select class="select" id="batch-source">
                   <option value="batch">batch_30.json — demo batch</option>
                   <option value="seed">seed_1600.json — asosiy dataset</option>
+                  <option value="uploaded">uploaded_batch.json — uploaded file</option>
                 </select>
               </div>
 
-              <div class="field">
-                <label>Limit</label>
-                <input class="input" id="batch-limit" type="number" value="30" min="1" max="200" />
+              <div class="batch-dropzone" id="batch-dropzone">
+                <input id="batch-file" type="file" accept=".json,application/json" hidden />
+                <div class="batch-drop-icon"><i data-lucide="file-up"></i></div>
+                <h4>JSON dataset upload</h4>
+                <p>inputToSystem array yoki flat object array yuklang. Tizim mapping va validatsiya qiladi.</p>
+                <button class="btn btn-secondary btn-sm" type="button" onclick="$('batch-file').click()">
+                  <i data-lucide="folder-open"></i> Fayl tanlash
+                </button>
+                <div class="text-muted text-sm mt-3" id="batch-file-name">Fayl tanlanmagan</div>
               </div>
 
-              <div class="action-row">
+              <div class="field mt-3">
+                <label>Limit</label>
+                <input class="input" id="batch-limit" type="number" value="30" min="1" max="1000" />
+              </div>
+
+              <div class="batch-options-grid">
+                <label class="batch-check">
+                  <input type="checkbox" id="batch-auto-preview" checked />
+                  <span>Uploaddan keyin preview</span>
+                </label>
+                <label class="batch-check">
+                  <input type="checkbox" id="batch-switch-uploaded" checked />
+                  <span>Uploaded sourcega o‘tish</span>
+                </label>
+              </div>
+
+              <div class="action-row mt-3">
+                <button class="btn btn-secondary" id="upload-btn" onclick="uploadBatchFile()">
+                  <i data-lucide="upload-cloud"></i> Upload + Validate
+                </button>
                 <button class="btn btn-primary" id="process-btn" onclick="processBatch()">
                   <i data-lucide="zap"></i> Batchni tahlil qilish
-                </button>
-                <button class="btn btn-secondary" onclick="previewSource()">
-                  <i data-lucide="eye"></i> Ko‘rish
                 </button>
               </div>
             </div>
 
-            <div class="card" id="batch-status-card">
-              <div class="card-header"><div class="card-title">Holat</div></div>
-              <div id="batch-status"><div class="text-muted text-sm">Batch ishlamayapti</div></div>
+            <div class="card batch-status-card" id="batch-status-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Mission status</div>
+                  <div class="text-muted text-sm">Ingestion + AI processing holati</div>
+                </div>
+              </div>
+
+              <div id="batch-status">
+                <div class="batch-idle">
+                  <i data-lucide="radar"></i>
+                  <h4>Batch pipeline kutish rejimida</h4>
+                  <p>Fayl yuklang yoki demo source tanlab batch tahlilni boshlang.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="batch-intel-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Schema diagnostics</div>
+                  <div class="text-muted text-sm">Structure checking, mapping and quality signals</div>
+                </div>
+              </div>
+              <div id="batch-schema-panel">
+                <div class="text-muted text-sm">Upload qilingandan keyin validatsiya signallari chiqadi.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Processing intelligence</div>
+                  <div class="text-muted text-sm">Success/failure/fallback va throughput indikatorlari</div>
+                </div>
+              </div>
+              <div id="batch-intel-panel">
+                <div class="text-muted text-sm">Batch tugagandan keyin indikatorlar chiqadi.</div>
+              </div>
             </div>
           </div>
 
           <div class="card mt-3" id="source-preview" style="display:none">
             <div class="card-header">
-              <div class="card-title" id="preview-title">Manba ko‘rinishi</div>
+              <div>
+                <div class="card-title" id="preview-title">Manba ko‘rinishi</div>
+                <div class="text-muted text-sm">Birinchi yozuvlar va mapping natijasi</div>
+              </div>
               <button class="btn btn-ghost btn-sm" onclick="document.getElementById('source-preview').style.display='none'">
                 <i data-lucide="x"></i>
               </button>

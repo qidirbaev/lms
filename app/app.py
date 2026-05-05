@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import os
 
-from fastapi import FastAPI, HTTPException, Header, Request
+from fastapi import FastAPI, HTTPException, Header, Request, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -165,6 +165,59 @@ def get_keywords(authorization: str = Header(default=None)):
 
 
 # ─── Feedbacks ───────────────────────────────────────────────────────────────
+
+@app.post("/upload-feedbacks")
+async def upload_feedbacks(file: UploadFile = File(...), authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    if not file.filename.lower().endswith(".json"):
+        raise HTTPException(status_code=400, detail="Only .json files are supported in MVP")
+
+    try:
+        raw = await file.read()
+        text = raw.decode("utf-8")
+        data = json.loads(text)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON file: {e}")
+
+    if isinstance(data, dict):
+        # Support common wrappers
+        if isinstance(data.get("items"), list):
+            data = data["items"]
+        elif isinstance(data.get("feedbacks"), list):
+            data = data["feedbacks"]
+        elif isinstance(data.get("data"), list):
+            data = data["data"]
+        else:
+            data = [data]
+
+    if not isinstance(data, list):
+        raise HTTPException(status_code=400, detail="JSON must be an array or object wrapper with items/feedbacks/data")
+
+    result = data_service.save_uploaded_source(data, file.filename)
+
+    return {
+        "success": True,
+        "source": "uploaded",
+        "filename": result["filename"],
+        "total_received": result["total_received"],
+        "valid_count": result["valid_count"],
+        "error_count": result["error_count"],
+        "warning_count": result["warning_count"],
+        "errors": result["errors"],
+        "warnings": result["warnings"],
+        "preview": [
+            {
+                "index": i,
+                "feedback_id": item.get("feedback_id"),
+                "raw_text": item.get("content", {}).get("raw_text", "")[:220],
+                "rating": item.get("content", {}).get("rating"),
+                "course_id": item.get("metadata", {}).get("course_id"),
+                "teacher_id": item.get("metadata", {}).get("teacher_id"),
+            }
+            for i, item in enumerate(result["items"][:10])
+        ],
+    }
 
 @app.get("/feedbacks/{source}")
 def get_feedbacks(source: str, limit: int = 50, authorization: str = Header(default=None)):

@@ -2260,20 +2260,116 @@ function closeModal() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Batch processing
+// Batch Operations Center
 // ─────────────────────────────────────────────────────────────
 
-async function previewSource() {
-  try {
-    const src = $('batch-source').value;
-    const d = await api(`/feedbacks/${src}?limit=10`);
+function batchSourceLabel(src) {
+  const map = {
+    batch: 'batch_30.json',
+    seed: 'seed_1600.json',
+    uploaded: 'uploaded_batch.json'
+  };
+  return map[src] || src;
+}
 
-    $('preview-title').textContent = `${src === 'seed' ? 'seed_1600.json' : 'batch_30.json'} · ${d.total} records`;
-    $('preview-items').innerHTML = recordsPreview(d.items || []);
-    $('source-preview').style.display = 'block';
-  } catch (e) {
-    toast(e.message, 'error');
-  }
+function renderBatchSchemaPanel(result) {
+  const valid = Number(result.valid_count || 0);
+  const errors = Number(result.error_count || 0);
+  const warnings = Number(result.warning_count || 0);
+  const total = Number(result.total_received || 0);
+  const validity = total ? Math.round((valid / total) * 100) : 0;
+
+  const cls = errors ? 'critical' : warnings ? 'warning' : 'positive';
+
+  $('batch-schema-panel').innerHTML = `
+    <div class="batch-schema-score ${cls}">
+      <div>
+        <span>Schema readiness</span>
+        <b>${validity}%</b>
+        <small>${valid}/${total} valid objects</small>
+      </div>
+      <i data-lucide="${errors ? 'circle-alert' : warnings ? 'triangle-alert' : 'badge-check'}"></i>
+    </div>
+
+    <div class="batch-schema-grid mt-3">
+      ${kpi('Received', total, 'raw records')}
+      ${kpi('Valid', valid, 'processable')}
+      ${kpi('Warnings', warnings, 'auto mapped')}
+      ${kpi('Errors', errors, 'rejected')}
+    </div>
+
+    <div class="batch-validation-list mt-3">
+      ${(result.warnings || []).slice(0, 8).map(w => `
+        <div class="batch-validation-row warning">
+          <b>#${w.index}</b>
+          <span>${esc(w.warning)}</span>
+        </div>
+      `).join('')}
+
+      ${(result.errors || []).slice(0, 8).map(e => `
+        <div class="batch-validation-row critical">
+          <b>#${e.index}</b>
+          <span>${esc(e.error)}</span>
+        </div>
+      `).join('')}
+
+      ${(!warnings && !errors) ? `
+        <div class="batch-validation-row positive">
+          <b>OK</b>
+          <span>Dataset inputToSystem schema bilan mos.</span>
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderBatchIntelPanel(d) {
+  const total = Number(d.total_requested || 0);
+  const success = Number(d.success || 0);
+  const failed = Number(d.failed || 0);
+  const fallback = Number(d.fallback_used || 0);
+  const duration = Number(d.duration_seconds || 0);
+  const successRate = total ? Math.round((success / total) * 100) : 0;
+  const throughput = duration ? (success / duration).toFixed(2) : '—';
+
+  const cls = failed ? 'critical' : fallback ? 'warning' : 'positive';
+
+  $('batch-intel-panel').innerHTML = `
+    <div class="batch-intel-score ${cls}">
+      <div>
+        <span>Batch completion</span>
+        <b>${successRate}%</b>
+        <small>${success}/${total} processed</small>
+      </div>
+      <i data-lucide="${failed ? 'circle-x' : fallback ? 'triangle-alert' : 'badge-check'}"></i>
+    </div>
+
+    <div class="batch-schema-grid mt-3">
+      ${kpi(t('success'), success, 'AI outputs')}
+      ${kpi(t('failed'), failed, 'processing errors')}
+      ${kpi(t('fallback'), fallback, 'mock fallback')}
+      ${kpi('Throughput', throughput, 'items/sec')}
+    </div>
+
+    <div class="batch-timeline mt-3">
+      <div class="batch-timeline-step positive">
+        <i data-lucide="database"></i>
+        <div><b>Loaded</b><span>${total} records selected</span></div>
+      </div>
+      <div class="batch-timeline-step ${success ? 'positive' : 'neutral'}">
+        <i data-lucide="brain-circuit"></i>
+        <div><b>AI analyzed</b><span>${success} outputs generated</span></div>
+      </div>
+      <div class="batch-timeline-step ${failed ? 'critical' : 'positive'}">
+        <i data-lucide="${failed ? 'circle-alert' : 'badge-check'}"></i>
+        <div><b>Finalized</b><span>${duration}s total duration</span></div>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function recordsPreview(items) {
@@ -2291,46 +2387,223 @@ function recordsPreview(items) {
   return table(['#', t('id'), t('course'), t('teacher'), t('text'), t('status')], rows);
 }
 
+function uploadPreview(items) {
+  const rows = (items || []).map(x => `
+    <tr>
+      <td>${x.index}</td>
+      <td>${esc(x.feedback_id)}</td>
+      <td>${esc(x.course_id || '')}</td>
+      <td>${esc(x.teacher_id || '')}</td>
+      <td>${esc(x.rating || '')}</td>
+      <td>${esc(x.raw_text || '')}</td>
+    </tr>
+  `);
+
+  return table(['#', t('id'), t('course'), t('teacher'), 'Rating', t('text')], rows);
+}
+
+async function uploadBatchFile() {
+  const input = $('batch-file');
+  const btn = $('upload-btn');
+  const status = $('batch-status');
+
+  if (!input || !input.files || !input.files.length) {
+    toast('JSON fayl tanlang', 'error');
+    return;
+  }
+
+  const file = input.files[0];
+
+  btn.disabled = true;
+  status.innerHTML = `
+    <div class="batch-processing">
+      <div class="processing-orb"></div>
+      <div>
+        <div class="eyebrow">INGESTION RUNNING</div>
+        <h4>Dataset validatsiya qilinmoqda</h4>
+        <p>JSON parsing, schema checking va inputToSystem mapping bajarilmoqda...</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+
+    const headers = {};
+    if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+    const base = API_BASE.replace(/\/$/, '');
+    const res = await fetch(`${base}/upload-feedbacks`, {
+      method: 'POST',
+      headers,
+      body: form
+    });
+
+    const d = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(d.detail || d.message || `HTTP ${res.status}`);
+    }
+
+    renderBatchSchemaPanel(d);
+
+    status.innerHTML = `
+      <div class="batch-success-card">
+        <i data-lucide="badge-check"></i>
+        <div>
+          <h4>Upload + mapping yakunlandi</h4>
+          <p>${d.valid_count}/${d.total_received} yozuv AI batch uchun tayyor.</p>
+        </div>
+      </div>
+    `;
+
+    $('preview-title').textContent = `${d.filename} · ${d.valid_count} valid / ${d.total_received} received`;
+    $('preview-items').innerHTML = uploadPreview(d.preview || []);
+    $('source-preview').style.display = 'block';
+
+    if ($('batch-switch-uploaded')?.checked) {
+      $('batch-source').value = 'uploaded';
+      $('batch-limit').value = Math.min(d.valid_count || 30, 1000);
+    }
+
+    toast('Dataset upload va mapping yakunlandi', 'success');
+  } catch (e) {
+    status.innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+async function previewSource() {
+  try {
+    const src = $('batch-source').value;
+    const d = await api(`/feedbacks/${src}?limit=10`);
+
+    $('preview-title').textContent = `${batchSourceLabel(src)} · ${d.total} records`;
+    $('preview-items').innerHTML = recordsPreview(d.items || []);
+    $('source-preview').style.display = 'block';
+
+    $('batch-schema-panel').innerHTML = `
+      <div class="batch-schema-score positive">
+        <div>
+          <span>Source available</span>
+          <b>${d.total}</b>
+          <small>${batchSourceLabel(src)}</small>
+        </div>
+        <i data-lucide="database"></i>
+      </div>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
 async function processBatch() {
   const btn = $('process-btn');
   const status = $('batch-status');
 
   btn.disabled = true;
-  status.innerHTML = `<div class="spinner"></div> ${esc(t('processing_batch'))}`;
+  status.innerHTML = `
+    <div class="batch-processing">
+      <div class="processing-orb"></div>
+      <div>
+        <div class="eyebrow">AI BATCH RUNNING</div>
+        <h4>Feedbacklar Vertex AI orqali tahlil qilinmoqda</h4>
+        <p>Har bir feedback uchun sentiment, issue, risk, severity, summary va recommendation olinmoqda...</p>
+      </div>
+    </div>
+  `;
 
   try {
     const start = Date.now();
+    const source = $('batch-source').value;
+    const limit = Number($('batch-limit').value || 30);
 
     const d = await api('/process-batch', {
       method: 'POST',
-      body: JSON.stringify({
-        source: $('batch-source').value,
-        limit: Number($('batch-limit').value || 30)
-      })
+      body: JSON.stringify({ source, limit })
     });
 
     state.dashboard = d.dashboard;
 
     status.innerHTML = `
-      <div class="kpi-grid">
-        ${kpi(t('requested'), d.total_requested)}
-        ${kpi(t('success'), d.success)}
-        ${kpi(t('failed'), d.failed)}
-        ${kpi(t('fallback'), d.fallback_used)}
-        ${kpi(t('duration'), `${d.duration_seconds}s`)}
+      <div class="batch-complete-card">
+        <div class="batch-complete-orb">
+          <span>${d.success}</span>
+          <small>processed</small>
+        </div>
+        <div>
+          <div class="eyebrow">BATCH COMPLETE</div>
+          <h4>${batchSourceLabel(source)} tahlil qilindi</h4>
+          <p>${d.success} success · ${d.failed} failed · ${d.fallback_used} fallback · ${d.duration_seconds}s</p>
+        </div>
       </div>
-      <div class="progress-wrap"><div class="progress-bar" style="width:100%"></div></div>
+      <div class="progress-wrap mt-3"><div class="progress-bar" style="width:100%"></div></div>
     `;
 
+    renderBatchIntelPanel(d);
     renderDashboard();
+
     toast(`${t('batch_complete')}: ${Math.round((Date.now() - start) / 1000)}s`, 'success');
   } catch (e) {
     status.innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
     btn.disabled = false;
+    if (window.lucide) lucide.createIcons();
   }
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const fileInput = $('batch-file');
+    const dropzone = $('batch-dropzone');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        safeEl('batch-file-name', el => {
+          el.textContent = file ? `${file.name} · ${Math.round(file.size / 1024)} KB` : 'Fayl tanlanmagan';
+        });
+
+        if ($('batch-auto-preview')?.checked && file) {
+          uploadBatchFile();
+        }
+      });
+    }
+
+    if (dropzone) {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, e => {
+          e.preventDefault();
+          dropzone.classList.add('dragging');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, e => {
+          e.preventDefault();
+          dropzone.classList.remove('dragging');
+        });
+      });
+
+      dropzone.addEventListener('drop', e => {
+        const file = e.dataTransfer.files?.[0];
+        if (!file || !fileInput) return;
+
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change'));
+      });
+    }
+  }, 600);
+});
 
 // ─────────────────────────────────────────────────────────────
 // Custom test analysis
