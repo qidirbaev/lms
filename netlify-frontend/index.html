@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/static/style.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 
 <body>
@@ -1082,8 +1082,10 @@
   <script src="/static/app.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) lucide.createIcons();
-      setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 500);
+      if (window.renderIcons) {
+        renderIcons();
+        setTimeout(renderIcons, 500);
+      }
     });
   </script>
 </body>

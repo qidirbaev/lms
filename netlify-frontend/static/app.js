@@ -16,6 +16,19 @@ const API_BASE =
   window.LMS_API_BASE ||
   'https://begzatkidirbaev-lms.hf.space';
 
+function renderIcons() {
+  if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
+    console.warn('Lucide icons library is not loaded');
+    return;
+  }
+
+  window.lucide.createIcons({
+    attrs: {
+      'stroke-width': 2
+    }
+  });
+}
+
 let state = {
   token: localStorage.getItem('lms_token') || '',
   dashboard: null,
@@ -673,6 +686,8 @@ function showPage(page) {
     if (el) el.classList.toggle('active', p === page);
   });
 
+  renderIcons();
+
   if (page === 'records') loadRecords();
   if (page === 'logs') loadLogs();
   if (page === 'settings') health();
@@ -1084,7 +1099,7 @@ function renderOverview() {
   `;
 
   drawCharts();
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function moodHealthClass(score) {
@@ -1340,7 +1355,7 @@ function renderMood() {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function renderCourses() {
@@ -1527,7 +1542,7 @@ function renderTrends() {
   `;
 
   drawCharts();
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function issueImpactClass(item) {
@@ -1727,7 +1742,7 @@ function renderIssues() {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function renderRisks() {
@@ -1950,7 +1965,7 @@ function focusKeyword(keyword) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function renderKeywords() {
@@ -2048,7 +2063,7 @@ function renderKeywords() {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 
   enrichKeywordsFromRecords(baseHot).then(hot => {
     const negative = hot.filter(x => (x.negative || 0) > (x.positive || 0));
@@ -2326,7 +2341,7 @@ function renderBatchSchemaPanel(result) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function renderBatchIntelPanel(d) {
@@ -2373,7 +2388,7 @@ function renderBatchIntelPanel(d) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function recordsPreview(items) {
@@ -2477,7 +2492,7 @@ async function uploadBatchFile() {
     toast(e.message, 'error');
   } finally {
     btn.disabled = false;
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -2501,7 +2516,7 @@ async function previewSource() {
       </div>
     `;
 
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -2559,7 +2574,7 @@ async function processBatch() {
     toast(e.message, 'error');
   } finally {
     btn.disabled = false;
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -2944,7 +2959,7 @@ function renderTestResult(d) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 async function analyzeCustom() {
@@ -3007,7 +3022,7 @@ async function analyzeCustom() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<i data-lucide="search-check"></i> AI orqali tahlil qilish`;
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -3174,7 +3189,7 @@ function renderSimulationIntel(items, config = {}) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 function renderSimCards(items) {
@@ -3289,7 +3304,7 @@ function renderSimAnalysisReport(d) {
     </div>
   `;
 
-  if (window.lucide) lucide.createIcons();
+  renderIcons();
 }
 
 async function generateSim() {
@@ -3361,7 +3376,7 @@ async function generateSim() {
       btn.disabled = false;
       btn.innerHTML = `<i data-lucide="bot"></i> Generate scenario`;
     }
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -3407,7 +3422,7 @@ async function analyzeSim() {
       btn.disabled = false;
       btn.innerHTML = `<i data-lucide="zap"></i> Analyze with AI`;
     }
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -3452,7 +3467,7 @@ async function loadIntegrationStatus() {
       </div>
     `;
 
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   } catch (e) {
     $('integration-status-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
@@ -3488,7 +3503,7 @@ async function createIntegrationToken() {
     $('integration-token-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
@@ -3557,7 +3572,7 @@ async function runIntegrationTest() {
     $('integration-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
-    if (window.lucide) lucide.createIcons();
+    renderIcons();
   }
 }
 
