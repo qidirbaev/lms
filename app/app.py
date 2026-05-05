@@ -45,7 +45,9 @@ app.add_middleware(
 )
 
 STATIC_DIR = config.STATIC_DIR
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ─── Auth helper ─────────────────────────────────────────────────────────────
 
@@ -62,7 +64,15 @@ def require_auth(authorization: str = Header(default=None)):
 
 @app.get("/")
 def index():
-    return FileResponse(STATIC_DIR / "index.html")
+    index_file = STATIC_DIR / "index.html"
+
+    if index_file.exists():
+        return FileResponse(index_file)
+
+    return {
+        "status": "backend_running",
+        "message": "Frontend is served from Netlify. Use API endpoints here."
+    }
 
 
 @app.get("/health")
