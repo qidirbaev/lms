@@ -412,15 +412,53 @@
         <div class="page-header">
           <div>
             <h2>Test tahlil</h2>
-            <div class="subtitle">Jury uchun custom feedback tekshirish oynasi</div>
+            <div class="subtitle">Jury uchun real vaqtli AI feedback diagnostika paneli</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="setTestExample('positive')">
+              <i data-lucide="thumbs-up"></i> Ijobiy namuna
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="setTestExample('negative')">
+              <i data-lucide="message-circle-warning"></i> Muammo namunasi
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="setTestExample('risk')">
+              <i data-lucide="shield-alert"></i> Xavf namunasi
+            </button>
           </div>
         </div>
 
-        <div class="page-body">
-          <div class="grid-2 responsive-grid">
-            <div class="card">
+        <div class="page-body test-lab">
+          <div class="test-hero card">
+            <div>
+              <div class="eyebrow">LIVE AI ANALYSIS</div>
+              <h3>Talaba fikrini real vaqt rejimida tahlil qilish</h3>
+              <p>
+                Matn kiritiladi → inputToSystem yaratiladi → inputToAI shakllanadi →
+                Vertex AI modeli tahlil qiladi → dashboard va indikatorlar yangilanadi.
+              </p>
+            </div>
+
+            <div class="test-pipeline">
+              <div class="pipeline-step active"><i data-lucide="keyboard"></i><span>Input</span></div>
+              <div class="pipeline-line"></div>
+              <div class="pipeline-step active"><i data-lucide="brain-circuit"></i><span>AI</span></div>
+              <div class="pipeline-line"></div>
+              <div class="pipeline-step active"><i data-lucide="activity"></i><span>Signals</span></div>
+              <div class="pipeline-line"></div>
+              <div class="pipeline-step active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
+            </div>
+          </div>
+
+          <div class="test-grid">
+            <!-- Input panel -->
+            <div class="card test-input-card">
               <div class="card-header">
-                <div class="card-title">Fikr-mulohaza kiritish</div>
+                <div>
+                  <div class="card-title">Fikr-mulohaza kiritish</div>
+                  <div class="text-muted text-sm">Asosiy maydon — talaba feedback matni</div>
+                </div>
+
                 <button class="btn btn-ghost btn-sm" onclick="generateRandomContext()">
                   <i data-lucide="shuffle"></i> Tasodifiy kontekst
                 </button>
@@ -428,58 +466,59 @@
 
               <div class="field">
                 <label>Fikr matni <span class="required">*</span></label>
-                <textarea class="textarea" id="test-text" placeholder="Talaba fikrini o‘zbek, rus yoki ingliz tilida kiriting..."></textarea>
+                <textarea
+                  class="textarea test-textarea"
+                  id="test-text"
+                  placeholder="Masalan: Domla darsni yaxshi tushuntiradi, lekin baholash mezonlari aniqroq bo‘lsa yaxshi bo‘lardi..."
+                ></textarea>
               </div>
 
-              <div class="grid-2 form-grid">
+              <div class="test-meta-grid">
                 <div class="field">
                   <label>Feedback ID</label>
                   <input class="input" id="test-fid" type="text" placeholder="custom-001" />
                 </div>
+
                 <div class="field">
                   <label>Baho</label>
                   <input class="input" id="test-rating" type="number" min="1" max="5" value="3" />
                 </div>
-              </div>
 
-              <div class="grid-2 form-grid">
                 <div class="field">
                   <label>Fan ID</label>
                   <input class="input" id="test-course" type="text" value="CS-101" />
                 </div>
-                <div class="field">
-                  <label>O‘qituvchi ID</label>
-                  <input class="input" id="test-teacher" type="text" value="T-01" />
-                </div>
-              </div>
 
-              <div class="grid-2 form-grid">
-                <div class="field">
-                  <label>O‘qituvchi ismi</label>
-                  <input class="input" id="test-tname" type="text" value="Aziz Karimov" />
-                </div>
                 <div class="field">
                   <label>Fan nomi</label>
                   <input class="input" id="test-cname" type="text" value="Calculus I" />
                 </div>
-              </div>
 
-              <div class="grid-2 form-grid">
+                <div class="field">
+                  <label>O‘qituvchi ID</label>
+                  <input class="input" id="test-teacher" type="text" value="T-01" />
+                </div>
+
+                <div class="field">
+                  <label>O‘qituvchi ismi</label>
+                  <input class="input" id="test-tname" type="text" value="Aziz Karimov" />
+                </div>
+
                 <div class="field">
                   <label>Kafedra</label>
                   <input class="input" id="test-dept" type="text" value="Computer Science" />
                 </div>
+
                 <div class="field">
                   <label>GPA</label>
                   <input class="input" id="test-gpa" type="number" step="0.1" value="3.5" />
                 </div>
-              </div>
 
-              <div class="grid-2 form-grid">
                 <div class="field">
                   <label>Davomat</label>
                   <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.85" />
                 </div>
+
                 <div class="field">
                   <label>Kanal</label>
                   <select class="select" id="test-channel">
@@ -490,13 +529,26 @@
                 </div>
               </div>
 
-              <button class="btn btn-primary full-width" id="analyze-btn" onclick="analyzeCustom()">
-                <i data-lucide="search-check"></i> Fikrni tahlil qilish
+              <button class="btn btn-primary full-width test-analyze-btn" id="analyze-btn" onclick="analyzeCustom()">
+                <i data-lucide="search-check"></i> AI orqali tahlil qilish
               </button>
+
+              <div class="test-note">
+                <i data-lucide="info"></i>
+                Natija nafaqat JSON ko‘rinishida, balki sentiment, xavf, jiddiylik, tavsiya va signal kartalari orqali ham ko‘rsatiladi.
+              </div>
             </div>
 
-            <div id="test-result-panel">
-              <div class="empty-state card"><div class="empty-icon"></div><p>Tahlil natijasi shu yerda chiqadi</p></div>
+            <!-- Result panel -->
+            <div id="test-result-panel" class="test-result-panel">
+              <div class="empty-state card test-empty">
+                <div class="empty-icon"></div>
+                <h3>Live AI natija shu yerda chiqadi</h3>
+                <p>
+                  Jury feedback yozadi va tizim darhol sentiment, xavf, emotsiya,
+                  muammo turi, tavsiya va strukturalangan JSON natijani ko‘rsatadi.
+                </p>
+              </div>
             </div>
           </div>
         </div>

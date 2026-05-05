@@ -1222,19 +1222,48 @@ async function processBatch() {
 // Custom test analysis
 // ─────────────────────────────────────────────────────────────
 
+function setTestExample(type) {
+  const examples = {
+    positive: {
+      text: "Domla darsni juda tushunarli va qiziqarli o‘tadi. Amaliy misollar ko‘p bo‘lgani uchun mavzuni yaxshi tushundim. Rahmat.",
+      rating: 5
+    },
+    negative: {
+      text: "Darslarda nazariya juda ko‘p, amaliy mashqlar kam. Ba’zi mavzular tez o‘tib ketilyapti va baholash mezonlari ham aniq emas.",
+      rating: 2
+    },
+    risk: {
+      text: "Baholashda adolatsizlik bor deb o‘ylayman. Ayrim talabalarga boshqacha munosabat qilinyapti, ballar nima asosda qo‘yilgani tushunarsiz.",
+      rating: 1
+    }
+  };
+
+  const selected = examples[type] || examples.negative;
+
+  $('test-text').value = selected.text;
+  $('test-rating').value = selected.rating;
+  generateRandomContext();
+
+  toast("Namuna yuklandi", "success");
+}
+
 function generateRandomContext() {
   const courses = [
     ['CS-101', 'Algorithms'],
     ['AM-201', 'Linear Algebra'],
     ['IT-202', 'Linux Systems'],
-    ['DS-202', 'Statistics for DS']
+    ['DS-202', 'Statistics for DS'],
+    ['AI-301', 'Artificial Intelligence'],
+    ['DB-204', 'Database Systems']
   ];
 
   const teachers = [
     ['T-01', 'Aziz Karimov'],
     ['T-07', 'Xasanova Zulfiya'],
     ['T-18', 'Nazarova Maftuna'],
-    ['T-09', 'Mirzayeva Feruza']
+    ['T-09', 'Mirzayeva Feruza'],
+    ['T-12', 'Rustamov Akmal'],
+    ['T-23', 'Saidova Madina']
   ];
 
   const c = courses[Math.floor(Math.random() * courses.length)];
@@ -1245,20 +1274,315 @@ function generateRandomContext() {
   $('test-cname').value = c[1];
   $('test-teacher').value = teacher[0];
   $('test-tname').value = teacher[1];
-  $('test-dept').value = ['Computer Science', 'Applied Mathematics', 'Information Technologies', 'Data Science'][Math.floor(Math.random() * 4)];
+  $('test-dept').value = [
+    'Computer Science',
+    'Applied Mathematics',
+    'Information Technologies',
+    'Data Science',
+    'Software Engineering'
+  ][Math.floor(Math.random() * 5)];
   $('test-gpa').value = (2.8 + Math.random() * 2.1).toFixed(1);
   $('test-att').value = (0.55 + Math.random() * 0.45).toFixed(2);
+
+  const channel = $('test-channel');
+  if (channel) channel.value = 'jury_test_form';
+}
+
+function pct(value) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(100, Math.round(n * 100)));
+}
+
+function sentimentScoreLabel(score) {
+  const p = pct(score);
+  if (p >= 70) return "Ijobiy signal";
+  if (p >= 45) return "Neytral signal";
+  return "Salbiy signal";
+}
+
+function severityRank(severity) {
+  const map = { low: 1, medium: 2, high: 3, critical: 4 };
+  return map[String(severity || '').toLowerCase()] || 1;
+}
+
+function severityText(severity) {
+  const map = {
+    low: "Past",
+    medium: "O‘rta",
+    high: "Yuqori",
+    critical: "Kritik"
+  };
+  return map[String(severity || '').toLowerCase()] || severity || "Past";
+}
+
+function actionHuman(action) {
+  const map = {
+    no_action_needed: "Harakat talab qilinmaydi",
+    monitor_pattern: "Patternni kuzatish",
+    follow_up_with_student: "Talaba bilan aniqlashtirish",
+    review_course_materials: "Materiallarni qayta ko‘rib chiqish",
+    provide_teacher_feedback: "O‘qituvchiga feedback berish",
+    escalate_to_department: "Kafedraga eskalatsiya qilish",
+    open_formal_review: "Rasmiy tekshiruv ochish",
+    check_for_policy_violation: "Siyosat buzilishini tekshirish",
+    request_more_context: "Qo‘shimcha kontekst so‘rash"
+  };
+  return map[action] || action || "Patternni kuzatish";
+}
+
+function signalClass(out) {
+  const severity = String(out.severity || '').toLowerCase();
+  const sentiment = String(out.sentiment || '').toLowerCase();
+  const riskProb = Number(out.risk?.probability || 0);
+
+  if (severity === 'critical' || riskProb >= 0.75) return 'critical';
+  if (severity === 'high' || riskProb >= 0.5) return 'high';
+  if (sentiment === 'negative') return 'negative';
+  if (sentiment === 'positive') return 'positive';
+  return 'neutral';
+}
+
+function signalTitle(out) {
+  const cls = signalClass(out);
+  const map = {
+    critical: "Kritik signal: inson tekshiruvi kerak",
+    high: "Yuqori signal: e’tibor talab qiladi",
+    negative: "Salbiy signal: monitoring kerak",
+    positive: "Ijobiy signal: tizim sog‘lom",
+    neutral: "Neytral signal: kuzatuv rejimi"
+  };
+  return map[cls];
+}
+
+function scoreBar(label, value, extra = '') {
+  const p = pct(value);
+  return `
+    <div class="score-row">
+      <div class="score-top">
+        <span>${esc(label)}</span>
+        <b>${p}%</b>
+      </div>
+      <div class="score-track">
+        <div class="score-fill" style="width:${p}%"></div>
+      </div>
+      ${extra ? `<div class="score-extra">${esc(extra)}</div>` : ''}
+    </div>
+  `;
+}
+
+function insightCard(iconName, label, value, sub = '', cls = '') {
+  return `
+    <div class="test-insight-card ${cls}">
+      <div class="test-insight-icon"><i data-lucide="${esc(iconName)}"></i></div>
+      <div>
+        <div class="test-insight-label">${esc(label)}</div>
+        <div class="test-insight-value">${esc(value)}</div>
+        ${sub ? `<div class="test-insight-sub">${esc(sub)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function chips(items, emptyText = 'Ma’lumot yo‘q') {
+  const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!arr.length) return `<span class="text-muted">${esc(emptyText)}</span>`;
+  return arr.map(x => `<span class="chip">${esc(x)}</span>`).join('');
+}
+
+function renderTestJsonBlock(title, data, initiallyOpen = false) {
+  return `
+    <details class="test-json-details" ${initiallyOpen ? 'open' : ''}>
+      <summary>
+        <span>${esc(title)}</span>
+        <i data-lucide="chevron-down"></i>
+      </summary>
+      <pre class="json-viewer">${esc(JSON.stringify(data, null, 2))}</pre>
+    </details>
+  `;
+}
+
+function renderTestResult(d) {
+  const out = d.outputFromAI || {};
+  const inputToAI = d.inputToAI || {};
+  const inputToSystem = d.inputToSystem || {};
+  const risk = out.risk || {};
+  const riskTypes = risk.types || [];
+  const dims = out.satisfaction_dimensions || {};
+  const fairness = out.feedback_fairness || {};
+  const credibility = out.feedback_credibility || {};
+  const signal = signalClass(out);
+
+  const sentimentPct = pct(out.sentiment_score);
+  const confidencePct = pct(out.confidence);
+  const riskPct = pct(risk.probability);
+  const credibilityPct = pct(credibility.score);
+  const fairnessPct = pct(fairness.score);
+
+  const adminAttention = out.requires_admin_attention ? "Ha" : "Yo‘q";
+  const corrections = d.corrections || [];
+
+  $('test-result-panel').innerHTML = `
+    <div class="test-result-stack">
+
+      <div class="test-command-card ${signal}">
+        <div class="test-command-main">
+          <div class="eyebrow">AI LIVE DIAGNOSTIC</div>
+          <h3>${esc(signalTitle(out))}</h3>
+          <p>${esc(out.summary_uz || "AI xulosa mavjud emas.")}</p>
+        </div>
+
+        <div class="test-command-score">
+          <div class="radial-score ${signal}">
+            <span>${sentimentPct}</span>
+            <small>sentiment</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="test-insight-grid">
+        ${insightCard('activity', 'Sentiment', out.sentiment || 'neutral', sentimentScoreLabel(out.sentiment_score), `signal-${out.sentiment || 'neutral'}`)}
+        ${insightCard('flame', 'Emotsiya', out.emotion || 'indifference', `intensivlik ${pct(out.emotion_intensity)}%`)}
+        ${insightCard('gauge', 'Jiddiylik', severityText(out.severity), `rank ${severityRank(out.severity)}/4`, `severity-${out.severity || 'low'}`)}
+        ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
+        ${insightCard('user-check', 'Admin e’tibori', adminAttention, actionHuman(out.recommended_action), out.requires_admin_attention ? 'severity-high' : 'signal-positive')}
+        ${insightCard('brain-circuit', 'AI provider', d.provider || 'unknown', corrections.length ? `${corrections.length} validation correction` : 'valid schema')}
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card test-section-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Signal profili</div>
+              <div class="text-muted text-sm">AI modeli chiqargan asosiy ko‘rsatkichlar</div>
+            </div>
+          </div>
+
+          ${scoreBar('Sentiment score', out.sentiment_score, out.sentiment || 'neutral')}
+          ${scoreBar('Confidence', out.confidence, 'model ishonchliligi')}
+          ${scoreBar('Risk probability', risk.probability, risk.impact_scope || 'none')}
+          ${scoreBar('Credibility', credibility.score, 'feedback ishonchliligi')}
+          ${scoreBar('Fairness signal', fairness.score, fairness.is_one_sided ? 'bir tomonlama signal' : 'balanced signal')}
+        </div>
+
+        <div class="card test-section-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Qoniqish o‘lchovlari</div>
+              <div class="text-muted text-sm">O‘qitish, aniqlik, adolatlilik va materiallar</div>
+            </div>
+          </div>
+
+          <div class="test-dim-grid">
+            ${scoreBar('Teaching quality', dims.teaching_quality)}
+            ${scoreBar('Clarity', dims.clarity)}
+            ${scoreBar('Engagement', dims.engagement)}
+            ${scoreBar('Fairness', dims.fairness)}
+            ${scoreBar('Materials', dims.materials)}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card test-section-card">
+          <div class="card-title mb-3">Muammo va mavzular</div>
+
+          <div class="test-field-block">
+            <span>Issue category</span>
+            ${badge(out.issue_category || 'none')}
+          </div>
+
+          <div class="test-field-block">
+            <span>Topics</span>
+            <div>${chips(out.topics)}</div>
+          </div>
+
+          <div class="test-field-block">
+            <span>Subtopics</span>
+            <div>${chips(out.subtopics)}</div>
+          </div>
+
+          <div class="test-field-block">
+            <span>Keywords</span>
+            <div>${chips(out.keywords)}</div>
+          </div>
+        </div>
+
+        <div class="card test-section-card">
+          <div class="card-title mb-3">Tavsiya qilingan harakat</div>
+
+          <div class="recommendation-box ${signal}">
+            <i data-lucide="route"></i>
+            <div>
+              <b>${esc(actionHuman(out.recommended_action))}</b>
+              <p>
+                ${out.requires_admin_attention
+                  ? 'Bu feedback administrator yoki kafedra tomonidan ko‘rib chiqilishi kerak.'
+                  : 'Bu feedback hozircha monitoring yoki oddiy kuzatuv rejimida qolishi mumkin.'}
+              </p>
+            </div>
+          </div>
+
+          <div class="test-field-block mt-3">
+            <span>Representative label</span>
+            ${badge(out.representative_label || 'other')}
+          </div>
+
+          <div class="test-field-block">
+            <span>Risk scope</span>
+            ${badge(risk.impact_scope || 'none')}
+          </div>
+        </div>
+      </div>
+
+      <div class="card test-section-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Audit trail</div>
+            <div class="text-muted text-sm">Jury uchun shaffof texnik ko‘rinish</div>
+          </div>
+        </div>
+
+        <div class="test-audit-grid">
+          ${renderTestJsonBlock('inputToSystem', inputToSystem)}
+          ${renderTestJsonBlock('inputToAI', inputToAI)}
+          ${renderTestJsonBlock('outputFromAI', out, true)}
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
 }
 
 async function analyzeCustom() {
   const btn = $('analyze-btn');
-  btn.disabled = true;
+  const text = $('test-text')?.value?.trim();
 
-  $('test-result-panel').innerHTML = `<div class="card"><div class="spinner"></div> ${esc(t('analyzing_feedback'))}</div>`;
+  if (!text) {
+    toast("Fikr matni kiritilishi kerak", "error");
+    $('test-text')?.focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> AI tahlil qilmoqda...`;
+
+  $('test-result-panel').innerHTML = `
+    <div class="card test-processing-card">
+      <div class="processing-orb"></div>
+      <div>
+        <div class="eyebrow">VERTEX AI PROCESSING</div>
+        <h3>Model feedbackni tahlil qilmoqda</h3>
+        <p>Sentiment, emotsiya, xavf, muammo turi, qoniqish o‘lchovlari va tavsiyalar shakllantirilmoqda...</p>
+      </div>
+    </div>
+  `;
 
   try {
     const body = {
-      raw_text: $('test-text').value,
+      raw_text: text,
       feedback_id: $('test-fid').value || undefined,
       rating: Number($('test-rating').value || 3),
       course_id: $('test-course').value,
@@ -1278,25 +1602,21 @@ async function analyzeCustom() {
 
     state.dashboard = d.dashboard;
     renderDashboard();
-
-    $('test-result-panel').innerHTML = `
-      <div class="card">
-        <div class="card-title mb-3">${esc(t('structured_output'))}</div>
-        <pre class="json-viewer">${esc(JSON.stringify(d.outputFromAI, null, 2))}</pre>
-      </div>
-
-      <div class="card mt-3">
-        <div class="card-title mb-3">InputToAI</div>
-        <pre class="json-viewer">${esc(JSON.stringify(d.inputToAI, null, 2))}</pre>
-      </div>
-    `;
+    renderTestResult(d);
 
     toast(t('custom_analyzed'), 'success');
   } catch (e) {
-    $('test-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    $('test-result-panel').innerHTML = `
+      <div class="alert alert-err test-error-card">
+        <b>Live tahlil xatoligi</b>
+        <p>${esc(e.message)}</p>
+      </div>
+    `;
     toast(e.message, 'error');
   } finally {
     btn.disabled = false;
+    btn.innerHTML = `<i data-lucide="search-check"></i> AI orqali tahlil qilish`;
+    if (window.lucide) lucide.createIcons();
   }
 }
 
