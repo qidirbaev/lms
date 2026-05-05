@@ -1038,41 +1038,93 @@
       </section>
 
       <!-- Settings -->
-      <section class="page" id="page-settings">
-        <div class="page-header">
+      <section class="page settings-page" id="page-settings">
+        <div class="page-header settings-hero">
           <div>
+            <div class="eyebrow">CONTROL SURFACE</div>
             <h2>Sozlamalar</h2>
-            <div class="subtitle">Tizim holati va demo boshqaruvi</div>
-          </div>
-        </div>
-
-        <div class="page-body">
-          <div class="grid-2 responsive-grid">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Runtime</div></div>
-              <div class="stat-row"><span class="stat-label">Provider</span><span class="stat-val" id="s-provider">—</span></div>
-              <div class="stat-row"><span class="stat-label">Project</span><span class="stat-val" id="s-project">—</span></div>
-              <div class="stat-row"><span class="stat-label">Model</span><span class="stat-val" id="s-model">—</span></div>
-              <div class="stat-row"><span class="stat-label">Processed</span><span class="stat-val" id="s-count">—</span></div>
-            </div>
-
-            <div class="card">
-              <div class="card-header"><div class="card-title">Demo Control</div></div>
-              <button class="btn btn-danger" onclick="resetDemo()">
-                <i data-lucide="trash-2"></i> Reset Demo State
-              </button>
-              <p class="text-muted text-sm mt-3">Processed results and dashboard state will be cleared. Source JSON files remain unchanged.</p>
-            </div>
+            <div class="subtitle">Runtime, platform health, demo controls, and project identity</div>
           </div>
 
-          <button class="btn btn-secondary btn-sm" type="button" onclick="showAboutProjectModal()">
+          <button class="btn btn-secondary btn-sm settings-about-btn" type="button" onclick="showAboutProjectModal()">
             <i data-lucide="info"></i>
             Ma’lumot
           </button>
+        </div>
 
-          <div class="card mt-3">
-            <div class="card-header"><div class="card-title">Health</div></div>
-            <div id="health-info"><div class="text-muted">—</div></div>
+        <div class="page-body settings-body">
+          <div class="settings-command-grid">
+            <div class="settings-status-card">
+              <div class="settings-orb">
+                <i data-lucide="activity"></i>
+              </div>
+
+              <div>
+                <div class="eyebrow">AI RUNTIME</div>
+                <h3>Sentiment Engine</h3>
+                <p>Live inference backend and analysis pipeline status.</p>
+              </div>
+
+              <div class="settings-live-badge">
+                <span class="pulse-dot"></span>
+                Online
+              </div>
+            </div>
+
+            <div class="settings-metric-card">
+              <span>Provider</span>
+              <b id="s-provider">—</b>
+            </div>
+
+            <div class="settings-metric-card">
+              <span>Project</span>
+              <b id="s-project">—</b>
+            </div>
+
+            <div class="settings-metric-card">
+              <span>Model</span>
+              <b id="s-model">—</b>
+            </div>
+
+            <div class="settings-metric-card">
+              <span>Processed</span>
+              <b id="s-count">—</b>
+            </div>
+          </div>
+
+          <div class="grid-2 responsive-grid mt-3">
+            <div class="card settings-panel">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Platform Health</div>
+                  <div class="text-muted text-sm">Backend availability and service diagnostics.</div>
+                </div>
+                <i data-lucide="shield-check" class="settings-panel-icon"></i>
+              </div>
+
+              <div id="health-info">
+                <div class="text-muted">—</div>
+              </div>
+            </div>
+
+            <div class="card settings-danger-panel">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Demo Control</div>
+                  <div class="text-muted text-sm">Clear generated dashboard state without touching source files.</div>
+                </div>
+                <i data-lucide="database-zap" class="settings-panel-icon"></i>
+              </div>
+
+              <button class="btn btn-danger full-width" onclick="resetDemo()">
+                <i data-lucide="trash-2"></i>
+                Reset Demo State
+              </button>
+
+              <p class="text-muted text-sm mt-3">
+                Processed results and dashboard state will be cleared. Source JSON files remain unchanged.
+              </p>
+            </div>
           </div>
         </div>
       </section>
