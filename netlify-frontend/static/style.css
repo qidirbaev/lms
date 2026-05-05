@@ -3870,3 +3870,514 @@ tbody tr:hover {
     text-align: center;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Simulation Scenario Lab
+───────────────────────────────────────────────────────────── */
+
+.simulation-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.simulation-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--text) 8%, transparent), transparent 36%),
+    var(--surface);
+}
+
+.simulation-hero h3 {
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: -.045em;
+  margin-bottom: .25rem;
+}
+
+.simulation-hero p {
+  max-width: 820px;
+  color: var(--text-2);
+  font-size: .86rem;
+}
+
+.simulation-pipeline {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-shrink: 0;
+}
+
+.sim-pipeline-node {
+  min-width: 86px;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  font-size: .7rem;
+  font-weight: 850;
+}
+
+.sim-pipeline-node svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sim-pipeline-node.active {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.sim-pipeline-line {
+  width: 28px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.simulation-main-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, .8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.simulation-control-card,
+.simulation-result-panel > .card,
+.simulation-empty,
+.simulation-processing-card {
+  min-height: 430px;
+}
+
+.simulation-scenario-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .55rem;
+}
+
+.sim-scenario-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  color: var(--text);
+  padding: .75rem;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: .65rem;
+  text-align: left;
+  transition: transform .14s, border-color .14s, background .14s;
+}
+
+.sim-scenario-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: var(--bg-4);
+}
+
+.sim-scenario-card svg {
+  width: 19px;
+  height: 19px;
+  margin-top: .15rem;
+}
+
+.sim-scenario-card b {
+  display: block;
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.sim-scenario-card span {
+  display: block;
+  color: var(--text-3);
+  font-size: .72rem;
+  margin-top: .05rem;
+}
+
+.simulation-note {
+  margin-top: .85rem;
+  color: var(--text-3);
+  font-size: .75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .45rem;
+}
+
+.simulation-note svg {
+  width: 15px;
+  height: 15px;
+  margin-top: .1rem;
+  flex-shrink: 0;
+}
+
+.simulation-empty h3 {
+  font-size: 1rem;
+  margin-bottom: .35rem;
+}
+
+.simulation-empty p {
+  color: var(--text-2);
+}
+
+.simulation-intel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.sim-intel-score,
+.sim-analysis-score {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .95rem;
+  background: var(--bg-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sim-intel-score span,
+.sim-analysis-score span {
+  color: var(--text-3);
+  font-size: .66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.sim-intel-score b,
+.sim-analysis-score b {
+  display: block;
+  margin-top: .1rem;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -.06em;
+}
+
+.sim-intel-score small,
+.sim-analysis-score small {
+  display: block;
+  margin-top: .25rem;
+  color: var(--text-3);
+  font-size: .72rem;
+}
+
+.sim-intel-score svg,
+.sim-analysis-score svg {
+  width: 34px;
+  height: 34px;
+}
+
+.sim-intel-score.positive,
+.sim-analysis-score.positive {
+  border-color: rgba(34,197,94,.24);
+  background: var(--pos-bg);
+  color: var(--pos);
+}
+
+.sim-analysis-score.warning {
+  border-color: rgba(245,158,11,.25);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.sim-analysis-score.critical {
+  border-color: rgba(239,68,68,.24);
+  background: var(--neg-bg);
+  color: var(--neg);
+}
+
+.sim-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.sim-mini-block {
+  display: grid;
+  gap: .55rem;
+}
+
+.sim-mini-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 32px;
+  gap: .55rem;
+  align-items: center;
+}
+
+.sim-mini-row span {
+  color: var(--text-2);
+  font-size: .72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sim-mini-track {
+  height: 7px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sim-mini-track div {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.sim-mini-row b {
+  text-align: right;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.sim-language-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+}
+
+.sim-language-pill {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  padding: .65rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sim-language-pill span {
+  color: var(--text-3);
+  font-size: .68rem;
+  font-weight: 900;
+}
+
+.sim-language-pill b {
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.simulation-processing-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.simulation-processing-card h3 {
+  font-size: 1.1rem;
+  font-weight: 950;
+  margin-bottom: .25rem;
+}
+
+.simulation-processing-card p {
+  color: var(--text-2);
+  max-width: 520px;
+}
+
+.simulation-ready-card,
+.simulation-complete-card {
+  min-height: 430px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--text) 8%, transparent), transparent 38%),
+    var(--surface);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.simulation-complete-card.positive {
+  border-color: rgba(34,197,94,.24);
+  background:
+    radial-gradient(circle at top right, rgba(34,197,94,.16), transparent 38%),
+    var(--surface);
+}
+
+.simulation-complete-card.warning {
+  border-color: rgba(245,158,11,.25);
+  background:
+    radial-gradient(circle at top right, rgba(245,158,11,.16), transparent 38%),
+    var(--surface);
+}
+
+.simulation-complete-card.critical {
+  border-color: rgba(239,68,68,.24);
+  background:
+    radial-gradient(circle at top right, rgba(239,68,68,.16), transparent 38%),
+    var(--surface);
+}
+
+.simulation-ready-orb,
+.simulation-complete-orb {
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid rgba(34,197,94,.24);
+  color: var(--pos);
+  box-shadow: inset 0 0 0 8px var(--pos-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.simulation-ready-orb span,
+.simulation-complete-orb span {
+  font-size: 2.15rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.simulation-ready-orb small,
+.simulation-complete-orb small {
+  color: var(--text-3);
+  font-size: .65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.simulation-ready-card h3,
+.simulation-complete-card h3 {
+  font-size: 1.15rem;
+  font-weight: 950;
+  margin-bottom: .25rem;
+}
+
+.simulation-ready-card p,
+.simulation-complete-card p {
+  color: var(--text-2);
+  max-width: 560px;
+}
+
+.simulation-preview-card {
+  overflow: hidden;
+}
+
+.sim-feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.sim-feedback-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  padding: .8rem;
+}
+
+.sim-feedback-card.positive {
+  border-color: rgba(34,197,94,.22);
+}
+
+.sim-feedback-card.negative {
+  border-color: rgba(239,68,68,.22);
+}
+
+.sim-feedback-head {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .45rem;
+}
+
+.sim-feedback-head b {
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.sim-feedback-head span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .12rem .45rem;
+  color: var(--text-2);
+  font-size: .66rem;
+  font-weight: 850;
+}
+
+.sim-feedback-card p {
+  color: var(--text-2);
+  font-size: .8rem;
+}
+
+.sim-feedback-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-top: .55rem;
+}
+
+.sim-feedback-meta span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .1rem .42rem;
+  color: var(--text-3);
+  font-size: .62rem;
+  font-weight: 760;
+}
+
+@media (max-width: 1180px) {
+  .simulation-hero,
+  .simulation-main-grid,
+  .simulation-intel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .simulation-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .simulation-pipeline {
+    flex-wrap: wrap;
+  }
+
+  .sim-pipeline-line {
+    display: none;
+  }
+
+  .sim-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .simulation-ready-card,
+  .simulation-complete-card,
+  .simulation-processing-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .sim-kpi-grid,
+  .sim-language-strip,
+  .sim-feedback-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sim-mini-row {
+    grid-template-columns: 1fr;
+    gap: .25rem;
+  }
+
+  .sim-mini-row b {
+    text-align: left;
+  }
+}

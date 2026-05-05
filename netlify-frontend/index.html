@@ -661,52 +661,148 @@
         <div class="page-header">
           <div>
             <h2>Simulyatsiya</h2>
-            <div class="subtitle">Demo uchun vaqtinchalik feedback obyektlari</div>
+            <div class="subtitle">Synthetic feedback scenario lab: demo, stress-test va AI pipeline sinovi</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="setSimulationScenario('crisis')">
+              <i data-lucide="siren"></i> Crisis
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="setSimulationScenario('balanced')">
+              <i data-lucide="scale"></i> Balanced
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="setSimulationScenario('positive')">
+              <i data-lucide="thumbs-up"></i> Positive
+            </button>
           </div>
         </div>
 
-        <div class="page-body">
-          <div class="grid-2 responsive-grid">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Generator sozlamalari</div></div>
+        <div class="page-body simulation-lab">
+
+          <div class="simulation-hero card">
+            <div>
+              <div class="eyebrow">SCENARIO SIMULATION LAB</div>
+              <h3>Feedback oqimini oldindan sinovdan o‘tkazish</h3>
+              <p>
+                Bu modul real LMS kelishidan oldin tizim qanday ishlashini ko‘rsatadi:
+                synthetic feedbacklar yaratiladi, strukturasi tekshiriladi, AI tahlil qilinadi va dashboardga qo‘shiladi.
+              </p>
+            </div>
+
+            <div class="simulation-pipeline">
+              <div class="sim-pipeline-node active"><i data-lucide="flask-conical"></i><span>Scenario</span></div>
+              <div class="sim-pipeline-line"></div>
+              <div class="sim-pipeline-node active"><i data-lucide="bot"></i><span>Generate</span></div>
+              <div class="sim-pipeline-line"></div>
+              <div class="sim-pipeline-node active"><i data-lucide="brain-circuit"></i><span>AI Analyze</span></div>
+              <div class="sim-pipeline-line"></div>
+              <div class="sim-pipeline-node active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></div>
+            </div>
+          </div>
+
+          <div class="simulation-main-grid">
+            <div class="card simulation-control-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Scenario generator</div>
+                  <div class="text-muted text-sm">Synthetic feedback parametrlarini tanlang</div>
+                </div>
+                <span class="badge badge-outline">Demo safe</span>
+              </div>
 
               <div class="field">
-                <label>Soni</label>
+                <label>Feedback soni</label>
                 <input class="input" id="sim-count" type="number" min="1" max="50" value="10" />
               </div>
 
               <div class="field">
-                <label>Sentiment turi</label>
+                <label>Sentiment uslubi</label>
                 <select class="select" id="sim-sentiment">
-                  <option value="mixed">Mixed</option>
-                  <option value="positive">Mostly Positive</option>
-                  <option value="negative">Mostly Negative</option>
+                  <option value="mixed">Mixed — realistik aralash</option>
+                  <option value="positive">Mostly Positive — sog‘lom holat</option>
+                  <option value="negative">Mostly Negative — muammo bosimi</option>
                 </select>
               </div>
 
               <div class="field">
                 <label>Muammo mavzusi</label>
                 <select class="select" id="sim-theme">
-                  <option value="mixed">Mixed</option>
+                  <option value="mixed">Mixed — turli muammolar</option>
                   <option value="teaching_style">Teaching Style</option>
-                  <option value="assessment">Assessment</option>
+                  <option value="assessment">Assessment / baholash</option>
                   <option value="technical_issue">Technical Issues</option>
                   <option value="content_quality">Content Quality</option>
                 </select>
               </div>
 
-              <div class="action-row">
+              <div class="simulation-scenario-grid">
+                <button class="sim-scenario-card" onclick="setSimulationScenario('crisis')">
+                  <i data-lucide="siren"></i>
+                  <b>Crisis drill</b>
+                  <span>negative + assessment</span>
+                </button>
+
+                <button class="sim-scenario-card" onclick="setSimulationScenario('balanced')">
+                  <i data-lucide="scale"></i>
+                  <b>Balanced semester</b>
+                  <span>mixed + mixed</span>
+                </button>
+
+                <button class="sim-scenario-card" onclick="setSimulationScenario('positive')">
+                  <i data-lucide="sparkles"></i>
+                  <b>Success case</b>
+                  <span>positive + teaching</span>
+                </button>
+              </div>
+
+              <div class="action-row mt-3">
                 <button class="btn btn-primary" onclick="generateSim()">
-                  <i data-lucide="bot"></i> Generate
+                  <i data-lucide="bot"></i> Generate scenario
                 </button>
+
                 <button class="btn btn-secondary" id="analyze-sim-btn" style="display:none" onclick="analyzeSim()">
-                  <i data-lucide="zap"></i> Analyze All
+                  <i data-lucide="zap"></i> Analyze with AI
                 </button>
+              </div>
+
+              <div class="simulation-note">
+                <i data-lucide="info"></i>
+                Generated records vaqtinchalik. AI orqali analyze qilinsa, dashboardga qo‘shiladi.
               </div>
             </div>
 
-            <div id="sim-result-panel">
-              <div class="empty-state card"><div class="empty-icon"></div><p>Generated feedbacks will appear here</p></div>
+            <div id="sim-result-panel" class="simulation-result-panel">
+              <div class="empty-state card simulation-empty">
+                <div class="empty-icon"></div>
+                <h3>Scenario hali yaratilmagan</h3>
+                <p>Generator sozlamalarini tanlang va synthetic feedback oqimini yarating.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="simulation-intel-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Scenario intelligence</div>
+                  <div class="text-muted text-sm">Generated dataset strukturasi va signal prognozi</div>
+                </div>
+              </div>
+              <div id="sim-intel-panel">
+                <p class="text-muted text-sm">Generate qilingandan keyin scenario intelligence chiqadi.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">AI processing report</div>
+                  <div class="text-muted text-sm">Analyze qilingandan keyin success/failure signallari</div>
+                </div>
+              </div>
+              <div id="sim-analysis-panel">
+                <p class="text-muted text-sm">Analyze with AI tugmasidan keyin report chiqadi.</p>
+              </div>
             </div>
           </div>
 

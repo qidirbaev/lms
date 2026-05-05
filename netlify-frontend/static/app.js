@@ -3008,51 +3008,383 @@ async function analyzeCustom() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Simulation
+// Simulation Scenario Lab
 // ─────────────────────────────────────────────────────────────
 
+function setSimulationScenario(type) {
+  const scenarios = {
+    crisis: {
+      count: 15,
+      sentiment: 'negative',
+      theme: 'assessment',
+      toast: 'Crisis drill scenario tanlandi'
+    },
+    balanced: {
+      count: 12,
+      sentiment: 'mixed',
+      theme: 'mixed',
+      toast: 'Balanced semester scenario tanlandi'
+    },
+    positive: {
+      count: 10,
+      sentiment: 'positive',
+      theme: 'teaching_style',
+      toast: 'Success case scenario tanlandi'
+    }
+  };
+
+  const s = scenarios[type] || scenarios.balanced;
+
+  $('sim-count').value = s.count;
+  $('sim-sentiment').value = s.sentiment;
+  $('sim-theme').value = s.theme;
+
+  toast(s.toast, 'success');
+}
+
+function simThemeHuman(theme) {
+  const map = {
+    mixed: 'Aralash muammolar',
+    teaching_style: 'O‘qitish uslubi',
+    assessment: 'Baholash / adolatlilik',
+    technical_issue: 'Texnik muammolar',
+    content_quality: 'Kontent sifati'
+  };
+  return map[theme] || theme || 'Aralash';
+}
+
+function simSentimentHuman(style) {
+  const map = {
+    mixed: 'Realistik aralash',
+    positive: 'Ko‘proq ijobiy',
+    negative: 'Ko‘proq salbiy'
+  };
+  return map[style] || style || 'Mixed';
+}
+
+function inspectSimulatedItems(items) {
+  const stats = {
+    total: items.length,
+    rating_avg: 0,
+    courses: {},
+    teachers: {},
+    departments: {},
+    language_hint: { uz: 0, ru: 0, en: 0, mixed: 0 },
+    text_avg_len: 0
+  };
+
+  let ratingSum = 0;
+  let textLen = 0;
+
+  items.forEach(item => {
+    const rating = Number(item.content?.rating || 0);
+    ratingSum += rating;
+
+    const raw = item.content?.raw_text || '';
+    textLen += raw.length;
+
+    const course = item.metadata?.course_id || 'unknown';
+    const teacher = item.metadata?.teacher_id || 'unknown';
+    const dept = item.metadata?.student_context?.department_name || 'unknown';
+
+    stats.courses[course] = (stats.courses[course] || 0) + 1;
+    stats.teachers[teacher] = (stats.teachers[teacher] || 0) + 1;
+    stats.departments[dept] = (stats.departments[dept] || 0) + 1;
+
+    const hasCyr = /[А-Яа-яЁё]/.test(raw);
+    const hasUz = /[‘’ʻʼ]/.test(raw) || /\b(domla|dars|baholash|talaba|yaxshi|lekin)\b/i.test(raw);
+    const hasEn = /\b(the|and|teacher|course|good|bad|assessment)\b/i.test(raw);
+
+    if ((hasUz && hasCyr) || (hasUz && hasEn) || (hasCyr && hasEn)) stats.language_hint.mixed += 1;
+    else if (hasCyr) stats.language_hint.ru += 1;
+    else if (hasEn) stats.language_hint.en += 1;
+    else stats.language_hint.uz += 1;
+  });
+
+  stats.rating_avg = items.length ? ratingSum / items.length : 0;
+  stats.text_avg_len = items.length ? Math.round(textLen / items.length) : 0;
+
+  return stats;
+}
+
+function topEntries(obj, limit = 5) {
+  return Object.entries(obj || {})
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+function renderSimMiniBars(obj, title) {
+  const rows = topEntries(obj, 5);
+  const max = Math.max(...rows.map(x => x.count), 1);
+
+  return `
+    <div class="sim-mini-block">
+      <div class="card-title mb-3">${esc(title)}</div>
+      ${rows.map(x => `
+        <div class="sim-mini-row">
+          <span>${esc(x.name)}</span>
+          <div class="sim-mini-track">
+            <div style="width:${Math.round((x.count / max) * 100)}%"></div>
+          </div>
+          <b>${x.count}</b>
+        </div>
+      `).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`}
+    </div>
+  `;
+}
+
+function renderSimulationIntel(items, config = {}) {
+  const stats = inspectSimulatedItems(items);
+  const readiness = stats.total ? 100 : 0;
+
+  $('sim-intel-panel').innerHTML = `
+    <div class="sim-intel-score positive">
+      <div>
+        <span>Scenario readiness</span>
+        <b>${readiness}%</b>
+        <small>${stats.total} inputToSystem records generated</small>
+      </div>
+      <i data-lucide="badge-check"></i>
+    </div>
+
+    <div class="sim-kpi-grid mt-3">
+      ${kpi('Generated', stats.total, 'synthetic feedbacks')}
+      ${kpi('Avg rating', stats.rating_avg.toFixed(2), '1–5 scale')}
+      ${kpi('Avg text length', stats.text_avg_len, 'characters')}
+      ${kpi('Scenario', simThemeHuman(config.theme), simSentimentHuman(config.sentiment))}
+    </div>
+
+    <div class="grid-2 responsive-grid mt-3">
+      ${renderSimMiniBars(stats.courses, 'Course distribution')}
+      ${renderSimMiniBars(stats.teachers, 'Teacher distribution')}
+    </div>
+
+    <div class="sim-language-strip mt-3">
+      ${Object.entries(stats.language_hint).map(([k, v]) => `
+        <div class="sim-language-pill">
+          <span>${esc(k.toUpperCase())}</span>
+          <b>${v}</b>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderSimCards(items) {
+  return items.map((x, i) => {
+    const rating = Number(x.content?.rating || 0);
+    const cls = rating >= 4 ? 'positive' : rating <= 2 ? 'negative' : 'neutral';
+
+    return `
+      <div class="sim-feedback-card ${cls}">
+        <div class="sim-feedback-head">
+          <b>${esc(x.feedback_id || `sim-${i + 1}`)}</b>
+          <span>${rating}/5</span>
+        </div>
+
+        <p>${esc(x.content?.raw_text || '')}</p>
+
+        <div class="sim-feedback-meta">
+          <span>${esc(x.metadata?.course_id || '')}</span>
+          <span>${esc(x.metadata?.teacher_id || '')}</span>
+          <span>${esc(x.metadata?.student_context?.department_name || '')}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSimulationPreview(items) {
+  $('sim-items-panel').style.display = 'block';
+  $('sim-items-panel').innerHTML = `
+    <div class="card simulation-preview-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Generated feedback stream</div>
+          <div class="text-muted text-sm">Synthetic records preview before AI analysis</div>
+        </div>
+        <span class="badge badge-outline">${items.length} records</span>
+      </div>
+
+      <div class="sim-feedback-grid">
+        ${renderSimCards(items)}
+      </div>
+    </div>
+  `;
+}
+
+function renderSimAnalysisReport(d) {
+  const results = d.results || [];
+  const total = Number(d.processed || results.length || 0);
+  const success = results.filter(x => x.success).length;
+  const failed = results.filter(x => !x.success).length;
+  const successRate = total ? Math.round((success / total) * 100) : 0;
+
+  const sentiments = {};
+  const severities = {};
+  const issues = {};
+
+  results.forEach(r => {
+    const out = r.output || {};
+    sentiments[out.sentiment || 'unknown'] = (sentiments[out.sentiment || 'unknown'] || 0) + 1;
+    severities[out.severity || 'unknown'] = (severities[out.severity || 'unknown'] || 0) + 1;
+    issues[out.issue_category || 'unknown'] = (issues[out.issue_category || 'unknown'] || 0) + 1;
+  });
+
+  const cls = failed ? 'critical' : successRate >= 90 ? 'positive' : 'warning';
+
+  $('sim-analysis-panel').innerHTML = `
+    <div class="sim-analysis-score ${cls}">
+      <div>
+        <span>AI simulation completion</span>
+        <b>${successRate}%</b>
+        <small>${success}/${total} analyzed</small>
+      </div>
+      <i data-lucide="${failed ? 'circle-alert' : 'badge-check'}"></i>
+    </div>
+
+    <div class="sim-kpi-grid mt-3">
+      ${kpi('Success', success, 'AI outputs')}
+      ${kpi('Failed', failed, 'errors')}
+      ${kpi('Processed', total, 'simulated records')}
+      ${kpi('Dashboard', 'Updated', 'analytics refreshed')}
+    </div>
+
+    <div class="grid-3 mt-3">
+      <div class="card compact-card">${renderSimMiniBars(sentiments, 'Sentiment result')}</div>
+      <div class="card compact-card">${renderSimMiniBars(severities, 'Severity result')}</div>
+      <div class="card compact-card">${renderSimMiniBars(issues, 'Issue result')}</div>
+    </div>
+  `;
+
+  $('sim-result-panel').innerHTML = `
+    <div class="simulation-complete-card ${cls}">
+      <div class="simulation-complete-orb">
+        <span>${success}</span>
+        <small>analyzed</small>
+      </div>
+      <div>
+        <div class="eyebrow">SIMULATION COMPLETE</div>
+        <h3>Scenario AI pipeline orqali o‘tkazildi</h3>
+        <p>
+          ${success} ta synthetic feedback outputFromAI strukturasiga tahlil qilindi.
+          Dashboard, trendlar, muammolar va mood panellari yangilandi.
+        </p>
+        <div class="action-row mt-3">
+          <button class="btn btn-secondary btn-sm" onclick="showPage('overview')">
+            <i data-lucide="layout-dashboard"></i> Dashboardga o‘tish
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('records')">
+            <i data-lucide="database"></i> Records
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
 async function generateSim() {
+  const btn = document.querySelector('#page-simulate .btn.btn-primary');
+  const count = Number($('sim-count').value || 5);
+  const sentiment = $('sim-sentiment').value;
+  const theme = $('sim-theme').value;
+
   try {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Generating...`;
+    }
+
+    $('sim-result-panel').innerHTML = `
+      <div class="card simulation-processing-card">
+        <div class="processing-orb"></div>
+        <div>
+          <div class="eyebrow">SCENARIO GENERATION</div>
+          <h3>Synthetic feedbacklar yaratilmoqda</h3>
+          <p>inputToSystem formatidagi demo feedback oqimi tayyorlanmoqda...</p>
+        </div>
+      </div>
+    `;
+
     const d = await api('/generate-simulated-feedbacks', {
       method: 'POST',
       body: JSON.stringify({
-        count: Number($('sim-count').value || 5),
-        sentiment_style: $('sim-sentiment').value,
-        issue_theme: $('sim-theme').value
+        count,
+        sentiment_style: sentiment,
+        issue_theme: theme
       })
     });
 
     state.simulated = d.items || [];
     $('analyze-sim-btn').style.display = state.simulated.length ? 'inline-flex' : 'none';
 
+    renderSimulationIntel(state.simulated, { sentiment, theme });
+    renderSimulationPreview(state.simulated);
+
     $('sim-result-panel').innerHTML = `
-      <div class="card">
-        <div class="card-title">${state.simulated.length} ${esc(t('generated_items'))}</div>
-        <p class="text-muted">${esc(t('not_saved_dataset'))}</p>
+      <div class="simulation-ready-card">
+        <div class="simulation-ready-orb">
+          <span>${state.simulated.length}</span>
+          <small>ready</small>
+        </div>
+        <div>
+          <div class="eyebrow">SCENARIO READY</div>
+          <h3>${state.simulated.length} ta synthetic feedback yaratildi</h3>
+          <p>${esc(t('not_saved_dataset'))}</p>
+          <div class="action-row mt-3">
+            <button class="btn btn-primary btn-sm" onclick="analyzeSim()">
+              <i data-lucide="zap"></i> AI orqali tahlil qilish
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('batch')">
+              <i data-lucide="workflow"></i> Batch pipeline
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
-    $('sim-items-panel').style.display = 'block';
-    $('sim-items-panel').innerHTML = `
-      <div class="card">
-        ${recordsPreview(state.simulated.map((x, i) => ({
-          index: i,
-          feedback_id: x.feedback_id,
-          course_id: x.metadata?.course_id,
-          teacher_id: x.metadata?.teacher_id,
-          raw_text: x.content?.raw_text,
-          already_processed: false
-        })))}
-      </div>
-    `;
+    toast(`${state.simulated.length} ${t('generated_items')}`, 'success');
   } catch (e) {
+    $('sim-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="bot"></i> Generate scenario`;
+    }
+    if (window.lucide) lucide.createIcons();
   }
 }
 
 async function analyzeSim() {
+  if (!state.simulated.length) {
+    toast('Avval scenario generate qiling', 'error');
+    return;
+  }
+
+  const btn = $('analyze-sim-btn');
+
   try {
-    $('sim-result-panel').innerHTML = `<div class="card"><div class="spinner"></div> ${esc(t('analyzing_simulated'))}</div>`;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span> Analyzing...`;
+    }
+
+    $('sim-result-panel').innerHTML = `
+      <div class="card simulation-processing-card">
+        <div class="processing-orb"></div>
+        <div>
+          <div class="eyebrow">VERTEX AI SIMULATION RUN</div>
+          <h3>Generated feedbacklar AI orqali tahlil qilinmoqda</h3>
+          <p>Har bir synthetic record outputFromAI schema bo‘yicha tahlil qilinadi va dashboardga qo‘shiladi...</p>
+        </div>
+      </div>
+    `;
 
     const d = await api('/analyze-simulated', {
       method: 'POST',
@@ -3060,16 +3392,18 @@ async function analyzeSim() {
     });
 
     await loadDashboard();
-
-    $('sim-result-panel').innerHTML = `
-      <div class="card">
-        <pre class="json-viewer">${esc(JSON.stringify(d, null, 2))}</pre>
-      </div>
-    `;
+    renderSimAnalysisReport(d);
 
     toast(t('simulated_analyzed'), 'success');
   } catch (e) {
+    $('sim-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="zap"></i> Analyze with AI`;
+    }
+    if (window.lucide) lucide.createIcons();
   }
 }
 
