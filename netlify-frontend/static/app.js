@@ -569,7 +569,6 @@ async function api(url, options = {}) {
 
     const base = API_BASE.replace(/\/$/, '');
     const fullUrl = url.startsWith('http') ? url : `${base}${url}`;
-
     const res = await fetch(fullUrl, { ...options, headers });
     const data = await res.json().catch(() => ({}));
 
