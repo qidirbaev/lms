@@ -476,6 +476,75 @@ function t(key) {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
+function showAboutProjectModal() {
+  const existing = document.getElementById('about-project-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'about-project-modal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal about-project-modal">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">SENTIMENT.UZ</div>
+          <h3>Sentiment Intelligence Platform</h3>
+          <p class="text-muted">
+            AI-powered LMS feedback analysis, batch processing, risk detection,
+            integration pipeline, and institutional intelligence dashboard.
+          </p>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('about-project-modal')?.remove()">
+          Close
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="about-grid">
+          <div class="about-card">
+            <span>Built by</span>
+            <b>Begzat Kidirbaev</b>
+          </div>
+
+          <div class="about-card">
+            <span>GitHub</span>
+            <b>@qidirbaev</b>
+          </div>
+
+          <div class="about-card">
+            <span>Telegram</span>
+            <b>@begzat57</b>
+          </div>
+
+          <div class="about-card">
+            <span>Repository</span>
+            <b>qidirbaev/lms</b>
+          </div>
+        </div>
+
+        <div class="about-project-box">
+          <h4>Project Scope</h4>
+          <p>
+            This system analyzes student feedback from LMS, HEMIS, and external academic systems.
+            It supports secure integration tokens, validation, batch ingestion, AI sentiment analysis,
+            topic detection, critical risk signals, dashboards, and decision-support reporting.
+          </p>
+        </div>
+
+        <div class="about-links">
+          <a href="https://github.com/qidirbaev" target="_blank" rel="noopener">Open GitHub Profile</a>
+          <a href="https://github.com/qidirbaev/lms" target="_blank" rel="noopener">Open Repository</a>
+          <a href="https://t.me/begzat57" target="_blank" rel="noopener">Open Telegram</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  renderIcons();
+}
+
 function humanize(key) {
   return key
     .replace(/_/g, ' ')
@@ -744,8 +813,8 @@ function applyStaticTranslations() {
   safeEl('login-btn', el => { el.textContent = t('sign_in'); });
   safeEl('login-user-label', el => { el.textContent = t('username'); });
   safeEl('login-pass-label', el => { el.textContent = t('password'); });
-  safeEl('app-title', el => { el.textContent = t('app_name'); });
-  safeEl('app-version', el => { el.textContent = t('demo_version'); });
+  safeEl('app-title', el => { el.textContent = 'Sentiment Intelligence'; });
+  safeEl('app-version', el => { el.textContent = 'AI Feedback Command Center · v2.0'; });
   safeEl('user-role', el => { el.textContent = t('administrator'); });
 
   renderIcons();
