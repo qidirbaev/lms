@@ -853,24 +853,252 @@ function renderTeachers() {
   `;
 }
 
+function trendRiskLevel(value) {
+  const n = Number(value || 0);
+  if (n >= 0.7) return 'critical';
+  if (n >= 0.45) return 'high';
+  if (n >= 0.25) return 'medium';
+  return 'low';
+}
+
+function trendDeltaLabel(series) {
+  if (!series || series.length < 2) return { text: 'Yetarli trend yo‘q', cls: 'neutral' };
+
+  const first = Number(series[0].avg_sentiment ?? 0.5);
+  const last = Number(series[series.length - 1].avg_sentiment ?? 0.5);
+  const delta = last - first;
+
+  if (delta > 0.08) return { text: `+${Math.round(delta * 100)}% yaxshilanish`, cls: 'positive' };
+  if (delta < -0.08) return { text: `${Math.round(delta * 100)}% pasayish`, cls: 'negative' };
+  return { text: 'Barqaror holat', cls: 'neutral' };
+}
+
+function renderTrendTimeline(series) {
+  if (!series.length) return `<p class="text-muted">${esc(t('no_data'))}</p>`;
+
+  return series.slice(-12).map((x, i) => {
+    const score = Number(x.avg_sentiment ?? 0.5);
+    const cls = score >= 0.65 ? 'positive' : score <= 0.4 ? 'negative' : 'neutral';
+    return `
+      <div class="trend-timeline-item ${cls}">
+        <div class="trend-dot"></div>
+        <div>
+          <b>${esc(x.period || `P${i + 1}`)}</b>
+          <span>${Math.round(score * 100)}% sentiment · ${x.total || 0} feedback</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTrendSignals(series) {
+  const total = series.reduce((s, x) => s + Number(x.total || 0), 0);
+  const negative = series.reduce((s, x) => s + Number(x.negative || 0), 0);
+  const positive = series.reduce((s, x) => s + Number(x.positive || 0), 0);
+  const high = series.reduce((s, x) => s + Number(x.high || x.critical || 0), 0);
+
+  const negRate = total ? negative / total : 0;
+  const posRate = total ? positive / total : 0;
+  const riskRate = total ? high / total : 0;
+
+  return `
+    <div class="trend-signal-grid">
+      <div class="trend-signal-card ${posRate >= .55 ? 'positive' : ''}">
+        <i data-lucide="trending-up"></i>
+        <span>Ijobiy oqim</span>
+        <b>${Math.round(posRate * 100)}%</b>
+      </div>
+      <div class="trend-signal-card ${negRate >= .35 ? 'negative' : ''}">
+        <i data-lucide="trending-down"></i>
+        <span>Salbiy oqim</span>
+        <b>${Math.round(negRate * 100)}%</b>
+      </div>
+      <div class="trend-signal-card ${riskRate >= .2 ? 'critical' : ''}">
+        <i data-lucide="shield-alert"></i>
+        <span>Risk bosimi</span>
+        <b>${Math.round(riskRate * 100)}%</b>
+      </div>
+    </div>
+  `;
+}
+
 function renderTrends() {
   const tr = state.dashboard.trends || {};
   const series = tr.sentiment_over_time || tr.daily || tr.monthly || [];
+  const delta = trendDeltaLabel(series);
+
+  const latest = series[series.length - 1] || {};
+  const latestScore = Number(latest.avg_sentiment ?? 0);
+  const totalVolume = series.reduce((s, x) => s + Number(x.total || 0), 0);
+  const peak = [...series].sort((a, b) => Number(b.total || 0) - Number(a.total || 0))[0] || {};
 
   $('trends-body').innerHTML = `
-    <div class="grid-2">
-      <div class="card chart-card">
-        <div class="card-title">${esc(t('sentiment_over_time'))}</div>
-        <div class="chart-box"><canvas id="chart-trend"></canvas></div>
+    <div class="trend-lab">
+      <div class="trend-hero card ${delta.cls}">
+        <div>
+          <div class="eyebrow">TEMPORAL INTELLIGENCE</div>
+          <h3>Feedback oqimi va kayfiyat dinamikasi</h3>
+          <p>
+            Tizim vaqt bo‘yicha sentiment, salbiy oqim, feedback hajmi va risk bosimini kuzatadi.
+            Bu panel universitet rahbariyatiga muammo qachon kuchayganini ko‘rsatadi.
+          </p>
+        </div>
+
+        <div class="trend-hero-status ${delta.cls}">
+          <span>${esc(delta.text)}</span>
+          <b>${Math.round(latestScore * 100)}%</b>
+          <small>latest sentiment</small>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">${esc(t('trend_data'))}</div>
-        <div class="json-viewer">${esc(JSON.stringify(series, null, 2))}</div>
+
+      <div class="kpi-grid">
+        ${kpi('Umumiy hajm', totalVolume, 'feedback volume')}
+        ${kpi('Peak period', peak.period || '—', `${peak.total || 0} feedback`)}
+        ${kpi('Latest period', latest.period || '—', `${latest.total || 0} feedback`)}
+        ${kpi('Trend status', delta.text, 'AI temporal signal')}
+      </div>
+
+      <div class="trend-dashboard-grid">
+        <div class="card trend-main-chart">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Sentiment over time</div>
+              <div class="text-muted text-sm">Vaqt kesimida umumiy kayfiyat harakati</div>
+            </div>
+            <span class="badge badge-outline">Live dashboard</span>
+          </div>
+          <div class="chart-box trend-chart-box"><canvas id="chart-trend"></canvas></div>
+        </div>
+
+        <div class="card trend-side-panel">
+          <div class="card-title mb-3">Signal panel</div>
+          ${renderTrendSignals(series)}
+        </div>
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card">
+          <div class="card-title mb-3">Timeline diagnostics</div>
+          <div class="trend-timeline">${renderTrendTimeline(series)}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title mb-3">Raw temporal data</div>
+          <div class="json-viewer">${esc(JSON.stringify(series, null, 2))}</div>
+        </div>
       </div>
     </div>
   `;
 
   drawCharts();
+  if (window.lucide) lucide.createIcons();
+}
+
+function issueImpactClass(item) {
+  const count = Number(item.count || 0);
+  const pct = Number(item.percentage || 0);
+  const sev = item.severity_mix || {};
+
+  if ((sev.critical || 0) > 0 || pct >= 35) return 'critical';
+  if ((sev.high || 0) > 0 || pct >= 20 || count >= 10) return 'high';
+  if (pct >= 10 || count >= 5) return 'medium';
+  return 'low';
+}
+
+function issueHumanName(name) {
+  const map = {
+    none: 'Muammo yo‘q',
+    teaching_style: 'O‘qitish uslubi',
+    content_quality: 'Kontent sifati',
+    assessment: 'Baholash',
+    materials: 'Materiallar',
+    communication: 'Kommunikatsiya',
+    technical_issue: 'Texnik muammo',
+    classroom_management: 'Dars boshqaruvi',
+    fairness_concern: 'Adolat signali',
+    other: 'Boshqa'
+  };
+  return map[name] || name || 'Boshqa';
+}
+
+function renderIssueRadar(items) {
+  const max = Math.max(...items.map(x => Number(x.count || 0)), 1);
+
+  return items.slice(0, 8).map(x => {
+    const cls = issueImpactClass(x);
+    const width = Math.round((Number(x.count || 0) / max) * 100);
+
+    return `
+      <div class="issue-radar-row ${cls}">
+        <div class="issue-radar-label">
+          <b>${esc(issueHumanName(x.issue))}</b>
+          <span>${x.count} ta holat · ${x.percentage || 0}%</span>
+        </div>
+        <div class="issue-radar-track">
+          <div class="issue-radar-fill" style="width:${width}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function renderIssueCommandCards(items) {
+  return items.slice(0, 6).map((x, i) => {
+    const cls = issueImpactClass(x);
+    const severity = x.severity_mix || {};
+    const action = x.action || x.top_action || x.suggested_action || 'monitor_pattern';
+
+    return `
+      <div class="issue-command-card ${cls}">
+        <div class="issue-command-rank">#${i + 1}</div>
+        <div class="issue-command-main">
+          <h4>${esc(issueHumanName(x.issue))}</h4>
+          <p>${x.count} ta feedback · ${x.percentage || 0}% ulush</p>
+          <div class="issue-severity-mini">
+            <span>low ${severity.low || 0}</span>
+            <span>medium ${severity.medium || 0}</span>
+            <span>high ${severity.high || 0}</span>
+            <span>critical ${severity.critical || 0}</span>
+          </div>
+        </div>
+        <div class="issue-command-action">
+          <span>${esc(actionHuman(action))}</span>
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function renderIssueMatrix(items) {
+  return items.slice(0, 10).map(x => {
+    const cls = issueImpactClass(x);
+    const severity = x.severity_mix || {};
+    const hot = (Number(severity.high || 0) * 2) + (Number(severity.critical || 0) * 4) + Number(x.count || 0);
+
+    return `
+      <div class="issue-matrix-item ${cls}">
+        <div>
+          <b>${esc(issueHumanName(x.issue))}</b>
+          <span>impact score ${hot}</span>
+        </div>
+        <small>${x.percentage || 0}%</small>
+      </div>
+    `;
+  }).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function issueInsightSentence(items) {
+  if (!items.length) return 'Hali muammo signallari mavjud emas.';
+
+  const top = items[0];
+  const critical = items.find(x => issueImpactClass(x) === 'critical');
+  const high = items.filter(x => ['critical', 'high'].includes(issueImpactClass(x))).length;
+
+  if (critical) {
+    return `Eng muhim signal “${issueHumanName(critical.issue)}”. Bu yo‘nalish bo‘yicha inson tekshiruvi va boshqaruv qarori kerak bo‘lishi mumkin.`;
+  }
+
+  return `Dominant muammo “${issueHumanName(top.issue)}”. Jami ${high} ta yo‘nalish yuqori monitoringga loyiq.`;
 }
 
 function renderIssues() {
@@ -879,30 +1107,91 @@ function renderIssues() {
 
   const enriched = list.map(i => ({
     issue: i.issue || i.category || t('none'),
-    count: i.count || 0,
-    percentage: i.percentage || 0,
+    count: Number(i.count || 0),
+    percentage: Number(i.percentage || 0),
     severity_mix: i.severities || i.severity_mix || {},
-    action: i.top_action || i.suggested_action || ''
-  }));
+    action: i.top_action || i.suggested_action || i.action || 'monitor_pattern'
+  })).sort((a, b) => {
+    const aw = a.count + (a.severity_mix.high || 0) * 2 + (a.severity_mix.critical || 0) * 4;
+    const bw = b.count + (b.severity_mix.high || 0) * 2 + (b.severity_mix.critical || 0) * 4;
+    return bw - aw;
+  });
 
-  const top = n => enriched.slice(0, n).map(i => `
-    <div class="stat-row">
-      <span class="stat-label">${esc(i.issue)}</span>
-      <span class="stat-val">${i.count} · ${i.percentage}%</span>
-    </div>
-  `).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+  const criticalCount = enriched.filter(i => issueImpactClass(i) === 'critical').length;
+  const highCount = enriched.filter(i => issueImpactClass(i) === 'high').length;
+  const totalIssueCount = enriched.reduce((s, i) => s + i.count, 0);
+  const topIssue = enriched[0];
 
   $('issues-body').innerHTML = `
-    <div class="grid-3">
-      <div class="card"><div class="card-title">TOP 3</div>${top(3)}</div>
-      <div class="card"><div class="card-title">TOP 5</div>${top(5)}</div>
-      <div class="card"><div class="card-title">TOP 10</div>${top(10)}</div>
-    </div>
-    <div class="card mt-3">
-      <div class="card-title">${esc(t('problem_details'))}</div>
-      <div class="json-viewer">${esc(JSON.stringify(enriched.slice(0, 10), null, 2))}</div>
+    <div class="issue-lab">
+      <div class="issue-hero card ${criticalCount ? 'critical' : highCount ? 'high' : 'neutral'}">
+        <div>
+          <div class="eyebrow">PROBLEM INTELLIGENCE</div>
+          <h3>Muammo signallari va institut darajasidagi prioritetlar</h3>
+          <p>
+            Bu panel muammolarni oddiy ro‘yxat sifatida emas, balki impact, severity,
+            feedback hajmi va tavsiya qilingan harakatlar bo‘yicha boshqaruv xaritasiga aylantiradi.
+          </p>
+        </div>
+
+        <div class="issue-hero-score">
+          <b>${criticalCount + highCount}</b>
+          <span>priority signals</span>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        ${kpi('Jami muammo signali', totalIssueCount, 'classified feedbacks')}
+        ${kpi('Kritik yo‘nalishlar', criticalCount, 'formal review candidates')}
+        ${kpi('Yuqori monitoring', highCount, 'management attention')}
+        ${kpi('Dominant issue', topIssue ? issueHumanName(topIssue.issue) : '—', `${topIssue?.count || 0} holat`)}
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card issue-radar-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Issue radar</div>
+              <div class="text-muted text-sm">Muammolar impact bo‘yicha tartiblangan</div>
+            </div>
+            <span class="badge badge-outline">Top 8</span>
+          </div>
+          ${renderIssueRadar(enriched)}
+        </div>
+
+        <div class="card">
+          <div class="card-title mb-3">AI institutional insight</div>
+          <div class="issue-insight-box">
+            <i data-lucide="sparkles"></i>
+            <p>${esc(issueInsightSentence(enriched))}</p>
+          </div>
+
+          <div class="issue-matrix mt-3">
+            ${renderIssueMatrix(enriched)}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Command priority board</div>
+            <div class="text-muted text-sm">Qaysi muammo birinchi ko‘rib chiqilishi kerak?</div>
+          </div>
+        </div>
+        <div class="issue-command-board">
+          ${renderIssueCommandCards(enriched)}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title mb-3">Raw problem intelligence</div>
+        <div class="json-viewer">${esc(JSON.stringify(enriched.slice(0, 10), null, 2))}</div>
+      </div>
     </div>
   `;
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderRisks() {
