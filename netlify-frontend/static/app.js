@@ -460,6 +460,12 @@ function t(key) {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
+function humanize(key) {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function $(id) { return document.getElementById(id); }
 
 function esc(v) {
@@ -826,7 +832,7 @@ function renderOverviewMiniDistribution(title, obj) {
       <div class="card-title mb-3">${esc(title)}</div>
       ${entries.map(x => `
         <div class="overview-dist-row">
-          <span>${esc(x.name)}</span>
+          <span>${esc(humanize(x.name))}</span>
           <div class="overview-dist-bar">
             <div style="width:${Math.round((x.count / max) * 100)}%"></div>
           </div>
@@ -1137,7 +1143,7 @@ function renderMoodEmotionMap(distribution) {
       <div class="mood-emotion-name">
         <span class="emotion-dot"></span>
         <b>${esc(emotionHumanName(x.name))}</b>
-        <small>${esc(x.name)}</small>
+        <small>${esc(humanize(x.name))}</small>
       </div>
       <div class="mood-emotion-bar">
         <div class="mood-emotion-fill" style="width:${Math.round((x.count / max) * 100)}%"></div>
@@ -1799,7 +1805,7 @@ function renderWordCloud(items, limit = 60) {
         const signal = keywordSignalClass(x);
         return `
           <button class="word-token word-${temp} ${signal}" onclick="focusKeyword('${esc(x.name)}')">
-            <span>${esc(x.name)}</span>
+            <span>${esc(humanize(x.name))}</span>
             <small>${x.count}</small>
           </button>
         `;
@@ -1819,7 +1825,7 @@ function renderHotKeywordRows(items, limit = 12) {
       <div class="hot-keyword-row ${signal}">
         <div class="hot-rank">#${i + 1}</div>
         <div class="hot-main">
-          <div class="hot-name">${esc(x.name)}</div>
+          <div class="hot-name">${esc(humanize(x.name))}</div>
           <div class="hot-bar">
             <div class="hot-fill" style="width:${hot}%"></div>
           </div>
@@ -1836,7 +1842,7 @@ function renderHotKeywordRows(items, limit = 12) {
 function renderKeywordChips(items, limit = 16) {
   return items.slice(0, limit).map(x => `
     <span class="keyword-chip ${keywordSignalClass(x)}">
-      ${esc(x.name)}
+      ${esc(humanize(x.name))}
       <b>${x.count}</b>
     </span>
   `).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;

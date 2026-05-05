@@ -425,8 +425,10 @@ select {
 .topbar-select {
   width: auto !important;
   min-width: 78px;
-  height: 34px;
-  padding: .35rem .55rem !important;
+  height: 44px;
+  /* padding: .35rem .55rem !important; */
+  padding: 0 14px !important;
+  border-radius: 12px;
 }
 
 /* ── Pages ─────────────────────────────────────────────────── */
@@ -507,8 +509,13 @@ select {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: .95rem;
+  /* padding: .95rem; */
   box-shadow: var(--shadow);
+  padding: 16px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .kpi-label {
@@ -521,8 +528,9 @@ select {
 }
 
 .kpi-val {
-  font-size: 1.65rem;
-  font-weight: 900;
+  font-size: 28px;
+  font-weight: 800;
+  /* font-weight: 900; */
   letter-spacing: -.055em;
   line-height: 1;
 }
@@ -658,9 +666,13 @@ select {
 }
 
 .btn-sm {
-  min-height: 32px;
+  /* min-height: 32px;
   padding: .35rem .65rem;
+  font-size: .74rem; */
   font-size: .74rem;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
 }
 
 /* ── Tables ────────────────────────────────────────────────── */
@@ -755,8 +767,11 @@ tbody tr:hover {
 /* ── Charts: hard height lock ──────────────────────────────── */
 
 .chart-card {
-  height: 240px !important;
-  min-height: 240px !important;
+  /* height: 240px !important; */
+  height: auto !important;
+  min-height: 280px;
+  padding: 16px;
+  /* min-height: 240px !important; */
   max-height: 240px !important;
   overflow: hidden !important;
   display: flex;
@@ -3226,7 +3241,8 @@ tbody tr:hover {
 }
 
 .overview-chart-card .chart-box {
-  height: 205px !important;
+  /* height: 205px !important; */
+  height: 220px !important;
   max-height: 205px !important;
 }
 
