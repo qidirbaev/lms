@@ -781,30 +781,260 @@ function renderOverview() {
   drawCharts();
 }
 
+function moodHealthClass(score) {
+  const n = Number(score || 0);
+  if (n >= 0.72) return 'positive';
+  if (n >= 0.48) return 'neutral';
+  if (n >= 0.32) return 'warning';
+  return 'critical';
+}
+
+function moodHealthText(score) {
+  const cls = moodHealthClass(score);
+  const map = {
+    positive: 'Sog‘lom kayfiyat',
+    neutral: 'Barqaror holat',
+    warning: 'E’tibor talab qiladi',
+    critical: 'Kritik kayfiyat signali'
+  };
+  return map[cls];
+}
+
+function emotionHumanName(emotion) {
+  const map = {
+    frustration: 'Norozilik',
+    confusion: 'Tushunmovchilik',
+    anxiety: 'Xavotir',
+    anger: 'Jahl',
+    boredom: 'Zerikish',
+    gratitude: 'Minnatdorchilik',
+    curiosity: 'Qiziqish',
+    confidence: 'Ishonch',
+    inspiration: 'Ilhomlanish',
+    relief: 'Yengillik',
+    indifference: 'Befarqlik',
+    disappointment: 'Ko‘ngilsizlik'
+  };
+  return map[emotion] || emotion || 'Aniqlanmagan';
+}
+
+function emotionClass(emotion) {
+  const e = String(emotion || '').toLowerCase();
+
+  if (['gratitude', 'curiosity', 'confidence', 'inspiration', 'relief'].includes(e)) return 'positive';
+  if (['frustration', 'anger', 'anxiety', 'disappointment'].includes(e)) return 'negative';
+  if (['confusion', 'boredom'].includes(e)) return 'warning';
+  return 'neutral';
+}
+
+function renderMoodEmotionMap(distribution) {
+  const entries = Object.entries(distribution || {})
+    .map(([name, count]) => ({ name, count: Number(count || 0), cls: emotionClass(name) }))
+    .sort((a, b) => b.count - a.count);
+
+  const max = Math.max(...entries.map(x => x.count), 1);
+
+  if (!entries.length) return `<p class="text-muted">${esc(t('no_data'))}</p>`;
+
+  return entries.map(x => `
+    <div class="mood-emotion-row ${x.cls}">
+      <div class="mood-emotion-name">
+        <span class="emotion-dot"></span>
+        <b>${esc(emotionHumanName(x.name))}</b>
+        <small>${esc(x.name)}</small>
+      </div>
+      <div class="mood-emotion-bar">
+        <div class="mood-emotion-fill" style="width:${Math.round((x.count / max) * 100)}%"></div>
+      </div>
+      <div class="mood-emotion-count">${x.count}</div>
+    </div>
+  `).join('');
+}
+
+function renderMoodDimensionCard(label, value, iconName) {
+  const p = pct(value);
+  const cls = p >= 72 ? 'positive' : p >= 48 ? 'neutral' : p >= 32 ? 'warning' : 'critical';
+
+  return `
+    <div class="mood-dimension-card ${cls}">
+      <div class="mood-dimension-top">
+        <i data-lucide="${esc(iconName)}"></i>
+        <span>${esc(label)}</span>
+      </div>
+      <div class="mood-dimension-score">${p}%</div>
+      <div class="mood-dimension-track">
+        <div class="mood-dimension-fill" style="width:${p}%"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMoodPulseTimeline() {
+  const tr = state.dashboard?.trends || {};
+  const series = tr.sentiment_over_time || tr.daily || tr.monthly || [];
+
+  if (!series.length) {
+    return `<p class="text-muted">${esc(t('no_data'))}</p>`;
+  }
+
+  return series.slice(-10).map(x => {
+    const score = Number(x.avg_sentiment ?? 0.5);
+    const cls = moodHealthClass(score);
+    return `
+      <div class="mood-pulse-item ${cls}">
+        <div class="mood-pulse-period">${esc(x.period || '')}</div>
+        <div class="mood-pulse-track">
+          <div class="mood-pulse-fill" style="height:${Math.max(8, Math.round(score * 100))}%"></div>
+        </div>
+        <div class="mood-pulse-score">${Math.round(score * 100)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function moodInsightSentence(m) {
+  const score = Number(m.university_satisfaction_score || 0);
+  const dominant = m.dominant_emotion || 'indifference';
+  const dims = m.satisfaction_dimensions || {};
+
+  const weakest = Object.entries(dims)
+    .map(([k, v]) => ({ key: k, value: Number(v || 0) }))
+    .sort((a, b) => a.value - b.value)[0];
+
+  const dimNames = {
+    teaching_quality: 'o‘qitish sifati',
+    clarity: 'aniqlik',
+    engagement: 'faollik',
+    fairness: 'adolatlilik',
+    materials: 'materiallar'
+  };
+
+  if (score >= 0.72) {
+    return `Umumiy kayfiyat sog‘lom. Dominant emotsiya: “${emotionHumanName(dominant)}”. Eng zaif indikator: ${dimNames[weakest?.key] || 'aniqlanmagan'}.`;
+  }
+
+  if (score >= 0.48) {
+    return `Kayfiyat barqaror, lekin monitoring kerak. Dominant emotsiya: “${emotionHumanName(dominant)}”. E’tibor nuqtasi: ${dimNames[weakest?.key] || 'aniqlanmagan'}.`;
+  }
+
+  return `Universitet kayfiyatida salbiy signal bor. Dominant emotsiya: “${emotionHumanName(dominant)}”. Birinchi tekshiriladigan yo‘nalish: ${dimNames[weakest?.key] || 'aniqlanmagan'}.`;
+}
+
 function renderMood() {
   const m = state.dashboard.university_mood || {};
+  const dims = m.satisfaction_dimensions || {};
+  const score = Number(m.university_satisfaction_score || 0);
+  const cls = moodHealthClass(score);
+  const emotion = m.dominant_emotion || 'indifference';
 
   $('mood-body').innerHTML = `
-    <div class="kpi-grid">
-      ${kpi(t('dominant_emotion'), m.dominant_emotion || t('none'))}
-      ${kpi(t('university_score'), fmt(m.university_satisfaction_score))}
-      ${kpi(t('teaching_quality'), fmt(m.satisfaction_dimensions?.teaching_quality))}
-      ${kpi(t('fairness'), fmt(m.satisfaction_dimensions?.fairness))}
-    </div>
+    <div class="mood-lab">
+      <div class="mood-hero card ${cls}">
+        <div>
+          <div class="eyebrow">UNIVERSITY MOOD INTELLIGENCE</div>
+          <h3>${esc(moodHealthText(score))}</h3>
+          <p>
+            Tizim talabalar feedbacklaridan umumiy universitet kayfiyati, dominant emotsiyalar,
+            qoniqish o‘lchovlari va vaqt bo‘yicha kayfiyat pulsini chiqaradi.
+          </p>
+        </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">${esc(t('emotion_distribution'))}</div>
-        ${statList(m.emotion_distribution || {})}
+        <div class="mood-orb ${cls}">
+          <span>${Math.round(score * 100)}</span>
+          <small>mood score</small>
+        </div>
       </div>
-      <div class="card chart-card">
-        <div class="card-title">${esc(t('mood_trend'))}</div>
-        <div class="chart-box"><canvas id="chart-mood-trend"></canvas></div>
+
+      <div class="mood-command-grid">
+        <div class="mood-command-card ${emotionClass(emotion)}">
+          <div class="mood-command-icon"><i data-lucide="heart-pulse"></i></div>
+          <div>
+            <span>Dominant emotsiya</span>
+            <b>${esc(emotionHumanName(emotion))}</b>
+            <small>${esc(emotion)}</small>
+          </div>
+        </div>
+
+        <div class="mood-command-card ${cls}">
+          <div class="mood-command-icon"><i data-lucide="gauge"></i></div>
+          <div>
+            <span>Universitet kayfiyat indeksi</span>
+            <b>${Math.round(score * 100)}%</b>
+            <small>${esc(moodHealthText(score))}</small>
+          </div>
+        </div>
+
+        <div class="mood-command-card">
+          <div class="mood-command-icon"><i data-lucide="brain-circuit"></i></div>
+          <div>
+            <span>AI insight</span>
+            <b>Signal tayyor</b>
+            <small>emotion + satisfaction + trend</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card mood-map-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Emotion distribution map</div>
+              <div class="text-muted text-sm">Talabalar kayfiyati qaysi emotsiyalarda jamlangan?</div>
+            </div>
+            <span class="badge badge-outline">AI emotions</span>
+          </div>
+          <div class="mood-emotion-map">
+            ${renderMoodEmotionMap(m.emotion_distribution || {})}
+          </div>
+        </div>
+
+        <div class="card mood-insight-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">AI mood insight</div>
+              <div class="text-muted text-sm">Boshqaruv uchun qisqa izoh</div>
+            </div>
+          </div>
+
+          <div class="mood-insight-box ${cls}">
+            <i data-lucide="sparkles"></i>
+            <p>${esc(moodInsightSentence(m))}</p>
+          </div>
+
+          <div class="mood-pulse mt-3">
+            <div class="card-title mb-3">Mood pulse timeline</div>
+            <div class="mood-pulse-bars">
+              ${renderMoodPulseTimeline()}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Satisfaction dimension radar</div>
+            <div class="text-muted text-sm">Qaysi yo‘nalish yaxshi, qaysi yo‘nalish kuchaytirilishi kerak?</div>
+          </div>
+        </div>
+
+        <div class="mood-dimension-grid">
+          ${renderMoodDimensionCard('O‘qitish sifati', dims.teaching_quality, 'graduation-cap')}
+          ${renderMoodDimensionCard('Aniqlik', dims.clarity, 'focus')}
+          ${renderMoodDimensionCard('Faollik', dims.engagement, 'activity')}
+          ${renderMoodDimensionCard('Adolatlilik', dims.fairness, 'scale')}
+          ${renderMoodDimensionCard('Materiallar', dims.materials, 'file-text')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title mb-3">Raw mood intelligence</div>
+        <div class="json-viewer">${esc(JSON.stringify(m, null, 2))}</div>
       </div>
     </div>
   `;
 
-  drawCharts();
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderCourses() {
