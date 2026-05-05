@@ -216,48 +216,29 @@ select {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-nav-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: .35rem 0;
 
   scrollbar-width: none;
   -ms-overflow-style: none;
 
-  position: relative;
-
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    black 24px,
-    black calc(100% - 24px),
+    black 18px,
+    black calc(100% - 18px),
     transparent 100%
   );
 }
 
-.sidebar::before,
-.sidebar::after {
-  content: "";
-  position: sticky;
-  left: 0;
-  right: 0;
-  height: 28px;
-  pointer-events: none;
-  z-index: 20;
-  flex-shrink: 0;
-}
-
-.sidebar::before {
-  top: 0;
-  margin-bottom: -28px;
-  background: linear-gradient(to bottom, var(--bg-2), transparent);
-}
-
-.sidebar::after {
-  bottom: 0;
-  margin-top: -28px;
-  background: linear-gradient(to top, var(--bg-2), transparent);
-}
-
-.sidebar::-webkit-scrollbar {
+.sidebar-nav-scroll::-webkit-scrollbar {
   display: none;
 }
 
