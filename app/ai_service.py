@@ -16,26 +16,148 @@ from .validator import validate_output, extract_json_from_text
 
 _client = None
 
-
 SYSTEM_PROMPT = """
-You are an LMS feedback analysis engine.
+You are an institutional LMS feedback intelligence engine.
+
+Your job is to analyze ONE student feedback record using:
+1. raw_text
+2. rating
+3. course context
+4. teacher context
+5. student context
+6. feedback context
 
 Return ONLY valid JSON.
 Do not use markdown.
 Do not add explanations outside JSON.
+Do not add fields outside the required schema.
 Follow the outputFromAI schema exactly.
 
-Rules:
-- Use only allowed enum values.
-- If unsure, choose conservative values.
-- Never invent severe risks without explicit evidence.
-- Positive feedback should normally have no risk.
-- For vague feedback, lower confidence.
-- Uzbek summary must be in Uzbek.
-- Output must be valid JSON object only.
-- topics max 3.
-- subtopics max 5.
-- keywords max 4.
+CRITICAL ANALYSIS PRINCIPLES
+
+1. Evidence-first rule
+- The raw_text is the primary evidence.
+- Rating and context can adjust confidence, severity, fairness, credibility, and recommended action.
+- Context must NEVER create an accusation by itself.
+- Never infer corruption, harassment, discrimination, or abuse unless the raw_text explicitly suggests it.
+
+2. Student context usage
+Use student_context to improve interpretation:
+- Low attendance may reduce confidence if the complaint is vague, broad, or about general difficulty.
+- Low GPA may reduce confidence for vague complaints about grading difficulty, but must NOT automatically invalidate the student.
+- High GPA + high attendance can increase credibility for specific academic complaints.
+- Senior students may provide more credible curriculum/workload feedback.
+- First-year students may express adaptation issues; classify vague confusion conservatively.
+- Department/group/year help understand scope, but one record is not proof of a systemic issue.
+- Gender must not influence sentiment, severity, credibility, or risk unless the text explicitly discusses gender-related discrimination.
+
+3. Rating consistency
+- Rating 4–5 usually supports positive or neutral-positive interpretation unless raw_text is clearly negative.
+- Rating 1–2 usually supports negative interpretation unless raw_text is clearly positive.
+- If text and rating conflict, lower confidence and mention the conflict briefly in summary_uz.
+- Rating alone must not create severe risk.
+
+4. Credibility scoring
+feedback_credibility.score means how actionable/reliable this single feedback is.
+Increase credibility when:
+- text is specific
+- concrete issue is named
+- course/teacher/material/assessment detail is present
+- high attendance supports course experience
+- rating matches text
+Decrease credibility when:
+- text is vague
+- text is emotional but has no detail
+- rating conflicts with text
+- attendance is low and complaint is about teaching clarity/attendance-dependent experience
+- content looks spammy or irrelevant
+
+Suggested ranges:
+- 0.80–1.00: specific, consistent, actionable
+- 0.60–0.79: useful but limited
+- 0.35–0.59: vague, conflicting, or weak context support
+- 0.00–0.34: spam, irrelevant, or not enough evidence
+
+5. Fairness scoring
+feedback_fairness.score means how balanced and constructive the feedback is.
+Increase fairness when:
+- feedback gives a reason
+- feedback includes constructive suggestion
+- feedback avoids personal attack
+Decrease fairness when:
+- one-sided blame
+- insulting wording
+- unsupported accusation
+- no actionable detail
+
+6. Severity
+Severity describes operational urgency, not emotional tone.
+- low: praise, minor issue, vague dissatisfaction
+- medium: repeated-feeling complaint, clear academic issue, materials/clarity/communication issue
+- high: serious grading fairness concern, strong negative impact, explicit repeated unresolved problem
+- critical: explicit corruption, harassment, discrimination, policy violation, or serious safety/system abuse claim
+
+Do NOT mark severity high/critical only because sentiment is negative.
+
+7. Admin attention
+requires_admin_attention should be true only when:
+- severity is high or critical
+- risk.probability >= 0.50
+- issue involves fairness_concern with specific evidence
+- recommended_action requires human follow-up/escalation
+
+8. Risk rules
+Risk types must be empty [] unless explicit evidence exists in raw_text.
+Allowed risk types:
+- corruption_allegation
+- harassment_claim
+- grading_bias
+- academic_integrity_issue
+- discrimination_claim
+- policy_violation
+- system_abuse
+- coordinated_spam
+
+Risk probability:
+- 0.00 if no explicit risk
+- 0.20–0.49 if weak/ambiguous risk language
+- 0.50–0.74 if explicit but limited claim
+- 0.75–1.00 if explicit, specific, serious claim
+
+Positive feedback should normally have:
+- risk.types = []
+- risk.probability = 0.0
+- risk.impact_scope = "none"
+- severity = "low"
+- requires_admin_attention = false
+- recommended_action = "no_action_needed"
+
+9. Satisfaction dimensions
+Use both text and context.
+- teaching_quality: explanation, teacher behavior, teaching method
+- clarity: understandability, confusion, explanation quality
+- engagement: interest, motivation, boring/interactive
+- fairness: grading, equal treatment, bias, transparency
+- materials: slides, resources, assignments, LMS content
+
+Scores:
+- 0.80–1.00 strong positive
+- 0.60–0.79 acceptable
+- 0.40–0.59 mixed/unclear
+- 0.20–0.39 weak/problematic
+- 0.00–0.19 severe problem
+
+10. Language and Uzbek summary
+- Detect language as uz, ru, en, or mixed.
+- summary_uz must always be in Uzbek.
+- summary_uz must include the main conclusion and, when useful, context-aware caution.
+- Do not overstate. Use words like "ehtimol", "ko‘rinadi", "aniqlashtirish kerak" for uncertain cases.
+
+11. Lists
+- topics max 3
+- subtopics max 5
+- keywords max 4
+- Use short normalized labels, not long sentences.
 
 Return this exact JSON structure:
 
@@ -79,6 +201,69 @@ Return this exact JSON structure:
   "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
 }
 """
+
+# SYSTEM_PROMPT = """
+# You are an LMS feedback analysis engine.
+
+# Return ONLY valid JSON.
+# Do not use markdown.
+# Do not add explanations outside JSON.
+# Follow the outputFromAI schema exactly.
+
+# Rules:
+# - Use only allowed enum values.
+# - If unsure, choose conservative values.
+# - Never invent severe risks without explicit evidence.
+# - Positive feedback should normally have no risk.
+# - For vague feedback, lower confidence.
+# - Uzbek summary must be in Uzbek.
+# - Output must be valid JSON object only.
+# - topics max 3.
+# - subtopics max 5.
+# - keywords max 4.
+
+# Return this exact JSON structure:
+
+# {
+#   "schema_version": "1.0.0",
+#   "feedback_id": "string",
+#   "language": "uz|ru|en|mixed",
+#   "feedback_credibility": {
+#     "score": 0.0
+#   },
+#   "feedback_fairness": {
+#     "score": 0.0,
+#     "is_one_sided": false,
+#     "has_constructive_tone": false
+#   },
+#   "sentiment": "positive|neutral|negative",
+#   "sentiment_score": 0.0,
+#   "emotion": "frustration|confusion|anxiety|anger|boredom|gratitude|curiosity|confidence|inspiration|relief|indifference|disappointment",
+#   "emotion_intensity": 0.0,
+#   "subtopics": ["string"],
+#   "keywords": ["string"],
+#   "topics": ["string"],
+#   "issue_category": "none|teaching_style|content_quality|assessment|materials|communication|technical_issue|classroom_management|fairness_concern|other",
+#   "risk": {
+#     "types": ["corruption_allegation|harassment_claim|grading_bias|academic_integrity_issue|discrimination_claim|policy_violation|system_abuse|coordinated_spam"],
+#     "probability": 0.0,
+#     "impact_scope": "none|course|teacher|department|system"
+#   },
+#   "satisfaction_dimensions": {
+#     "teaching_quality": 0.0,
+#     "clarity": 0.0,
+#     "engagement": 0.0,
+#     "fairness": 0.0,
+#     "materials": 0.0
+#   },
+#   "severity": "low|medium|high|critical",
+#   "confidence": 0.0,
+#   "summary_uz": "string",
+#   "representative_label": "complaint|praise|suggestion|incident|other",
+#   "requires_admin_attention": false,
+#   "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
+# }
+# """
 
 
 def prepare_google_credentials() -> str:
@@ -130,6 +315,139 @@ def get_genai_client():
     return _client
 
 
+def build_context_signals(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
+    content = input_to_system.get("content", {}) or {}
+    metadata = input_to_system.get("metadata", {}) or {}
+
+    student_context = metadata.get("student_context", {}) or {}
+    feedback_context = metadata.get("feedback_context") or input_to_system.get("feedback_context", {}) or {}
+    course_context = metadata.get("course_context") or input_to_system.get("course_context", {}) or {}
+    teacher_context = metadata.get("teacher_context") or input_to_system.get("teacher_context", {}) or {}
+
+    text = str(content.get("raw_text", "") or "")
+    rating = content.get("rating")
+
+    try:
+      rating_num = float(rating) if rating is not None else None
+    except Exception:
+      rating_num = None
+
+    try:
+      attendance = float(
+          student_context.get("course_attendance_rate")
+          if student_context.get("course_attendance_rate") is not None
+          else student_context.get("attendance_rate")
+      )
+    except Exception:
+      attendance = None
+
+    try:
+      gpa = float(student_context.get("gpa"))
+    except Exception:
+      gpa = None
+
+    try:
+      year = int(student_context.get("year"))
+    except Exception:
+      year = None
+
+    text_len = len(text.strip())
+    word_count = len(text.split())
+
+    vague_markers = [
+        "yomon", "zo'r emas", "yoqmadi", "tushunmadim", "qiyin",
+        "bad", "not good", "hard", "unclear",
+        "плохо", "сложно", "непонятно"
+    ]
+
+    specific_markers = [
+        "baho", "ball", "imtihon", "slayd", "material", "deadline", "topshiriq",
+        "platforma", "login", "xato", "dars", "amaliy", "laboratoriya",
+        "grade", "exam", "assignment", "material", "teacher", "lesson"
+    ]
+
+    risk_markers = [
+        "pora", "pul so'radi", "pul soradi", "korrupsiya",
+        "haqorat", "kamsit", "tahdid", "bosim",
+        "corruption", "bribe", "harassment", "discrimination"
+    ]
+
+    is_vague = word_count < 7 or (
+        any(m in text.lower() for m in vague_markers)
+        and not any(m in text.lower() for m in specific_markers)
+    )
+
+    has_specific_evidence = any(m in text.lower() for m in specific_markers) or word_count >= 14
+    has_explicit_risk_language = any(m in text.lower() for m in risk_markers)
+
+    rating_band = "unknown"
+    if rating_num is not None:
+        if rating_num <= 2:
+            rating_band = "low"
+        elif rating_num == 3:
+            rating_band = "middle"
+        else:
+            rating_band = "high"
+
+    attendance_band = "unknown"
+    if attendance is not None:
+        if attendance < 0.45:
+            attendance_band = "low"
+        elif attendance < 0.75:
+            attendance_band = "medium"
+        else:
+            attendance_band = "high"
+
+    gpa_band = "unknown"
+    if gpa is not None:
+        if gpa < 2.5:
+            gpa_band = "low"
+        elif gpa < 3.5:
+            gpa_band = "medium"
+        else:
+            gpa_band = "high"
+
+    academic_maturity = "unknown"
+    if year is not None:
+        if year <= 1:
+            academic_maturity = "first_year"
+        elif year >= 4:
+            academic_maturity = "senior"
+        else:
+            academic_maturity = "middle_year"
+
+    return {
+        "text_quality": {
+            "text_length": text_len,
+            "word_count": word_count,
+            "is_vague": is_vague,
+            "has_specific_evidence": has_specific_evidence,
+            "has_explicit_risk_language": has_explicit_risk_language,
+        },
+        "rating_context": {
+            "rating_band": rating_band,
+            "rating_text_alignment_instruction": "If rating conflicts with text, lower confidence and mention uncertainty in summary_uz."
+        },
+        "student_context_interpretation": {
+            "attendance_band": attendance_band,
+            "gpa_band": gpa_band,
+            "academic_maturity": academic_maturity,
+            "fairness_warning": "Do not penalize the student automatically. Use GPA/attendance only as weak context for confidence and credibility.",
+            "gender_rule": "Gender must not affect scoring unless raw_text explicitly discusses gender-related discrimination."
+        },
+        "institutional_scope_instruction": {
+            "single_feedback_limit": "One feedback item is not enough to conclude teacher/course/system-wide failure.",
+            "risk_rule": "Only explicit raw_text evidence may create risk types or high/critical severity."
+        },
+        "available_context_flags": {
+            "has_course_context": bool(course_context),
+            "has_teacher_context": bool(teacher_context),
+            "has_student_context": bool(student_context),
+            "is_anonymous": feedback_context.get("is_anonymous"),
+        }
+    }
+
+
 def build_input_to_ai(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     content = input_to_system.get("content", {}) or {}
     metadata = input_to_system.get("metadata", {}) or {}
@@ -141,6 +459,7 @@ def build_input_to_ai(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     feedback_context = metadata.get("feedback_context") or input_to_system.get("feedback_context", {}) or {}
     course_context = metadata.get("course_context") or input_to_system.get("course_context", {}) or {}
     teacher_context = metadata.get("teacher_context") or input_to_system.get("teacher_context", {}) or {}
+    context_signals = build_context_signals(input_to_system)
 
     return {
         "feedback_id": input_to_system.get("feedback_id"),
@@ -186,6 +505,8 @@ def build_input_to_ai(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
             "feedback_channel": feedback_context.get("feedback_channel"),
             "is_anonymous": feedback_context.get("is_anonymous"),
         },
+        
+        "context_signals": context_signals,
     }
 
 
@@ -398,6 +719,91 @@ def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, Any]) -> Tuple[Dict[str, Any], list]:
+    corrections = []
+    guarded = dict(output)
+
+    input_to_ai = build_input_to_ai(input_to_system)
+    signals = input_to_ai.get("context_signals", {})
+    text_quality = signals.get("text_quality", {})
+    rating_context = signals.get("rating_context", {})
+    student_interp = signals.get("student_context_interpretation", {})
+
+    is_vague = bool(text_quality.get("is_vague"))
+    has_specific_evidence = bool(text_quality.get("has_specific_evidence"))
+    has_explicit_risk_language = bool(text_quality.get("has_explicit_risk_language"))
+    rating_band = rating_context.get("rating_band")
+    attendance_band = student_interp.get("attendance_band")
+
+    risk = guarded.get("risk", {}) or {}
+    risk_types = risk.get("types", []) or []
+    risk_probability = float(risk.get("probability", 0.0) or 0.0)
+
+    # No explicit risk text => no formal risk.
+    if not has_explicit_risk_language and risk_types:
+        guarded["risk"] = {
+            "types": [],
+            "probability": 0.0,
+            "impact_scope": "none",
+        }
+        corrections.append("context_guardrail: removed risk because raw_text has no explicit risk evidence")
+
+    # Vague feedback must not become high/critical.
+    if is_vague and guarded.get("severity") in {"high", "critical"}:
+        guarded["severity"] = "medium" if guarded.get("sentiment") == "negative" else "low"
+        guarded["requires_admin_attention"] = False
+        if guarded.get("recommended_action") in {"open_formal_review", "escalate_to_department", "check_for_policy_violation"}:
+            guarded["recommended_action"] = "request_more_context"
+        corrections.append("context_guardrail: reduced severity for vague feedback")
+
+    # Positive/high-rating feedback should not get admin escalation without explicit risk.
+    if guarded.get("sentiment") == "positive" and rating_band == "high" and not has_explicit_risk_language:
+        guarded["severity"] = "low"
+        guarded["requires_admin_attention"] = False
+        guarded["recommended_action"] = "no_action_needed"
+        guarded["risk"] = {
+            "types": [],
+            "probability": 0.0,
+            "impact_scope": "none",
+        }
+        corrections.append("context_guardrail: normalized positive high-rating feedback")
+
+    # Low attendance + vague complaint => lower confidence/credibility, not automatic rejection.
+    if attendance_band == "low" and is_vague:
+        guarded["confidence"] = min(float(guarded.get("confidence", 0.7) or 0.7), 0.55)
+
+        cred = guarded.get("feedback_credibility", {}) or {}
+        cred["score"] = min(float(cred.get("score", 0.6) or 0.6), 0.50)
+        guarded["feedback_credibility"] = cred
+
+        if guarded.get("recommended_action") in {"open_formal_review", "escalate_to_department"}:
+            guarded["recommended_action"] = "request_more_context"
+
+        corrections.append("context_guardrail: lowered confidence for vague feedback with low attendance context")
+
+    # Specific negative fairness complaint can remain serious, but not critical unless explicit risk.
+    if (
+        guarded.get("issue_category") == "fairness_concern"
+        and guarded.get("severity") == "critical"
+        and not has_explicit_risk_language
+    ):
+        guarded["severity"] = "high" if has_specific_evidence else "medium"
+        guarded["recommended_action"] = "follow_up_with_student" if has_specific_evidence else "request_more_context"
+        corrections.append("context_guardrail: reduced critical fairness concern without explicit policy/risk evidence")
+
+    # Admin attention consistency.
+    final_risk = guarded.get("risk", {}) or {}
+    final_risk_prob = float(final_risk.get("probability", 0.0) or 0.0)
+    if guarded.get("severity") in {"high", "critical"} or final_risk_prob >= 0.5:
+        guarded["requires_admin_attention"] = True
+    elif guarded.get("recommended_action") in {"open_formal_review", "escalate_to_department", "check_for_policy_violation"}:
+        guarded["requires_admin_attention"] = True
+    else:
+        guarded["requires_admin_attention"] = False
+
+    return guarded, corrections
+
+
 def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     """
     Main function expected by app.py.
@@ -418,6 +824,9 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     if provider == "mock":
         result = mock_analyze(input_to_system)
         output, corrections = validate_output(result["parsed_raw"], feedback_id)
+        output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
+        corrections.extend(guardrail_corrections)
+        
         if corrections:
             logger.info("validation_corrections", {"feedback_id": feedback_id, "corrections": corrections})
         return {
@@ -437,6 +846,8 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
             logger.info("gemma_call_start", {"feedback_id": feedback_id, "attempt": attempt})
             result = call_vertex_genai_sync(input_to_system)
             output, corrections = validate_output(result["parsed_raw"], feedback_id)
+            output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
+            corrections.extend(guardrail_corrections)
 
             logger.info("gemma_call_success", {"feedback_id": feedback_id, "attempt": attempt})
             if corrections:
@@ -470,6 +881,8 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
         })
         result = mock_analyze(input_to_system)
         output, corrections = validate_output(result["parsed_raw"], feedback_id)
+        output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
+        corrections.extend(guardrail_corrections)
 
         return {
             "input_to_ai": result["input_to_ai"],

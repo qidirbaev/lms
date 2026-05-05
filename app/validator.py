@@ -156,7 +156,7 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
         "emotion": normalize_choice(raw.get("emotion"), EMOTION_ALLOWED, "indifference"),
         "emotion_intensity": clamp_float(raw.get("emotion_intensity"), 0.5),
         "subtopics": safe_list(raw.get("subtopics", []), 5),
-        "keywords": safe_list(raw.get("keywords", []), 10),
+        "keywords": safe_list(raw.get("keywords", []), 4),
         "topics": safe_list(raw.get("topics", []), 3),
         "issue_category": normalize_choice(raw.get("issue_category"), ISSUE_ALLOWED, "other"),
         "risk": {
