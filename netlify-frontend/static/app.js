@@ -502,8 +502,26 @@ function safeEl(id, cb) {
   if (el) cb(el);
 }
 
+const NAV_ICONS = {
+  overview: 'layout-dashboard',
+  mood: 'activity',
+  courses: 'book-open',
+  teachers: 'users',
+  trends: 'trending-up',
+  issues: 'alert-triangle',
+  risks: 'shield-alert',
+  keywords: 'tags',
+  records: 'database',
+  batch: 'zap',
+  test: 'flask-round',
+  simulate: 'bot',
+  integration: 'plug',
+  logs: 'list-check',
+  settings: 'settings'
+};
+
 function icon(name) {
-  return `<i class="ui-icon ui-icon-${esc(name)}" aria-hidden="true"></i>`;
+  return `<i data-lucide="${NAV_ICONS[name] || 'circle'}" class="nav-svg" aria-hidden="true"></i>`;
 }
 
 function applyTheme() {
@@ -710,6 +728,7 @@ function applyStaticTranslations() {
     batch: 'batch',
     test: 'test',
     simulate: 'simulate',
+    integration: 'integration',
     logs: 'logs',
     settings: 'settings'
   };
@@ -728,6 +747,8 @@ function applyStaticTranslations() {
   safeEl('app-title', el => { el.textContent = t('app_name'); });
   safeEl('app-version', el => { el.textContent = t('demo_version'); });
   safeEl('user-role', el => { el.textContent = t('administrator'); });
+
+  renderIcons();
 }
 
 // ─────────────────────────────────────────────────────────────
