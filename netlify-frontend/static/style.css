@@ -2883,3 +2883,549 @@ tbody tr:hover {
     text-align: left;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Overview / Main Command Center — Palantir-like Showcase
+───────────────────────────────────────────────────────────── */
+
+.overview-command-center {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.overview-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--text) 8%, transparent), transparent 36%),
+    var(--surface);
+}
+
+.overview-hero h3 {
+  font-size: 1.45rem;
+  font-weight: 950;
+  letter-spacing: -.05em;
+  margin-bottom: .25rem;
+}
+
+.overview-hero p {
+  max-width: 820px;
+  color: var(--text-2);
+  font-size: .88rem;
+}
+
+.overview-hero.positive {
+  border-color: rgba(34,197,94,.25);
+  background:
+    radial-gradient(circle at top right, rgba(34,197,94,.16), transparent 36%),
+    var(--surface);
+}
+
+.overview-hero.warning {
+  border-color: rgba(245,158,11,.28);
+  background:
+    radial-gradient(circle at top right, rgba(245,158,11,.16), transparent 36%),
+    var(--surface);
+}
+
+.overview-hero.critical {
+  border-color: rgba(239,68,68,.28);
+  background:
+    radial-gradient(circle at top right, rgba(239,68,68,.16), transparent 36%),
+    var(--surface);
+}
+
+.overview-main-orb,
+.overview-health-orb {
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 9px color-mix(in srgb, var(--text) 5%, transparent);
+  flex-shrink: 0;
+}
+
+.overview-main-orb {
+  width: 132px;
+  height: 132px;
+}
+
+.overview-health-orb {
+  width: 150px;
+  height: 150px;
+}
+
+.overview-main-orb span,
+.overview-health-orb span {
+  font-size: 2.35rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -.06em;
+}
+
+.overview-main-orb small,
+.overview-health-orb small {
+  margin-top: .25rem;
+  color: var(--text-3);
+  font-size: .65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.overview-main-orb.positive,
+.overview-health-orb.positive {
+  color: var(--pos);
+  box-shadow: inset 0 0 0 9px var(--pos-bg);
+}
+
+.overview-main-orb.warning,
+.overview-health-orb.warning {
+  color: var(--warn);
+  box-shadow: inset 0 0 0 9px var(--warn-bg);
+}
+
+.overview-main-orb.critical,
+.overview-health-orb.critical {
+  color: var(--neg);
+  box-shadow: inset 0 0 0 9px var(--neg-bg);
+}
+
+.overview-command-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.overview-command-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem;
+  display: flex;
+  gap: .65rem;
+  align-items: flex-start;
+  box-shadow: var(--shadow);
+  min-height: 104px;
+}
+
+.overview-command-card.positive {
+  border-color: rgba(34,197,94,.24);
+  background: var(--pos-bg);
+}
+
+.overview-command-card.warning {
+  border-color: rgba(245,158,11,.25);
+  background: var(--warn-bg);
+}
+
+.overview-command-card.critical {
+  border-color: rgba(239,68,68,.24);
+  background: var(--neg-bg);
+}
+
+.overview-command-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.overview-command-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.overview-command-card span {
+  display: block;
+  color: var(--text-3);
+  font-size: .62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.overview-command-card b {
+  display: block;
+  margin-top: .12rem;
+  font-size: 1.05rem;
+  line-height: 1.08;
+  font-weight: 950;
+  letter-spacing: -.035em;
+  word-break: break-word;
+}
+
+.overview-command-card small {
+  display: block;
+  margin-top: .2rem;
+  color: var(--text-3);
+  font-size: .68rem;
+}
+
+.overview-grid-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr);
+  gap: 1rem;
+}
+
+.overview-map-card,
+.overview-mission-card {
+  min-height: 330px;
+}
+
+.overview-health-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.overview-signal-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.overview-signal-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .7rem;
+  background: var(--bg-2);
+}
+
+.overview-signal-row.positive {
+  border-color: rgba(34,197,94,.22);
+}
+
+.overview-signal-row.warning {
+  border-color: rgba(245,158,11,.25);
+}
+
+.overview-signal-row.critical {
+  border-color: rgba(239,68,68,.24);
+}
+
+.overview-signal-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .42rem;
+}
+
+.overview-signal-top span {
+  color: var(--text-2);
+  font-size: .76rem;
+  font-weight: 760;
+}
+
+.overview-signal-top b {
+  font-weight: 950;
+}
+
+.overview-signal-track {
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.overview-signal-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.overview-signal-row.positive .overview-signal-fill { background: var(--pos); }
+.overview-signal-row.warning .overview-signal-fill { background: var(--warn); }
+.overview-signal-row.critical .overview-signal-fill { background: var(--neg); }
+
+.mission-list {
+  display: grid;
+  gap: .65rem;
+}
+
+.mission-item {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: .7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .78rem;
+  background: var(--bg-2);
+}
+
+.mission-item.positive {
+  border-color: rgba(34,197,94,.22);
+}
+
+.mission-item.warning {
+  border-color: rgba(245,158,11,.25);
+}
+
+.mission-item.critical {
+  border-color: rgba(239,68,68,.24);
+}
+
+.mission-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mission-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.mission-item b {
+  font-size: .84rem;
+  font-weight: 900;
+}
+
+.mission-item p {
+  color: var(--text-2);
+  font-size: .74rem;
+  margin-top: .1rem;
+}
+
+.mission-item span {
+  display: inline-flex;
+  margin-top: .35rem;
+  color: var(--text-3);
+  font-size: .66rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.overview-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+}
+
+.overview-chart-card {
+  height: 280px !important;
+  max-height: 280px !important;
+}
+
+.overview-chart-card .chart-box {
+  height: 205px !important;
+  max-height: 205px !important;
+}
+
+.overview-chart-card canvas {
+  height: 205px !important;
+  max-height: 205px !important;
+}
+
+.overview-mini-dist {
+  display: grid;
+  gap: .55rem;
+}
+
+.overview-dist-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 44px;
+  gap: .65rem;
+  align-items: center;
+}
+
+.overview-dist-row span {
+  color: var(--text-2);
+  font-size: .75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-dist-bar {
+  height: 7px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.overview-dist-bar div {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.overview-dist-row b {
+  text-align: right;
+  font-size: .75rem;
+  font-weight: 900;
+}
+
+.overview-live-feed {
+  overflow: hidden;
+}
+
+.overview-live-list {
+  display: grid;
+  gap: .65rem;
+}
+
+.overview-live-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  padding: .8rem;
+}
+
+.overview-live-item.high,
+.overview-live-item.critical,
+.overview-live-item.negative {
+  border-color: rgba(239,68,68,.24);
+}
+
+.overview-live-item.positive {
+  border-color: rgba(34,197,94,.22);
+}
+
+.overview-live-head {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: .35rem;
+}
+
+.overview-live-head b {
+  font-size: .8rem;
+  font-weight: 900;
+}
+
+.overview-live-item p {
+  color: var(--text-2);
+  font-size: .8rem;
+}
+
+.overview-live-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-top: .5rem;
+}
+
+.overview-live-meta span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .12rem .45rem;
+  color: var(--text-3);
+  font-size: .64rem;
+  font-weight: 760;
+}
+
+.overview-exec-box {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  padding: .95rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+
+.overview-exec-box svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.overview-exec-box p {
+  color: var(--text-2);
+  font-size: .86rem;
+}
+
+.overview-exec-box.positive {
+  border-color: rgba(34,197,94,.22);
+  background: var(--pos-bg);
+}
+
+.overview-exec-box.warning {
+  border-color: rgba(245,158,11,.24);
+  background: var(--warn-bg);
+}
+
+.overview-exec-box.critical {
+  border-color: rgba(239,68,68,.24);
+  background: var(--neg-bg);
+}
+
+@media (max-width: 1320px) {
+  .overview-command-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .overview-chart-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1020px) {
+  .overview-hero,
+  .overview-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .overview-main-orb {
+    width: 100%;
+    height: 104px;
+    border-radius: var(--radius-lg);
+  }
+
+  .overview-health-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-health-orb {
+    width: 100%;
+    height: 110px;
+    border-radius: var(--radius-lg);
+  }
+
+  .overview-grid-main,
+  .overview-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .overview-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-dist-row {
+    grid-template-columns: 1fr;
+    gap: .25rem;
+  }
+
+  .overview-dist-row b {
+    text-align: left;
+  }
+}

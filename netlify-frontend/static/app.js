@@ -737,48 +737,344 @@ function renderDashboard() {
   renderKeywords();
 }
 
+function overviewHealthClass(score, criticalCount) {
+  if (criticalCount > 0) return 'critical';
+  const n = Number(score || 0);
+  if (n >= 0.72) return 'positive';
+  if (n >= 0.48) return 'neutral';
+  if (n >= 0.32) return 'warning';
+  return 'critical';
+}
+
+function overviewHealthText(score, criticalCount) {
+  const cls = overviewHealthClass(score, criticalCount);
+  const map = {
+    positive: 'Tizim holati sog‘lom',
+    neutral: 'Tizim barqaror',
+    warning: 'E’tibor talab qiluvchi signal',
+    critical: 'Kritik boshqaruv signali'
+  };
+  return map[cls];
+}
+
+function renderOverviewCommandCard(iconName, label, value, sub, cls = '') {
+  return `
+    <div class="overview-command-card ${cls}">
+      <div class="overview-command-icon"><i data-lucide="${esc(iconName)}"></i></div>
+      <div>
+        <span>${esc(label)}</span>
+        <b>${esc(value)}</b>
+        <small>${esc(sub || '')}</small>
+      </div>
+    </div>
+  `;
+}
+
+function renderOverviewSignalRows(o) {
+  const signals = [
+    {
+      name: 'Admin e’tibori',
+      value: o.admin_attention_count || 0,
+      max: Math.max(o.total_processed || o.total || 1, 1),
+      cls: (o.admin_attention_count || 0) > 0 ? 'warning' : 'positive'
+    },
+    {
+      name: 'Yuqori/Kritik holatlar',
+      value: o.high_critical_count || 0,
+      max: Math.max(o.total_processed || o.total || 1, 1),
+      cls: (o.high_critical_count || 0) > 0 ? 'critical' : 'positive'
+    },
+    {
+      name: 'AI ishonchliligi',
+      value: Math.round(Number(o.average_confidence ?? o.avg_confidence ?? 0) * 100),
+      max: 100,
+      cls: Number(o.average_confidence ?? o.avg_confidence ?? 0) >= .7 ? 'positive' : 'warning'
+    },
+    {
+      name: 'Sentiment indeksi',
+      value: Math.round(Number(o.average_sentiment_score ?? o.avg_sentiment_score ?? 0) * 100),
+      max: 100,
+      cls: overviewHealthClass(o.average_sentiment_score ?? o.avg_sentiment_score, o.high_critical_count || 0)
+    }
+  ];
+
+  return signals.map(s => {
+    const pctValue = Math.min(100, Math.round((Number(s.value || 0) / Number(s.max || 1)) * 100));
+    return `
+      <div class="overview-signal-row ${s.cls}">
+        <div class="overview-signal-top">
+          <span>${esc(s.name)}</span>
+          <b>${esc(s.value)}</b>
+        </div>
+        <div class="overview-signal-track">
+          <div class="overview-signal-fill" style="width:${pctValue}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderOverviewMiniDistribution(title, obj) {
+  const entries = Object.entries(obj || {})
+    .map(([k, v]) => ({ name: k, count: Number(v || 0) }))
+    .sort((a, b) => b.count - a.count);
+
+  const max = Math.max(...entries.map(x => x.count), 1);
+
+  return `
+    <div class="overview-mini-dist">
+      <div class="card-title mb-3">${esc(title)}</div>
+      ${entries.map(x => `
+        <div class="overview-dist-row">
+          <span>${esc(x.name)}</span>
+          <div class="overview-dist-bar">
+            <div style="width:${Math.round((x.count / max) * 100)}%"></div>
+          </div>
+          <b>${x.count}</b>
+        </div>
+      `).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`}
+    </div>
+  `;
+}
+
+function renderOverviewMissionQueue(o) {
+  const queue = [];
+
+  if ((o.high_critical_count || 0) > 0) {
+    queue.push({
+      icon: 'shield-alert',
+      title: 'Kritik feedbacklarni tekshirish',
+      text: `${o.high_critical_count} ta yuqori/kritik signal mavjud.`,
+      cls: 'critical',
+      action: 'Xavf signallari'
+    });
+  }
+
+  if ((o.admin_attention_count || 0) > 0) {
+    queue.push({
+      icon: 'user-check',
+      title: 'Administrator e’tibori kerak',
+      text: `${o.admin_attention_count} ta feedback admin ko‘rigini talab qiladi.`,
+      cls: 'warning',
+      action: 'Yozuvlar'
+    });
+  }
+
+  if (o.top_issue_category || o.top_issue) {
+    queue.push({
+      icon: 'triangle-alert',
+      title: 'Dominant muammo yo‘nalishi',
+      text: `Asosiy muammo: ${o.top_issue_category || o.top_issue}.`,
+      cls: 'neutral',
+      action: 'Muammolar'
+    });
+  }
+
+  queue.push({
+    icon: 'activity',
+    title: 'Trend monitoring',
+    text: 'Sentiment dinamikasi va feedback oqimini kuzatish tavsiya etiladi.',
+    cls: 'positive',
+    action: 'Trendlar'
+  });
+
+  return queue.slice(0, 4).map(q => `
+    <div class="mission-item ${q.cls}">
+      <div class="mission-icon"><i data-lucide="${q.icon}"></i></div>
+      <div>
+        <b>${esc(q.title)}</b>
+        <p>${esc(q.text)}</p>
+        <span>${esc(q.action)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderOverviewLatestCards(items) {
+  return (items || []).slice(0, 5).map(r => {
+    const out = r.output || r.outputFromAI || r;
+    const cls = String(out.severity || out.sentiment || 'neutral').toLowerCase();
+
+    return `
+      <div class="overview-live-item ${cls}">
+        <div class="overview-live-head">
+          <b>${esc(r.feedback_id || 'feedback')}</b>
+          ${badge(out.sentiment || 'neutral')}
+        </div>
+        <p>${esc(out.summary_uz || r.raw_text || 'Xulosa mavjud emas')}</p>
+        <div class="overview-live-meta">
+          <span>${esc(r.course_id || '')}</span>
+          <span>${esc(out.issue_category || 'none')}</span>
+          <span>${esc(out.severity || 'low')}</span>
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function overviewInsightSentence(o) {
+  const total = o.total_processed ?? o.total ?? 0;
+  const sentiment = Number(o.average_sentiment_score ?? o.avg_sentiment_score ?? 0);
+  const critical = o.high_critical_count || 0;
+  const issue = o.top_issue_category || o.top_issue || 'aniqlanmagan';
+
+  if (!total) return 'Hali tahlil qilingan feedback mavjud emas. Batch tahlil yoki Test tahlil orqali dashboardni ishga tushiring.';
+
+  if (critical > 0) {
+    return `Tizim ${total} ta feedbackni tahlil qildi. ${critical} ta yuqori/kritik signal mavjud. Birinchi prioritet: “${issue}” yo‘nalishini tekshirish.`;
+  }
+
+  if (sentiment >= .72) {
+    return `Umumiy holat sog‘lom. ${total} ta feedback asosida sentiment kuchli ijobiy. Asosiy monitoring yo‘nalishi: “${issue}”.`;
+  }
+
+  if (sentiment >= .48) {
+    return `Umumiy holat barqaror, lekin passiv monitoring kerak. Dominant signal: “${issue}”.`;
+  }
+
+  return `Umumiy sentiment past. “${issue}” yo‘nalishi bo‘yicha boshqaruv qarori yoki chuqurroq tekshiruv tavsiya etiladi.`;
+}
+
 function renderOverview() {
   const o = state.dashboard.overview || {};
+  const total = o.total_processed ?? o.total ?? 0;
+  const sentiment = Number(o.average_sentiment_score ?? o.avg_sentiment_score ?? 0);
+  const confidence = Number(o.average_confidence ?? o.avg_confidence ?? 0);
+  const critical = o.high_critical_count || 0;
+  const cls = overviewHealthClass(sentiment, critical);
 
   $('overview-body').innerHTML = `
-    <div class="kpi-grid">
-      ${kpi(t('total_analyzed'), o.total_processed ?? o.total ?? 0, t('persisted_results'))}
-      ${kpi(t('avg_sentiment'), fmt(o.average_sentiment_score ?? o.avg_sentiment_score), '0 → 1')}
-      ${kpi(t('avg_confidence'), fmt(o.average_confidence ?? o.avg_confidence), 'AI')}
-      ${kpi(t('high_critical'), o.high_critical_count || 0, t('human_review_cases'))}
-      ${kpi(t('admin_attention'), o.admin_attention_count || 0, t('requires_action'))}
-      ${kpi(t('top_issue'), o.top_issue_category || o.top_issue || t('none'), t('dominant_category'))}
-    </div>
+    <div class="overview-command-center">
 
-    <div class="grid-2">
+      <div class="overview-hero card ${cls}">
+        <div>
+          <div class="eyebrow">LMS COMMAND CENTER</div>
+          <h3>${esc(overviewHealthText(sentiment, critical))}</h3>
+          <p>${esc(overviewInsightSentence(o))}</p>
+        </div>
+
+        <div class="overview-main-orb ${cls}">
+          <span>${Math.round(sentiment * 100)}</span>
+          <small>health index</small>
+        </div>
+      </div>
+
+      <div class="overview-command-grid">
+        ${renderOverviewCommandCard('database', 'Jami tahlil', total, 'processed feedbacks', 'neutral')}
+        ${renderOverviewCommandCard('brain-circuit', 'AI ishonch', `${Math.round(confidence * 100)}%`, 'average confidence', confidence >= .7 ? 'positive' : 'warning')}
+        ${renderOverviewCommandCard('shield-alert', 'Risk signallari', critical, 'high / critical cases', critical ? 'critical' : 'positive')}
+        ${renderOverviewCommandCard('user-check', 'Admin e’tibori', o.admin_attention_count || 0, 'requires action', (o.admin_attention_count || 0) ? 'warning' : 'positive')}
+        ${renderOverviewCommandCard('triangle-alert', 'Dominant muammo', o.top_issue_category || o.top_issue || '—', 'top issue category', 'neutral')}
+        ${renderOverviewCommandCard('activity', 'Sentiment', `${Math.round(sentiment * 100)}%`, 'university signal', cls)}
+      </div>
+
+      <div class="overview-grid-main">
+        <div class="card overview-map-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Institution health map</div>
+              <div class="text-muted text-sm">Asosiy boshqaruv indikatorlari</div>
+            </div>
+            <span class="badge badge-outline">Live</span>
+          </div>
+
+          <div class="overview-health-layout">
+            <div class="overview-health-orb ${cls}">
+              <span>${Math.round(sentiment * 100)}</span>
+              <small>sentiment</small>
+            </div>
+
+            <div class="overview-signal-list">
+              ${renderOverviewSignalRows(o)}
+            </div>
+          </div>
+        </div>
+
+        <div class="card overview-mission-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Mission queue</div>
+              <div class="text-muted text-sm">Bugungi boshqaruv prioritetlari</div>
+            </div>
+          </div>
+
+          <div class="mission-list">
+            ${renderOverviewMissionQueue(o)}
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-chart-grid">
+        <div class="card chart-card overview-chart-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${esc(t('satisfaction_dimensions'))}</div>
+              <div class="text-muted text-sm">Qoniqish o‘lchovlari</div>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="chart-dims"></canvas></div>
+        </div>
+
+        <div class="card chart-card overview-chart-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${esc(t('sentiment_distribution'))}</div>
+              <div class="text-muted text-sm">Positive / neutral / negative</div>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="chart-sentiment"></canvas></div>
+        </div>
+
+        <div class="card chart-card overview-chart-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${esc(t('issue_distribution'))}</div>
+              <div class="text-muted text-sm">Muammolar ulushi</div>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="chart-issues"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card">
+          ${renderOverviewMiniDistribution('Sentiment snapshot', o.sentiment_counts || o.sentiments || {})}
+        </div>
+
+        <div class="card">
+          ${renderOverviewMiniDistribution('Issue snapshot', o.issue_distribution || o.issues || {})}
+        </div>
+      </div>
+
+      <div class="card overview-live-feed">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Live analyzed feedback feed</div>
+            <div class="text-muted text-sm">Oxirgi AI tahlil qilingan feedbacklar</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="showPage('records')">
+            <i data-lucide="database"></i> Barcha yozuvlar
+          </button>
+        </div>
+
+        <div class="overview-live-list">
+          ${renderOverviewLatestCards(o.latest || [])}
+        </div>
+      </div>
+
       <div class="card">
-        <div class="card-header"><div class="card-title">${esc(t('executive_summary'))}</div></div>
-        <p>${esc(o.executive_summary || t('no_processed_feedback'))}</p>
+        <div class="card-title mb-3">Executive summary</div>
+        <div class="overview-exec-box ${cls}">
+          <i data-lucide="sparkles"></i>
+          <p>${esc(o.executive_summary || overviewInsightSentence(o))}</p>
+        </div>
       </div>
 
-      <div class="card chart-card">
-        <div class="card-header"><div class="card-title">${esc(t('satisfaction_dimensions'))}</div></div>
-        <div class="chart-box"><canvas id="chart-dims"></canvas></div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="card-header"><div class="card-title">${esc(t('sentiment_distribution'))}</div></div>
-        <div class="chart-box"><canvas id="chart-sentiment"></canvas></div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="card-header"><div class="card-title">${esc(t('issue_distribution'))}</div></div>
-        <div class="chart-box"><canvas id="chart-issues"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-header"><div class="card-title">${esc(t('latest_feedbacks'))}</div></div>
-      ${recordsTable(o.latest || [])}
     </div>
   `;
 
   drawCharts();
+  if (window.lucide) lucide.createIcons();
 }
 
 function moodHealthClass(score) {
