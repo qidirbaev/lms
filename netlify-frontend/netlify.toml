@@ -1,3 +1,17 @@
 [build]
   publish = "."
   command = ""
+
+[[redirects]]
+  from = "https://worm.sentiment.uz/*"
+  to = "/worm/:splat"
+  status = 200
+
+# ---------------------------
+# SPA FALLBACK (CRITICAL)
+# ---------------------------
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

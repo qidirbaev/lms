@@ -76,6 +76,14 @@ def index():
     }
 
 
+@app.get("/worm")
+def index():
+    return {
+        "status": "good",
+        "message": "WORM IS HERE!"
+    }
+
+
 @app.get("/health")
 def health():
     return {
