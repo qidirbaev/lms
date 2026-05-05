@@ -3,6 +3,7 @@ import uuid
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+import os
 
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -20,6 +21,8 @@ from .models import (
     AnalyzeCustomRequest, SimulateRequest, RecordsFilterRequest,
 )
 
+from fastapi.middleware.cors import CORSMiddleware
+
 # ─── Init ────────────────────────────────────────────────────────────────────
 logger.init()
 data_service.init()
@@ -30,6 +33,16 @@ logger.info("config_loaded", {
 })
 
 app = FastAPI(title="LMS Feedback AI Analyzer", version="2.0.0")
+
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN] if FRONTEND_ORIGIN != "*" else ["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 STATIC_DIR = config.STATIC_DIR
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

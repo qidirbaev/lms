@@ -11,6 +11,11 @@ const pages = [
   'logs', 'settings'
 ];
 
+const API_BASE =
+  localStorage.getItem('lms_api_base') ||
+  window.LMS_API_BASE ||
+  'https://begzatkidirbaev-lms.hf.space';
+
 let state = {
   token: localStorage.getItem('lms_token') || '',
   dashboard: null,
@@ -562,7 +567,10 @@ async function api(url, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
     if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
 
-    const res = await fetch(url, { ...options, headers });
+    const base = API_BASE.replace(/\/$/, '');
+    const fullUrl = url.startsWith('http') ? url : `${base}${url}`;
+
+    const res = await fetch(fullUrl, { ...options, headers });
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
