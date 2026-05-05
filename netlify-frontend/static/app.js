@@ -496,7 +496,7 @@ function showAboutProjectModal() {
         </div>
 
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('about-project-modal')?.remove()">
-          Close
+          x
         </button>
       </div>
 
