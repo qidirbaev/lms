@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/static/style.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
 
 <body>
@@ -89,7 +89,7 @@
         </button>
 
         <button class="nav-item" onclick="showPage('issues')" id="nav-issues">
-          <i data-lucide="triangle-alert" class="nav-svg"></i><span>Muammolar</span>
+          <i data-lucide="alert-triangle" class="nav-svg"></i><span>Muammolar</span>
         </button>
 
         <button class="nav-item" onclick="showPage('risks')" id="nav-risks">
@@ -114,7 +114,7 @@
         </button>
 
         <button class="nav-item" onclick="showPage('test')" id="nav-test">
-          <i data-lucide="flask-conical" class="nav-svg"></i><span>Test tahlil</span>
+          <i data-lucide="flask-round" class="nav-svg"></i><span>Test tahlil</span>
         </button>
 
         <button class="nav-item" onclick="showPage('simulate')" id="nav-simulate">
@@ -122,7 +122,7 @@
         </button>
 
         <button class="nav-item" onclick="showPage('integration')" id="nav-integration">
-          <i data-lucide="plug-zap" class="nav-svg"></i><span>Integration</span>
+          <i data-lucide="plug" class="nav-svg"></i><span>Integration</span>
         </button>
       </div>
 
@@ -130,7 +130,7 @@
         <div class="sidebar-section-label">Tizim</div>
 
         <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
-          <i data-lucide="list-checks" class="nav-svg"></i><span>Loglar</span>
+          <i data-lucide="list-check" class="nav-svg"></i><span>Loglar</span>
         </button>
 
         <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
@@ -1081,10 +1081,9 @@
 
   <script src="/static/app.js"></script>
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      if (window.renderIcons) {
-        renderIcons();
-        setTimeout(renderIcons, 500);
+    window.addEventListener('load', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
       }
     });
   </script>
