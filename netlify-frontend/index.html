@@ -120,6 +120,10 @@
         <button class="nav-item" onclick="showPage('simulate')" id="nav-simulate">
           <i data-lucide="bot" class="nav-svg"></i><span>Simulyatsiya</span>
         </button>
+
+        <button class="nav-item" onclick="showPage('integration')" id="nav-integration">
+          <i data-lucide="plug-zap" class="nav-svg"></i><span>Integration</span>
+        </button>
       </div>
 
       <div class="sidebar-section">
@@ -352,7 +356,6 @@
         </div>
       </section>
 
-      <!-- Batch -->
       <!-- Batch -->
       <section class="page" id="page-batch">
         <div class="page-header">
@@ -807,6 +810,192 @@
           </div>
 
           <div id="sim-items-panel" style="display:none" class="mt-3"></div>
+        </div>
+      </section>
+
+      <!-- Integration -->
+      <section class="page" id="page-integration">
+        <div class="page-header">
+          <div>
+            <h2>Integration</h2>
+            <div class="subtitle">LMS, HEMIS va boshqa boshqaruv tizimlarini secure REST orqali ulash</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="loadIntegrationStatus()">
+              <i data-lucide="refresh-cw"></i> Status
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="runIntegrationTest()">
+              <i data-lucide="send"></i> Test ingest
+            </button>
+          </div>
+        </div>
+
+        <div class="page-body integration-lab">
+
+          <div class="integration-hero card">
+            <div>
+              <div class="eyebrow">SECURE REST INTEGRATION</div>
+              <h3>LMS → AI Feedback Analyzer ingestion pipeline</h3>
+              <p>
+                Tashqi LMS yoki HEMIS token oladi, feedbackni xavfsiz REST endpoint orqali yuboradi,
+                tizim schema/mapping/rate-limit tekshiradi va AI tahlilga uzatadi.
+              </p>
+            </div>
+
+            <div class="integration-pipeline">
+              <div class="integration-node active"><i data-lucide="key-round"></i><span>Token</span></div>
+              <div class="integration-line"></div>
+              <div class="integration-node active"><i data-lucide="shield-check"></i><span>Validate</span></div>
+              <div class="integration-line"></div>
+              <div class="integration-node active"><i data-lucide="waypoints"></i><span>Map</span></div>
+              <div class="integration-line"></div>
+              <div class="integration-node active"><i data-lucide="brain-circuit"></i><span>Analyze</span></div>
+            </div>
+          </div>
+
+          <div class="integration-grid-main">
+            <div class="card integration-control-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Create integration token</div>
+                  <div class="text-muted text-sm">LMS/HEMIS uchun secure REST token</div>
+                </div>
+                <span class="badge badge-outline">Shown once</span>
+              </div>
+
+              <div class="field">
+                <label>System name</label>
+                <input class="input" id="integration-system-name" value="TUIT LMS" />
+              </div>
+
+              <div class="field">
+                <label>System type</label>
+                <select class="select" id="integration-system-type">
+                  <option value="lms">LMS</option>
+                  <option value="hemis">HEMIS</option>
+                  <option value="moodle">Moodle</option>
+                  <option value="sis">Student Information System</option>
+                  <option value="custom">Custom REST Client</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary full-width" onclick="createIntegrationToken()">
+                <i data-lucide="key-round"></i> Generate secure token
+              </button>
+
+              <div id="integration-token-panel" class="integration-token-panel">
+                <p class="text-muted text-sm">Token yaratilgandan keyin shu yerda ko‘rinadi.</p>
+              </div>
+            </div>
+
+            <div class="card integration-status-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Integration status</div>
+                  <div class="text-muted text-sm">Active systems, security, rate limit</div>
+                </div>
+              </div>
+
+              <div id="integration-status-panel">
+                <div class="integration-idle">
+                  <i data-lucide="radar"></i>
+                  <h4>Integration status yuklanmagan</h4>
+                  <p>Status tugmasini bosing yoki token yarating.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="integration-grid-main">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">REST contract</div>
+                  <div class="text-muted text-sm">Tashqi LMS/HEMIS yuboradigan minimal payload</div>
+                </div>
+              </div>
+
+              <pre class="json-viewer integration-code">POST /integrations/ingest-feedback
+      Header: X-Integration-Token: lmsint_xxx
+
+      {
+        "feedback": "Dars yaxshi, lekin baholash aniqroq bo‘lsin.",
+        "rating": 4,
+        "course_id": "CS-101",
+        "course_name": "Algorithms",
+        "teacher_id": "T-01",
+        "teacher_name": "Aziz Karimov",
+        "department": "Computer Science"
+      }</pre>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Live ingest test</div>
+                  <div class="text-muted text-sm">Jury uchun real-time integration demo</div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>External feedback text</label>
+                <textarea class="textarea" id="integration-test-text">Dars yaxshi, lekin baholash mezonlari aniqroq bo‘lsa yaxshi bo‘lardi.</textarea>
+              </div>
+
+              <button class="btn btn-secondary full-width" onclick="runIntegrationTest()">
+                <i data-lucide="send"></i> Simulate LMS sending feedback
+              </button>
+            </div>
+          </div>
+
+          <div class="integration-grid-main">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Security controls</div>
+                  <div class="text-muted text-sm">Production-like protection layer</div>
+                </div>
+              </div>
+
+              <div class="integration-security-grid">
+                <div class="integration-security-card positive">
+                  <i data-lucide="fingerprint"></i>
+                  <b>Hashed tokens</b>
+                  <span>Token plaintext saqlanmaydi</span>
+                </div>
+                <div class="integration-security-card warning">
+                  <i data-lucide="timer-reset"></i>
+                  <b>Rate limiting</b>
+                  <span>30 req/min/token</span>
+                </div>
+                <div class="integration-security-card positive">
+                  <i data-lucide="scan-search"></i>
+                  <b>Schema validation</b>
+                  <span>inputToSystem/flat mapping</span>
+                </div>
+                <div class="integration-security-card positive">
+                  <i data-lucide="file-check-2"></i>
+                  <b>Audit logging</b>
+                  <span>Every ingest is logged</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Ingest result</div>
+                  <div class="text-muted text-sm">Test ingest natijasi</div>
+                </div>
+              </div>
+
+              <div id="integration-result-panel">
+                <p class="text-muted text-sm">Test ingest ishga tushirilsa, input/output natijasi ko‘rinadi.</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 

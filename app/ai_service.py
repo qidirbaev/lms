@@ -35,7 +35,7 @@ Rules:
 - Output must be valid JSON object only.
 - topics max 3.
 - subtopics max 5.
-- keywords max 10.
+- keywords max 4.
 
 Return this exact JSON structure:
 
@@ -233,6 +233,7 @@ async def call_vertex_genai_once(input_to_system: Dict[str, Any]) -> Dict[str, A
 
 
 _loop = None
+
 
 def get_reusable_loop():
     global _loop

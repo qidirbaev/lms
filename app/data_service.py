@@ -35,8 +35,6 @@ def _save_results():
         logger.error("save_results_failed", {"error": str(e)})
 
 
-
-
 def _nested_context(input_to_system: dict):
     """Return metadata plus feedback/course/teacher context from either root or metadata nesting.
 
@@ -309,6 +307,7 @@ def load_source_file(source: str) -> list:
         data = [data]
 
     return data
+
 
 def init():
     _load_results()

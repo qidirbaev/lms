@@ -8,7 +8,7 @@
 const pages = [
   'overview', 'mood', 'courses', 'teachers', 'trends', 'issues',
   'risks', 'keywords', 'records', 'batch', 'test', 'simulate',
-  'logs', 'settings'
+  'integration', 'logs', 'settings'
 ];
 
 const API_BASE =
@@ -39,6 +39,7 @@ const I18N = {
     no_logs: 'Loglar mavjud emas',
     refresh: 'Yangilash',
     clear: 'Tozalash',
+    integration: 'Integratsiya',
     filter: 'Filtrlash',
     all: 'Barchasi',
     yes: 'Ha',
@@ -176,6 +177,7 @@ const I18N = {
     demo_version: 'v2.0 · Diploma Demo',
     loading: 'Loading...',
     no_data: 'No data',
+    integration: 'Integration',
     no_logs: 'No logs',
     refresh: 'Refresh',
     clear: 'Clear',
@@ -317,6 +319,7 @@ const I18N = {
     loading: 'Загрузка...',
     no_data: 'Нет данных',
     no_logs: 'Логи отсутствуют',
+    integration: 'Интеграция',
     refresh: 'Обновить',
     clear: 'Очистить',
     filter: 'Фильтр',
@@ -673,6 +676,7 @@ function showPage(page) {
   if (page === 'records') loadRecords();
   if (page === 'logs') loadLogs();
   if (page === 'settings') health();
+  if (page === 'integration') loadIntegrationStatus();
 }
 
 function applyStaticTranslations() {
@@ -3406,6 +3410,157 @@ async function analyzeSim() {
     if (window.lucide) lucide.createIcons();
   }
 }
+
+
+// ─────────────────────────────────────────────────────────────
+// Integration Command Center
+// ─────────────────────────────────────────────────────────────
+
+async function loadIntegrationStatus() {
+  try {
+    const d = await api('/integrations/status');
+
+    const items = d.active_integrations || [];
+
+    $('integration-status-panel').innerHTML = `
+      <div class="integration-status-score positive">
+        <div>
+          <span>Integration mode</span>
+          <b>${esc(d.mode)}</b>
+          <small>${esc(d.auth_method)} · ${esc(d.rate_limit)}</small>
+        </div>
+        <i data-lucide="plug-zap"></i>
+      </div>
+
+      <div class="integration-kpi-grid mt-3">
+        ${kpi('Active systems', items.length, 'registered integrations')}
+        ${kpi('Endpoint', d.ingest_endpoint, 'secure REST path')}
+        ${kpi('Schema', d.schema, 'accepted payload')}
+        ${kpi('Rate limit', d.rate_limit, 'per token')}
+      </div>
+
+      <div class="integration-list mt-3">
+        ${items.map(x => `
+          <div class="integration-list-row">
+            <div>
+              <b>${esc(x.system_name)}</b>
+              <span>${esc(x.system_type)} · ${x.active ? 'active' : 'disabled'}</span>
+            </div>
+            <small>${esc(x.request_count || 0)} requests</small>
+          </div>
+        `).join('') || `<p class="text-muted text-sm">No integrations yet.</p>`}
+      </div>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+  } catch (e) {
+    $('integration-status-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    toast(e.message, 'error');
+  }
+}
+
+async function createIntegrationToken() {
+  try {
+    const system_name = $('integration-system-name').value.trim() || 'External LMS';
+    const system_type = $('integration-system-type').value || 'lms';
+
+    const d = await api('/integrations/token', {
+      method: 'POST',
+      body: JSON.stringify({ system_name, system_type })
+    });
+
+    $('integration-token-panel').innerHTML = `
+      <div class="integration-token-box">
+        <div>
+          <div class="eyebrow">COPY TOKEN NOW</div>
+          <code>${esc(d.token)}</code>
+          <p>Bu token faqat bir marta ko‘rsatiladi. LMS/HEMIS shu tokenni X-Integration-Token headerida yuboradi.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('${esc(d.token)}'); toast('Token copied', 'success')">
+          <i data-lucide="copy"></i> Copy
+        </button>
+      </div>
+    `;
+
+    await loadIntegrationStatus();
+    toast('Integration token yaratildi', 'success');
+  } catch (e) {
+    $('integration-token-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    toast(e.message, 'error');
+  } finally {
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+async function runIntegrationTest() {
+  try {
+    const system_name = $('integration-system-name')?.value || 'Demo LMS';
+    const system_type = $('integration-system-type')?.value || 'lms';
+    const text = $('integration-test-text')?.value || 'Dars yaxshi, lekin baholash aniqroq bo‘lsin.';
+
+    $('integration-result-panel').innerHTML = `
+      <div class="integration-processing">
+        <div class="processing-orb"></div>
+        <div>
+          <div class="eyebrow">SECURE INGEST RUNNING</div>
+          <h4>LMS feedback yuborilmoqda</h4>
+          <p>Token, schema mapping, AI analysis va dashboard update bajarilmoqda...</p>
+        </div>
+      </div>
+    `;
+
+    const d = await api('/integrations/test-ingest', {
+      method: 'POST',
+      body: JSON.stringify({
+        system_name,
+        system_type,
+        feedback: {
+          feedback: text,
+          rating: 4,
+          course_id: 'CS-101',
+          course_name: 'Algorithms',
+          teacher_id: 'T-01',
+          teacher_name: 'Aziz Karimov',
+          department: 'Computer Science',
+          feedback_channel: 'external_lms_rest'
+        }
+      })
+    });
+
+    state.dashboard = d.dashboard;
+    renderDashboard();
+
+    $('integration-result-panel').innerHTML = `
+      <div class="integration-result-success">
+        <i data-lucide="badge-check"></i>
+        <div>
+          <h4>Ingest successful</h4>
+          <p>Feedback ID: <b>${esc(d.feedback_id)}</b></p>
+          <p>Token preview: <code>${esc(d.token_preview)}</code></p>
+        </div>
+      </div>
+
+      <details class="test-json-details mt-3" open>
+        <summary><span>outputFromAI</span><i data-lucide="chevron-down"></i></summary>
+        <pre class="json-viewer">${esc(JSON.stringify(d.outputFromAI, null, 2))}</pre>
+      </details>
+
+      <details class="test-json-details mt-3">
+        <summary><span>inputToSystem</span><i data-lucide="chevron-down"></i></summary>
+        <pre class="json-viewer">${esc(JSON.stringify(d.inputToSystem, null, 2))}</pre>
+      </details>
+    `;
+
+    await loadIntegrationStatus();
+    toast('Integration test ingest completed', 'success');
+  } catch (e) {
+    $('integration-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    toast(e.message, 'error');
+  } finally {
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
 
 // ─────────────────────────────────────────────────────────────
 // Logs / Health / Reset

@@ -16,6 +16,7 @@ from . import data_service
 from . import auth_service
 from . import dashboard_service
 from . import simulation_service
+from . import integration_service
 from .ai_service import analyze_feedback
 from .models import (
     LoginRequest, AnalyzeFileItemRequest, ProcessBatchRequest,
@@ -172,6 +173,197 @@ def get_keywords(authorization: str = Header(default=None)):
     require_auth(authorization)
     return dashboard_service.aggregate_keywords()
 
+
+# ─── Integrations ────────────────────────────────────────────────────────────
+
+@app.get("/integrations/status")
+def integrations_status(authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    integrations = integration_service.list_integrations()
+
+    return {
+        "mode": "secure_rest",
+        "supported_systems": ["LMS", "HEMIS", "Moodle", "Custom SIS", "Student Portal"],
+        "auth_method": "X-Integration-Token",
+        "ingest_endpoint": "/integrations/ingest-feedback",
+        "rate_limit": "30 requests/minute per token",
+        "schema": "inputToSystem or flat feedback object",
+        "active_integrations": integrations,
+        "security_features": [
+            "hashed token storage",
+            "per-token rate limiting",
+            "schema validation",
+            "mapping to inputToSystem",
+            "structured logging",
+            "AI validation before persistence",
+        ],
+    }
+
+
+@app.post("/integrations/token")
+def create_integration_token(payload: dict, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    system_name = (payload.get("system_name") or "External LMS").strip()
+    system_type = (payload.get("system_type") or "lms").strip()
+
+    if not system_name:
+        raise HTTPException(status_code=400, detail="system_name is required")
+
+    result = integration_service.create_integration_token(system_name, system_type)
+
+    return {
+        "success": True,
+        "message": "Copy this token now. It is shown only once.",
+        "token": result["token"],
+        "integration": result["record"],
+    }
+
+
+@app.post("/integrations/ingest-feedback")
+def ingest_feedback_from_external_system(
+    payload: dict,
+    x_integration_token: str = Header(default=None),
+):
+    token_record = integration_service.verify_integration_token(x_integration_token)
+
+    if not token_record:
+        logger.warn("integration_ingest_rejected", {"reason": "invalid_token"})
+        raise HTTPException(status_code=401, detail="Invalid integration token")
+
+    ok, rate = integration_service.check_rate_limit(token_record)
+
+    if not ok:
+        logger.warn("integration_rate_limited", {
+            "system": token_record.get("system_name"),
+            "rate": rate,
+        })
+        raise HTTPException(status_code=429, detail={
+            "message": "Rate limit exceeded",
+            "rate": rate,
+        })
+
+    if isinstance(payload, dict):
+        if isinstance(payload.get("items"), list):
+            raw_items = payload["items"]
+        elif isinstance(payload.get("feedbacks"), list):
+            raw_items = payload["feedbacks"]
+        elif isinstance(payload.get("data"), list):
+            raw_items = payload["data"]
+        else:
+            raw_items = [payload]
+    elif isinstance(payload, list):
+        raw_items = payload
+    else:
+        raise HTTPException(status_code=400, detail="Payload must be object, array, or wrapper with items/feedbacks/data")
+
+    raw_items = raw_items[:25]
+
+    valid_items = []
+    warnings = []
+    errors = []
+    results = []
+
+    for idx, item in enumerate(raw_items):
+        try:
+            mapped, item_warnings = data_service.normalize_uploaded_feedback(item, idx)
+            mapped["metadata"]["source_system"] = token_record.get("system_name")
+            mapped["feedback_context"]["feedback_channel"] = f"integration:{token_record.get('system_type')}"
+            valid_items.append(mapped)
+            warnings.extend([{"index": idx, "warning": w} for w in item_warnings])
+        except Exception as e:
+            errors.append({"index": idx, "error": str(e)})
+
+    for item in valid_items:
+        fid = item.get("feedback_id", f"int-{uuid.uuid4().hex[:8]}")
+        try:
+            analysis = analyze_feedback(item)
+            data_service.upsert_result(fid, item, analysis)
+
+            results.append({
+                "feedback_id": fid,
+                "success": True,
+                "sentiment": analysis["output"].get("sentiment"),
+                "severity": analysis["output"].get("severity"),
+                "issue_category": analysis["output"].get("issue_category"),
+                "requires_admin_attention": analysis["output"].get("requires_admin_attention"),
+            })
+        except Exception as e:
+            results.append({
+                "feedback_id": fid,
+                "success": False,
+                "error": str(e),
+            })
+
+    integration_service.touch_token(token_record)
+
+    logger.info("integration_ingest_completed", {
+        "system": token_record.get("system_name"),
+        "received": len(raw_items),
+        "accepted": len(valid_items),
+        "errors": len(errors),
+        "processed": len(results),
+    })
+
+    return {
+        "success": True,
+        "report": integration_service.build_ingest_report(
+            raw_items, valid_items, errors, warnings, token_record
+        ),
+        "results": results,
+        "dashboard": dashboard_service.get_full_dashboard(),
+    }
+
+
+@app.post("/integrations/test-ingest")
+def integration_test_ingest(payload: dict, authorization: str = Header(default=None)):
+    """
+    Admin-side test endpoint for frontend demo.
+    It simulates external LMS/HEMIS sending feedback through secure REST.
+    """
+    require_auth(authorization)
+
+    system_name = payload.get("system_name", "Demo LMS")
+    system_type = payload.get("system_type", "lms")
+    feedback = payload.get("feedback") or {
+        "feedback": "Dars yaxshi, lekin baholash mezonlari aniqroq bo‘lsa yaxshi bo‘lardi.",
+        "rating": 4,
+        "course_id": "CS-101",
+        "course_name": "Algorithms",
+        "teacher_id": "T-01",
+        "teacher_name": "Aziz Karimov",
+        "department": "Computer Science",
+    }
+
+    token_pack = integration_service.create_integration_token(system_name, system_type)
+    fake_token_record = integration_service.verify_integration_token(token_pack["token"])
+
+    mapped, warnings = data_service.normalize_uploaded_feedback(feedback, 0)
+    mapped["metadata"]["source_system"] = system_name
+    mapped["feedback_context"]["feedback_channel"] = f"integration:{system_type}"
+
+    fid = mapped.get("feedback_id", f"int-{uuid.uuid4().hex[:8]}")
+    analysis = analyze_feedback(mapped)
+    data_service.upsert_result(fid, mapped, analysis)
+    integration_service.touch_token(fake_token_record)
+
+    logger.info("integration_test_ingest_success", {
+        "system": system_name,
+        "feedback_id": fid,
+    })
+
+    return {
+        "success": True,
+        "token_preview": token_pack["token"][:18] + "...",
+        "feedback_id": fid,
+        "inputToSystem": mapped,
+        "inputToAI": analysis["input_to_ai"],
+        "outputFromAI": analysis["output"],
+        "warnings": warnings,
+        "dashboard": dashboard_service.get_full_dashboard(),
+    }
+    
 
 # ─── Feedbacks ───────────────────────────────────────────────────────────────
 

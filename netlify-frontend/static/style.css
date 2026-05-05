@@ -4381,3 +4381,335 @@ tbody tr:hover {
     text-align: left;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Integration Command Center
+───────────────────────────────────────────────────────────── */
+
+.integration-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.integration-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--text) 8%, transparent), transparent 36%),
+    var(--surface);
+}
+
+.integration-hero h3 {
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: -.045em;
+  margin-bottom: .25rem;
+}
+
+.integration-hero p {
+  max-width: 820px;
+  color: var(--text-2);
+  font-size: .86rem;
+}
+
+.integration-pipeline {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-shrink: 0;
+}
+
+.integration-node {
+  min-width: 84px;
+  padding: .55rem .65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  font-size: .7rem;
+  font-weight: 850;
+}
+
+.integration-node svg {
+  width: 14px;
+  height: 14px;
+}
+
+.integration-node.active {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.integration-line {
+  width: 28px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.integration-grid-main {
+  display: grid;
+  grid-template-columns: minmax(360px, .8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+}
+
+.integration-control-card,
+.integration-status-card {
+  min-height: 380px;
+}
+
+.integration-token-panel {
+  margin-top: 1rem;
+}
+
+.integration-token-box {
+  border: 1px solid rgba(34,197,94,.24);
+  background: var(--pos-bg);
+  border-radius: var(--radius);
+  padding: .85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  align-items: flex-start;
+}
+
+.integration-token-box code {
+  display: block;
+  word-break: break-all;
+  color: var(--text);
+  font-size: .78rem;
+  margin-bottom: .45rem;
+}
+
+.integration-token-box p {
+  color: var(--text-2);
+  font-size: .75rem;
+}
+
+.integration-idle,
+.integration-processing {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.integration-idle {
+  flex-direction: column;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.integration-idle svg {
+  width: 42px;
+  height: 42px;
+}
+
+.integration-idle h4,
+.integration-processing h4 {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.integration-idle p,
+.integration-processing p {
+  color: var(--text-2);
+  font-size: .82rem;
+}
+
+.integration-status-score {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .95rem;
+  background: var(--bg-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.integration-status-score.positive {
+  border-color: rgba(34,197,94,.24);
+  background: var(--pos-bg);
+  color: var(--pos);
+}
+
+.integration-status-score span {
+  color: var(--text-3);
+  font-size: .66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.integration-status-score b {
+  display: block;
+  margin-top: .1rem;
+  font-size: 1.4rem;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.integration-status-score small {
+  display: block;
+  margin-top: .25rem;
+  color: var(--text-3);
+  font-size: .72rem;
+}
+
+.integration-status-score svg {
+  width: 34px;
+  height: 34px;
+}
+
+.integration-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.integration-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.integration-list-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  padding: .65rem;
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  align-items: center;
+}
+
+.integration-list-row b {
+  display: block;
+  font-size: .82rem;
+}
+
+.integration-list-row span {
+  display: block;
+  color: var(--text-3);
+  font-size: .72rem;
+}
+
+.integration-list-row small {
+  color: var(--text-2);
+  font-weight: 850;
+}
+
+.integration-code {
+  max-height: 340px;
+}
+
+.integration-security-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.integration-security-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  padding: .85rem;
+}
+
+.integration-security-card.positive {
+  border-color: rgba(34,197,94,.22);
+  background: var(--pos-bg);
+}
+
+.integration-security-card.warning {
+  border-color: rgba(245,158,11,.24);
+  background: var(--warn-bg);
+}
+
+.integration-security-card svg {
+  width: 22px;
+  height: 22px;
+  margin-bottom: .6rem;
+}
+
+.integration-security-card b {
+  display: block;
+  font-size: .85rem;
+  font-weight: 900;
+}
+
+.integration-security-card span {
+  display: block;
+  margin-top: .15rem;
+  color: var(--text-3);
+  font-size: .72rem;
+}
+
+.integration-result-success {
+  border: 1px solid rgba(34,197,94,.24);
+  background: var(--pos-bg);
+  border-radius: var(--radius);
+  padding: .9rem;
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+}
+
+.integration-result-success svg {
+  width: 28px;
+  height: 28px;
+  color: var(--pos);
+  flex-shrink: 0;
+}
+
+.integration-result-success h4 {
+  font-size: .95rem;
+  font-weight: 900;
+  margin-bottom: .25rem;
+}
+
+.integration-result-success p {
+  color: var(--text-2);
+  font-size: .78rem;
+}
+
+@media (max-width: 1180px) {
+  .integration-hero,
+  .integration-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .integration-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .integration-pipeline {
+    flex-wrap: wrap;
+  }
+
+  .integration-line {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .integration-kpi-grid,
+  .integration-security-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .integration-token-box,
+  .integration-result-success,
+  .integration-processing {
+    flex-direction: column;
+  }
+}
