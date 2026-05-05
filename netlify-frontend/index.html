@@ -54,12 +54,25 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-row">
-          <div class="brand-mark">AI</div>
-          <div>
-            <div id="app-title">LMS AI Tahlilchi</div>
-            <div id="app-version" class="version">v2.0 · Diplom demo</div>
+        <div class="brand-row palantir-brand">
+          <div class="brand-mark brand-mark-domain">S</div>
+
+          <div class="brand-copy">
+            <div id="app-title">Sentiment Intelligence</div>
+            <div id="app-domain" class="brand-domain">sentiment.uz</div>
+            <div id="app-version" class="version">AI Feedback Command Center · v2.0</div>
           </div>
+        </div>
+
+        <div class="brand-status-row">
+          <div id="ai-badge" class="ai-badge ai-badge-online">
+            <span class="pulse-dot"></span>
+            Gemma Engine Online
+          </div>
+
+          <button class="brand-about-btn" type="button" onclick="showAboutProjectModal()">
+            About
+          </button>
         </div>
 
         <div id="ai-badge" class="ai-badge">● Loading</div>
