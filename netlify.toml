@@ -1,0 +1,3 @@
+[build]
+  publish = "netlify-frontend"
+  command = ""
