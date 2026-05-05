@@ -926,28 +926,321 @@ function renderRisks() {
   `;
 }
 
-function renderKeywords() {
-  const k = state.dashboard.keywords || {};
-  const normalize = arr => (arr || []).map(x => ({
-    name: x.name || x.word || x.topic || x.subtopic || '',
-    count: x.count || 0
-  }));
+function normalizeKeywordList(arr) {
+  return (arr || [])
+    .map(x => ({
+      name: String(x.name || x.word || x.topic || x.subtopic || '').trim(),
+      count: Number(x.count || 0)
+    }))
+    .filter(x => x.name && x.name.length > 1)
+    .sort((a, b) => b.count - a.count);
+}
 
-  const cloud = arr => normalize(arr).map(x =>
-    `<span class="badge badge-outline" style="margin:.15rem">${esc(x.name)} · ${x.count}</span>`
-  ).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+function mergeKeywordSources(...sources) {
+  const map = {};
 
-  $('keywords-body').innerHTML = `
-    <div class="grid-3">
-      <div class="card"><div class="card-title mb-3">${esc(t('top_keywords'))}</div>${cloud(k.top_keywords)}</div>
-      <div class="card"><div class="card-title mb-3">${esc(t('negative_words'))}</div>${cloud(k.negative_words || k.top_negative_keywords)}</div>
-      <div class="card"><div class="card-title mb-3">${esc(t('positive_words'))}</div>${cloud(k.positive_words || k.top_positive_keywords)}</div>
-    </div>
-    <div class="card mt-3">
-      <div class="card-title mb-3">${esc(t('topic_clusters'))}</div>
-      ${cloud(k.top_topics)}${cloud(k.top_subtopics)}
+  sources.flat().forEach(x => {
+    const name = String(x.name || '').trim().toLowerCase();
+    if (!name) return;
+    map[name] = map[name] || { name: x.name, count: 0, hot: 0, positive: 0, negative: 0, neutral: 0 };
+    map[name].count += Number(x.count || 1);
+    map[name].hot += Number(x.hot || x.count || 1);
+    map[name].positive += Number(x.positive || 0);
+    map[name].negative += Number(x.negative || 0);
+    map[name].neutral += Number(x.neutral || 0);
+  });
+
+  return Object.values(map).sort((a, b) => b.hot - a.hot);
+}
+
+function keywordTemp(score, max) {
+  if (!max) return 1;
+  const p = score / max;
+  if (p >= 0.85) return 5;
+  if (p >= 0.65) return 4;
+  if (p >= 0.45) return 3;
+  if (p >= 0.25) return 2;
+  return 1;
+}
+
+function keywordSignalClass(x) {
+  if ((x.negative || 0) > (x.positive || 0) && (x.negative || 0) >= 2) return 'negative';
+  if ((x.positive || 0) > (x.negative || 0) && (x.positive || 0) >= 2) return 'positive';
+  return 'neutral';
+}
+
+function renderWordCloud(items, limit = 60) {
+  const list = items.slice(0, limit);
+  const max = Math.max(...list.map(x => x.hot || x.count || 1), 1);
+
+  if (!list.length) {
+    return `<div class="empty-state"><div class="empty-icon"></div><p>${esc(t('no_data'))}</p></div>`;
+  }
+
+  return `
+    <div class="word-cloud">
+      ${list.map(x => {
+        const temp = keywordTemp(x.hot || x.count, max);
+        const signal = keywordSignalClass(x);
+        return `
+          <button class="word-token word-${temp} ${signal}" onclick="focusKeyword('${esc(x.name)}')">
+            <span>${esc(x.name)}</span>
+            <small>${x.count}</small>
+          </button>
+        `;
+      }).join('')}
     </div>
   `;
+}
+
+function renderHotKeywordRows(items, limit = 12) {
+  const max = Math.max(...items.map(x => x.hot || x.count || 1), 1);
+
+  return items.slice(0, limit).map((x, i) => {
+    const hot = Math.round(((x.hot || x.count || 0) / max) * 100);
+    const signal = keywordSignalClass(x);
+
+    return `
+      <div class="hot-keyword-row ${signal}">
+        <div class="hot-rank">#${i + 1}</div>
+        <div class="hot-main">
+          <div class="hot-name">${esc(x.name)}</div>
+          <div class="hot-bar">
+            <div class="hot-fill" style="width:${hot}%"></div>
+          </div>
+        </div>
+        <div class="hot-meta">
+          <b>${x.count}</b>
+          <span>${hot}% hot</span>
+        </div>
+      </div>
+    `;
+  }).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function renderKeywordChips(items, limit = 16) {
+  return items.slice(0, limit).map(x => `
+    <span class="keyword-chip ${keywordSignalClass(x)}">
+      ${esc(x.name)}
+      <b>${x.count}</b>
+    </span>
+  `).join('') || `<p class="text-muted">${esc(t('no_data'))}</p>`;
+}
+
+function extractKeywordIntelligenceFromRecords(records) {
+  const map = {};
+
+  function addWord(word, sentiment = 'neutral', severity = 'low') {
+    const clean = String(word || '')
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}'‘’`-]+/gu, '')
+      .trim();
+
+    if (!clean || clean.length < 3) return;
+
+    const stop = new Set([
+      'the','and','for','this','that','with','from','very','ham','juda','lekin','bilan','uchun',
+      'мен','что','это','как','для','или','очень','bor','yoq','yo‘q','bo‘lsa','bo‘lardi'
+    ]);
+    if (stop.has(clean)) return;
+
+    map[clean] = map[clean] || {
+      name: clean,
+      count: 0,
+      hot: 0,
+      positive: 0,
+      negative: 0,
+      neutral: 0,
+      severity_hits: 0
+    };
+
+    map[clean].count += 1;
+
+    let weight = 1;
+    if (sentiment === 'negative') weight += 1.5;
+    if (severity === 'high') weight += 1.5;
+    if (severity === 'critical') weight += 2.5;
+
+    map[clean].hot += weight;
+    map[clean][sentiment] = (map[clean][sentiment] || 0) + 1;
+
+    if (['high', 'critical'].includes(severity)) {
+      map[clean].severity_hits += 1;
+    }
+  }
+
+  (records || []).forEach(r => {
+    const out = r.output || r.outputFromAI || r;
+    const sentiment = String(out.sentiment || r.sentiment || 'neutral').toLowerCase();
+    const severity = String(out.severity || r.severity || 'low').toLowerCase();
+
+    (out.keywords || []).forEach(w => addWord(w, sentiment, severity));
+    (out.topics || []).forEach(w => addWord(w, sentiment, severity));
+    (out.subtopics || []).forEach(w => addWord(w, sentiment, severity));
+
+    const raw = r.raw_text || r.text || '';
+    raw.split(/\s+/).slice(0, 80).forEach(w => addWord(w, sentiment, severity));
+  });
+
+  return Object.values(map).sort((a, b) => b.hot - a.hot);
+}
+
+async function enrichKeywordsFromRecords(baseHot) {
+  try {
+    const data = await api('/records?limit=1000');
+    const records = data.items || [];
+    const fromRecords = extractKeywordIntelligenceFromRecords(records);
+
+    return mergeKeywordSources(baseHot, fromRecords);
+  } catch (e) {
+    console.warn('Keyword enrichment failed:', e);
+    return baseHot;
+  }
+}
+
+function keywordInsightSentence(hot, negative, positive) {
+  if (!hot.length) return "Hali yetarli kalit so‘zlar mavjud emas.";
+
+  const top = hot[0]?.name || "—";
+  const neg = negative[0]?.name || "—";
+  const pos = positive[0]?.name || "—";
+
+  return `Eng kuchli umumiy signal “${top}”. Salbiy feedbacklarda “${neg}”, ijobiy feedbacklarda esa “${pos}” ko‘proq uchramoqda.`;
+}
+
+function focusKeyword(keyword) {
+  const el = $('keyword-focus');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="keyword-focus-box">
+      <div>
+        <div class="eyebrow">SELECTED KEYWORD</div>
+        <h3>${esc(keyword)}</h3>
+        <p>Bu kalit so‘z feedbacklar ichida signal sifatida ajratildi. Yozuvlar tabida shu so‘z bo‘yicha matnli qidiruv qo‘shish mumkin.</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="showPage('records')">
+        <i data-lucide="database"></i> Yozuvlarga o‘tish
+      </button>
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderKeywords() {
+  const k = state.dashboard.keywords || {};
+
+  const topKeywords = normalizeKeywordList(k.top_keywords);
+  const negativeWords = normalizeKeywordList(k.negative_words || k.top_negative_keywords);
+  const positiveWords = normalizeKeywordList(k.positive_words || k.top_positive_keywords);
+  const topics = normalizeKeywordList(k.top_topics);
+  const subtopics = normalizeKeywordList(k.top_subtopics);
+
+  const baseHot = mergeKeywordSources(
+    topKeywords.map(x => ({ ...x, hot: x.count })),
+    topics.map(x => ({ ...x, hot: x.count * 1.25 })),
+    subtopics.map(x => ({ ...x, hot: x.count * 1.1 })),
+    negativeWords.map(x => ({ ...x, hot: x.count * 1.8, negative: x.count })),
+    positiveWords.map(x => ({ ...x, hot: x.count * 1.2, positive: x.count }))
+  );
+
+  $('keywords-body').innerHTML = `
+    <div class="keyword-lab">
+      <div class="keyword-hero card">
+        <div>
+          <div class="eyebrow">WORD INTELLIGENCE</div>
+          <h3>Kalit so‘zlar issiqlik xaritasi</h3>
+          <p>
+            Tizim faqat ko‘p uchragan so‘zlarni emas, balki salbiy sentiment, yuqori jiddiylik,
+            mavzu klasterlari va feedback signallari asosida “hot keywords”ni ajratadi.
+          </p>
+        </div>
+
+        <div class="keyword-hero-metrics">
+          ${kpi('Unique signals', baseHot.length, 'keywords/topics')}
+          ${kpi('Negative hot', negativeWords[0]?.name || '—', 'salbiy dominant')}
+          ${kpi('Positive hot', positiveWords[0]?.name || '—', 'ijobiy dominant')}
+        </div>
+      </div>
+
+      <div class="keyword-grid-main">
+        <div class="card keyword-cloud-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Real word cloud</div>
+              <div class="text-muted text-sm">Katta so‘z = kuchliroq signal</div>
+            </div>
+            <span class="badge badge-outline">Top 60</span>
+          </div>
+          <div id="keyword-cloud-live">${renderWordCloud(baseHot)}</div>
+        </div>
+
+        <div class="card keyword-hot-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Hot / Trendy keywords</div>
+              <div class="text-muted text-sm">Frequency + negative/risk weighting</div>
+            </div>
+          </div>
+          <div id="keyword-hot-list">${renderHotKeywordRows(baseHot)}</div>
+        </div>
+      </div>
+
+      <div class="grid-3 keyword-signal-grid">
+        <div class="card">
+          <div class="card-title mb-3">Salbiy signal so‘zlari</div>
+          <div class="keyword-chip-zone">${renderKeywordChips(negativeWords)}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title mb-3">Ijobiy signal so‘zlari</div>
+          <div class="keyword-chip-zone">${renderKeywordChips(positiveWords)}</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title mb-3">Mavzu klasterlari</div>
+          <div class="keyword-chip-zone">${renderKeywordChips(mergeKeywordSources(topics, subtopics), 20)}</div>
+        </div>
+      </div>
+
+      <div class="grid-2 responsive-grid">
+        <div class="card">
+          <div class="card-title mb-3">AI keyword insight</div>
+          <div class="keyword-insight">
+            <i data-lucide="sparkles"></i>
+            <p id="keyword-insight-text">${esc(keywordInsightSentence(baseHot, negativeWords, positiveWords))}</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title mb-3">Tanlangan signal</div>
+          <div id="keyword-focus">
+            <p class="text-muted">Word cloud ichidan istalgan kalit so‘zni bosing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) lucide.createIcons();
+
+  enrichKeywordsFromRecords(baseHot).then(hot => {
+    const negative = hot.filter(x => (x.negative || 0) > (x.positive || 0));
+    const positive = hot.filter(x => (x.positive || 0) > (x.negative || 0));
+
+    safeEl('keyword-cloud-live', el => {
+      el.innerHTML = renderWordCloud(hot);
+    });
+
+    safeEl('keyword-hot-list', el => {
+      el.innerHTML = renderHotKeywordRows(hot);
+    });
+
+    safeEl('keyword-insight-text', el => {
+      el.textContent = keywordInsightSentence(hot, negative, positive);
+    });
+  });
 }
 
 function statList(obj) {
