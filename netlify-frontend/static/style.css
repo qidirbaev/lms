@@ -598,8 +598,37 @@ select {
 }
 
 .input,
-.select,
 .textarea {
+  width: 100%;
+  min-height: 38px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  color: var(--text);
+  padding: .48rem .7rem;
+  font-size: .82rem;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+
+  /* width: 72px !important; */
+  min-width: 72px;
+  /* height: 40px; */
+
+  padding: 14px 30px 0 14px !important;
+  border-radius: 12px;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* background-color: var(--bg-2);
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px 15px; */
+}
+
+.select {
   width: 100%;
   min-height: 38px;
   background: var(--bg-2);
