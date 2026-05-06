@@ -3651,15 +3651,17 @@ function simThemeHuman(theme) {
 }
 
 function simSentimentHuman(style) {
+
   const map = {
     mixed: 'Realistik aralash',
     positive: 'Ko‘proq ijobiy',
     negative: 'Ko‘proq salbiy'
   };
+
   return map[style] || style || 'Mixed';
 }
 
-function inspectSimulatedItems(items) {
+function inspectSimulatedItems(items)  {
   const stats = {
     total: items.length,
     rating_avg: 0,
@@ -4177,7 +4179,7 @@ Rules:
 Output must follow the outputFromAI schema exactly.`;
 
 const DEFAULT_PLATFORM_SETTINGS = {
-  modelName: 'SentPro-FI-1.0',
+  modelName: 'SentoPro-Light-2.7',
   provider: 'Vertex AI Endpoint',
   endpoint: 'sentpro-feedback-intelligence',
   region: 'global',
