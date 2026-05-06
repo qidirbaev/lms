@@ -3565,7 +3565,7 @@ function renderTestResult(d) {
         ${insightCard('gauge', 'Jiddiylik', severityText(out.severity), `rank ${severityRank(out.severity)}/4`, `severity-${out.severity || 'low'}`)}
         ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
         ${insightCard('user-check', 'Admin e’tibori', adminAttention, actionHuman(out.recommended_action), out.requires_admin_attention ? 'severity-high' : 'signal-positive')}
-        ${insightCard('brain-circuit', 'SentPro runtime', SENTPRO_RUNTIME.model, `${SENTPRO_RUNTIME.provider} · ${SENTPRO_RUNTIME.endpoint}`, 'signal-positive' )}
+        ${insightCard('brain-circuit', 'SentoPro runtime', SENTPRO_RUNTIME.model, `${SENTPRO_RUNTIME.provider} · ${SENTPRO_RUNTIME.endpoint}`, 'signal-positive' )}
       </div>
 
       <div class="grid-2 responsive-grid">
@@ -3686,14 +3686,14 @@ async function analyzeCustom() {
   }
 
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span> SentPro tahlil qilmoqda.`;
+  btn.innerHTML = `<span class="spinner"></span> SentoPro tahlil qilmoqda.`;
 
   $('test-result-panel').innerHTML = `
     <div class="card test-processing-card">
       <div class="processing-orb"></div>
       <div>
-        <div class="eyebrow">SENTPRO · VERTEX AI ENDPOINT</div>
-        <h3>SentPro feedbackni tahlil qilmoqda</h3>
+        <div class="eyebrow">SentoPro · VERTEX AI ENDPOINT</div>
+        <h3>SentoPro feedbackni tahlil qilmoqda</h3>
         <p>Sentiment, emotsiya, xavf, muammo turi, qoniqish o‘lchovlari va tavsiyalar shakllantirilmoqda...</p>
       </div>
     </div>
@@ -4315,7 +4315,7 @@ Output must follow the outputFromAI schema exactly.`;
 const DEFAULT_PLATFORM_SETTINGS = {
   modelName: 'SentoPro-Light-2.7',
   provider: 'Vertex AI Endpoint',
-  endpoint: 'sentpro-feedback-intelligence',
+  endpoint: 'sentopro-feedback-intelligence',
   region: 'global',
   defaultLang: 'uz',
   theme: 'dark',
@@ -4855,7 +4855,7 @@ async function health() {
     };
 
     safeEl('ai-badge', el => {
-      el.innerHTML = `<span class="pulse-dot"></span> SentPro online`;
+      el.innerHTML = `<span class="pulse-dot"></span> SentoPro online`;
       el.className = `ai-badge ai-badge-online sentpro-badge`;
     });
 
@@ -4870,7 +4870,7 @@ async function health() {
           <div class="sentpro-health-head">
             <div class="sentpro-orb-small">S</div>
             <div>
-              <div class="eyebrow">SENTPRO MODEL RUNTIME</div>
+              <div class="eyebrow">SENTOPRO MODEL RUNTIME</div>
               <h4>${esc(runtime.model)}</h4>
               <p>${esc(runtime.description)}</p>
             </div>
@@ -4936,7 +4936,7 @@ function openSPilot() {
     spilotState.initialized = true;
     addSPilotMessage(
       'assistant',
-      'S-Pilot online.\n\nI am your Gemini-powered admin copilot for SentPro. Ask me about mood, trends, risks, records, logs, integrations, settings, or executive reporting.'
+      'S-Pilot online.\n\nI am your AI admin copilot for the SentoPro Intelligence Platform. Ask me about mood, trends, risks, records, logs, integrations, settings, or executive reporting.'
     );
   }
 
@@ -5008,11 +5008,11 @@ function addSPilotThinking() {
   el.innerHTML = `
     <div class="spilot-bubble">
       <span class="spilot-thinking">
-        Thinking with Gemini 3.1
+        Running SentoPro reasoning pipeline
         <span></span><span></span><span></span>
       </span>
     </div>
-    <div class="spilot-meta">Vertex AI · live reasoning</div>
+    <div class="spilot-meta">SentoPro Runtime · live inference</div>
   `;
 
   box.appendChild(el);
@@ -5046,7 +5046,7 @@ async function sendSPilotMessage() {
 
   addSPilotMessage('user', message);
   const thinking = addSPilotThinking();
-  setSPilotStatus('Gemini 3.1 is reasoning on platform context...', 'thinking');
+  setSPilotStatus('SentoPro is analyzing institutional context...', 'thinking');
 
   try {
     const context = await buildSPilotContext();
@@ -5076,16 +5076,19 @@ async function sendSPilotMessage() {
       });
     }
 
-    setSPilotStatus(`${response.provider || 'Vertex AI Gemini'} · ${response.model || 'Gemini'}`, '');
+    setSPilotStatus(
+      `SentoPro Runtime · ${response.model_alias || 'SentoPro Neural v3.1'}`,
+      ''
+    );
   } catch (e) {
     thinking?.remove();
 
     addSPilotMessage(
       'assistant',
-      `I could not reach Gemini right now.\n\nReason: ${e.message}\n\nCheck backend /assistant/chat, Vertex credentials, GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION and VERTEX_MODEL.`
+      `SentoPro runtime is temporarily unavailable.\n\nReason: ${e.message}\n\nCheck backend /assistant/chat, Vertex credentials, GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION and VERTEX_MODEL.`
     );
 
-    setSPilotStatus('Gemini connection failed', 'error');
+    setSPilotStatus('SentoPro connection failed', 'error');
     toast(e.message, 'error', { title: 'S-Pilot failed' });
   } finally {
     spilotState.busy = false;

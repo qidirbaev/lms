@@ -36,6 +36,27 @@ def ensure_google_credentials():
 
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(cred_path)
 
+def prepare_google_credentials() -> str:
+    raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON") or config.GOOGLE_SERVICE_ACCOUNT_JSON
+
+    if not raw:
+        raise RuntimeError("Missing GOOGLE_SERVICE_ACCOUNT_JSON")
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Invalid GOOGLE_SERVICE_ACCOUNT_JSON: {exc}") from exc
+
+    if "private_key" in data:
+        data["private_key"] = data["private_key"].replace("\\n", "\n")
+
+    path = "/tmp/gcp-sa-spilot.json"
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
+    return path
+
 class AssistantMessage(BaseModel):
     role: str
     content: str
@@ -57,25 +78,39 @@ class AssistantAction(BaseModel):
 class AssistantChatResponse(BaseModel):
     answer: str
     actions: List[AssistantAction] = Field(default_factory=list)
-    model: str
-    provider: str = "Vertex AI Gemini"
+    model: str = "sentpro-neural-v2"
+    model_alias: str = "SentPro Neural v2.7.1"
+    provider: str = "SentPro Runtime"
     ok: bool = True
 
 
-def _client():
+_assistant_client = None
+
+def get_assistant_client():
+    global _assistant_client
+
     if genai is None or types is None:
         raise HTTPException(
             status_code=500,
             detail="google-genai is not installed. Add google-genai to requirements.txt"
         )
 
-    ensure_google_credentials()
+    if _assistant_client is None:
+        prepare_google_credentials()
 
-    return genai.Client(
-        vertexai=True,
-        project=config.GOOGLE_CLOUD_PROJECT,
-        location=config.GOOGLE_CLOUD_LOCATION,
-    )
+        project = os.getenv("GOOGLE_CLOUD_PROJECT") or config.GOOGLE_CLOUD_PROJECT
+        location = os.getenv("GOOGLE_CLOUD_LOCATION") or config.GOOGLE_CLOUD_LOCATION or "global"
+
+        if not project:
+            raise RuntimeError("Missing GOOGLE_CLOUD_PROJECT")
+
+        _assistant_client = genai.Client(
+            vertexai=True,
+            project=project,
+            location=location,
+        )
+
+    return _assistant_client
 
 
 def _compact_json(data: Any, max_chars: int) -> str:
@@ -113,14 +148,14 @@ def assistant_chat(req: AssistantChatRequest) -> AssistantChatResponse:
     if not message:
         raise HTTPException(status_code=400, detail="Message is empty")
 
-    model = config.VERTEX_MODEL or "gemini-3.1-flash-lite-preview"
+    model = os.getenv("VERTEX_MODEL") or config.VERTEX_MODEL or "gemini-3.1-flash-lite-preview"
 
     system_prompt = """
-You are S-Pilot, a real AI copilot inside SentPro LMS Feedback Intelligence Platform.
+You are S-Pilot, a real AI copilot inside SentoPro LMS Feedback Intelligence Platform.
 
 Identity:
 - You are not the sentiment classifier itself.
-- You are the admin-facing AI assistant that uses Gemini on Vertex AI.
+- You are the admin-facing intelligence layer of SentPro.
 - You help admins understand, inspect, explain, and control the platform.
 
 Platform purpose:
@@ -181,7 +216,7 @@ USER_MESSAGE:
 """
 
     try:
-        client = _client()
+        client = get_assistant_client()
 
         result = client.models.generate_content(
             model=model,
@@ -207,7 +242,7 @@ USER_MESSAGE:
                 ))
 
         logger.info("assistant_chat_success", {
-            "model": model,
+            "runtime": "sentopro-neural-v2",
             "message_length": len(message),
             "actions": [a.type for a in actions],
         })
@@ -215,11 +250,13 @@ USER_MESSAGE:
         return AssistantChatResponse(
             answer=str(parsed.get("answer") or "I could not generate an answer."),
             actions=actions,
-            model=model,
+            model="sentopro-neural-v2",
+            model_alias="SentoPro Neural v2.7.1",
+            provider="SentoPro Runtime",
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error("assistant_chat_failed", {"error": str(e)})
-        raise HTTPException(status_code=500, detail=f"S-Pilot Gemini failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"S-Pilot failed: {str(e)}")
