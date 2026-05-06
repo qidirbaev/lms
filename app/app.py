@@ -780,7 +780,7 @@ def send_telegram_message(bot_token: str, chat_id: str, message: str, parse_mode
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
     payload = {
-        "chat_id": chat_id,
+        "chat_id": str(chat_id),
         "text": message,
         "parse_mode": parse_mode,
         "disable_web_page_preview": True,
@@ -788,9 +788,15 @@ def send_telegram_message(bot_token: str, chat_id: str, message: str, parse_mode
 
     last_error = None
 
-    for attempt in range(1, 4):
+    for attempt in range(1, 5):
         try:
-            res = requests.post(url, json=payload, timeout=(10, 35))
+            res = requests.post(
+                url,
+                json=payload,
+                timeout=(20, 90),
+                headers={"Connection": "close"}
+            )
+
             data = res.json()
 
             if not res.ok or not data.get("ok"):
@@ -805,7 +811,11 @@ def send_telegram_message(bot_token: str, chat_id: str, message: str, parse_mode
             raise
         except Exception as e:
             last_error = e
-            time.sleep(1.2 * attempt)
+            logger.warn("telegram_send_retry", {
+                "attempt": attempt,
+                "error": str(e)
+            })
+            time.sleep(2 * attempt)
 
     raise HTTPException(
         status_code=504,
