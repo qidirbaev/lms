@@ -147,7 +147,11 @@
           </button>
 
           <button class="nav-item" onclick="showPage('integration')" id="nav-integration">
-            <i data-lucide="plug" class="nav-svg"></i><span>Integration</span>
+            <i data-lucide="plug" class="nav-svg"></i><span>Integratsiya</span>
+          </button>
+
+          <button class="nav-item" onclick="showPage('assistant')" id="nav-assistant">
+            <i data-lucide="sparkles" class="nav-svg"></i><span>S-Pilot</span>
           </button>
         </div>
 
@@ -1119,6 +1123,86 @@
             </div>
           </div>
 
+        </div>
+      </section>
+
+      <!-- Assistant -->
+      <section class="page assistant-page" id="page-assistant">
+        <div class="page-header assistant-hero">
+          <div>
+            <div class="eyebrow">SENTPRO COPILOT</div>
+            <h2>Admin Assistant</h2>
+            <div class="subtitle">Platformani tushunish, boshqarish, xulosa olish va tezkor harakatlar uchun chat control layer</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="assistantRefreshContext()">
+              <i data-lucide="refresh-cw"></i> Context
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="generateExecutivePDF()">
+              <i data-lucide="file-down"></i> PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="page-body assistant-body">
+          <div class="assistant-layout">
+            <main class="assistant-chat card">
+              <div class="assistant-chat-header">
+                <div class="assistant-avatar">S</div>
+                <div>
+                  <div class="card-title">SentPro Copilot</div>
+                  <div class="text-muted text-sm">Ask about mood, risks, trends, records, logs, integration, reports, or system state.</div>
+                </div>
+                <span class="badge badge-positive">ONLINE</span>
+              </div>
+
+              <div id="assistant-messages" class="assistant-messages"></div>
+
+              <div class="assistant-quick-row">
+                <button onclick="assistantQuick('Summarize current university mood')">Mood summary</button>
+                <button onclick="assistantQuick('What are the emerging problems?')">Emerging problems</button>
+                <button onclick="assistantQuick('Show admin attention items')">Admin attention</button>
+                <button onclick="assistantQuick('Generate executive PDF')">Executive PDF</button>
+                <button onclick="assistantQuick('Check latest logs and errors')">Logs</button>
+              </div>
+
+              <div class="assistant-input-row">
+                <textarea
+                  id="assistant-input"
+                  class="textarea"
+                  placeholder="Ask SentPro: What is happening in the platform right now?"
+                  onkeydown="assistantInputKeydown(event)"
+                ></textarea>
+
+                <button class="btn btn-primary" onclick="sendAssistantMessage()">
+                  <i data-lucide="send"></i>
+                  Send
+                </button>
+              </div>
+            </main>
+
+            <aside class="assistant-context">
+              <div class="card assistant-context-card">
+                <div class="card-title">Live Context</div>
+                <div id="assistant-context-box" class="assistant-context-box">
+                  <div class="text-muted">Context not loaded yet.</div>
+                </div>
+              </div>
+
+              <div class="card assistant-context-card">
+                <div class="card-title">Control Actions</div>
+                <div class="assistant-action-list">
+                  <button onclick="showPage('overview')"><i data-lucide="layout-dashboard"></i> Open Overview</button>
+                  <button onclick="showPage('records')"><i data-lucide="database"></i> Open Records</button>
+                  <button onclick="showPage('logs')"><i data-lucide="list-check"></i> Open Logs</button>
+                  <button onclick="showPage('integration')"><i data-lucide="plug"></i> Open Integration</button>
+                  <button onclick="loadDashboard(); toast('Dashboard refreshed', 'success')"><i data-lucide="refresh-cw"></i> Refresh Dashboard</button>
+                  <button onclick="generateExecutivePDF()"><i data-lucide="file-down"></i> Generate PDF</button>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
       </section>
 

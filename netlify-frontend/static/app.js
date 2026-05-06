@@ -8,7 +8,7 @@
 const pages = [
   'overview', 'mood', 'courses', 'teachers', 'trends', 'issues',
   'risks', 'keywords', 'records', 'batch', 'test', 'simulate',
-  'integration', 'logs', 'settings'
+  'integration', 'assistant', 'logs', 'settings'
 ];
 
 const API_BASE =
@@ -149,7 +149,7 @@ const I18N = {
     none: 'yo‘q',
     processed: 'tahlil qilingan',
     pending: 'kutilmoqda',
-
+    assistant: 'S-Pilot',
     overview: 'Umumiy ko‘rinish',
     mood: 'Universitet kayfiyati',
     courses: 'Fanlar',
@@ -290,7 +290,7 @@ const I18N = {
     none: 'none',
     processed: 'processed',
     pending: 'pending',
-
+    assistant: 'S-Pilot',
     overview: 'Overview',
     mood: 'University Mood',
     courses: 'Courses',
@@ -431,7 +431,7 @@ const I18N = {
     none: 'нет',
     processed: 'обработано',
     pending: 'ожидает',
-
+    assistant: 'S-Pilot',
     overview: 'Обзор',
     mood: 'Настроение университета',
     courses: 'Курсы',
@@ -675,7 +675,8 @@ const NAV_ICONS = {
   simulate: 'bot',
   integration: 'plug',
   logs: 'list-check',
-  settings: 'settings'
+  settings: 'settings',
+  assistant: 'sparkles',
 };
 
 function icon(name) {
@@ -1055,6 +1056,7 @@ function showPage(page) {
 
   if (page === 'records') loadRecords();
   if (page === 'logs') loadLogs();
+  if (page === 'assistant') initAssistant();
   if (page === 'settings') {
     loadPlatformSettingsUI();
     health();
@@ -1080,7 +1082,8 @@ function applyStaticTranslations() {
     simulate: 'simulate',
     integration: 'integration',
     logs: 'logs',
-    settings: 'settings'
+    settings: 'settings',
+    assistant: 'assistant',
   };
 
   Object.entries(navMap).forEach(([id, key]) => {
@@ -4914,6 +4917,369 @@ async function resetDemo() {
 
 
 // ─────────────────────────────────────────────────────────────
+// SentoPro Copilot / Admin Assistant
+// ─────────────────────────────────────────────────────────────
+
+const assistantState = {
+  initialized: false,
+  records: [],
+  logs: []
+};
+
+function initAssistant() {
+  if (!assistantState.initialized) {
+    assistantState.initialized = true;
+
+    safeEl('assistant-messages', el => {
+      el.innerHTML = '';
+    });
+
+    addAssistantMessage(
+      'assistant',
+      'S-Pilot online.\n\nI can summarize the platform, explain risks, inspect records/logs, generate executive PDF, navigate tabs, and help admins understand what is happening right now.'
+    );
+  }
+
+  assistantRefreshContext();
+  renderIcons();
+}
+
+async function assistantRefreshContext() {
+  try {
+    if (!state.dashboard) {
+      state.dashboard = await api('/dashboard');
+    }
+
+    const [recordsRes, logsRes] = await Promise.allSettled([
+      api('/records'),
+      api('/logs')
+    ]);
+
+    assistantState.records =
+      recordsRes.status === 'fulfilled'
+        ? (recordsRes.value.items || recordsRes.value.records || [])
+        : [];
+
+    assistantState.logs =
+      logsRes.status === 'fulfilled'
+        ? (logsRes.value.logs || logsRes.value.items || [])
+        : [];
+
+    renderAssistantContext();
+
+    toast('Copilot context refreshed', 'success', {
+      title: 'S-Pilot'
+    });
+  } catch (e) {
+    toast(e.message, 'error', { title: 'S-Pilot context error' });
+  }
+}
+
+function renderAssistantContext() {
+  const d = state.dashboard || {};
+  const o = d.overview || {};
+  const mood = d.mood || d.university_mood || {};
+
+  const total = o.total_analyzed || o.total || assistantState.records.length || 0;
+  const highCritical = o.high_critical_count || o.high_critical || 0;
+  const adminAttention = o.admin_attention_count || o.requires_admin_attention || 0;
+  const avgSentiment = Math.round(Number(o.avg_sentiment || mood.university_score || 0) * 100);
+
+  safeEl('assistant-context-box', el => {
+    el.innerHTML = `
+      <div class="assistant-context-item">
+        <span>Total analyzed</span>
+        <b>${esc(total)}</b>
+      </div>
+      <div class="assistant-context-item">
+        <span>Institution sentiment</span>
+        <b>${esc(avgSentiment)}%</b>
+      </div>
+      <div class="assistant-context-item">
+        <span>High/Critical</span>
+        <b>${esc(highCritical)}</b>
+      </div>
+      <div class="assistant-context-item">
+        <span>Admin attention</span>
+        <b>${esc(adminAttention)}</b>
+      </div>
+      <div class="assistant-context-item">
+        <span>Loaded logs</span>
+        <b>${esc(assistantState.logs.length)}</b>
+      </div>
+    `;
+  });
+}
+
+function addAssistantMessage(role, text) {
+  const box = $('assistant-messages');
+  if (!box) return;
+
+  const el = document.createElement('div');
+  el.className = `assistant-msg ${role}`;
+  el.innerHTML = `
+    <div class="assistant-bubble">${esc(text)}</div>
+    <div class="assistant-msg-meta">${role === 'user' ? 'You' : 'S-Pilot'} · ${new Date().toLocaleTimeString()}</div>
+  `;
+
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+
+function assistantQuick(text) {
+  safeEl('assistant-input', el => {
+    el.value = text;
+  });
+  sendAssistantMessage();
+}
+
+function assistantInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAssistantMessage();
+  }
+}
+
+async function sendAssistantMessage() {
+  const input = $('assistant-input');
+  const text = (input?.value || '').trim();
+
+  if (!text) return;
+
+  input.value = '';
+  addAssistantMessage('user', text);
+
+  const thinkingId = `thinking-${Date.now()}`;
+  addAssistantMessage('assistant', 'Analyzing platform context...');
+
+  try {
+    const answer = await assistantRespond(text);
+    const messages = $('assistant-messages');
+    const last = messages?.lastElementChild;
+    if (last) last.remove();
+
+    addAssistantMessage('assistant', answer);
+  } catch (e) {
+    const messages = $('assistant-messages');
+    const last = messages?.lastElementChild;
+    if (last) last.remove();
+
+    addAssistantMessage('assistant', `Error: ${e.message}`);
+  }
+}
+
+async function assistantRespond(input) {
+  const q = input.toLowerCase();
+
+  if (!state.dashboard) {
+    state.dashboard = await api('/dashboard');
+  }
+
+  if (!assistantState.records.length || !assistantState.logs.length) {
+    await assistantRefreshContext();
+  }
+
+  if (q.includes('pdf') || q.includes('report') || q.includes('executive')) {
+    generateExecutivePDF();
+    return 'Executive PDF generation started. I opened the one-page management report pipeline.';
+  }
+
+  if (q.includes('record') || q.includes('yozuv')) {
+    showPage('records');
+    return buildRecordsAnswer();
+  }
+
+  if (q.includes('log') || q.includes('error') || q.includes('xato')) {
+    showPage('logs');
+    return buildLogsAnswer();
+  }
+
+  if (q.includes('integration') || q.includes('token') || q.includes('lms') || q.includes('hemis')) {
+    showPage('integration');
+    return 'Integration tab opened. Use it to inspect secure REST token flow, LMS/HEMIS ingestion path, validation, rate limiting, and endpoint status.';
+  }
+
+  if (q.includes('batch')) {
+    showPage('batch');
+    return 'Batch tab opened. From there you can upload JSON, validate schema, preview mappings, and run SentPro batch analysis.';
+  }
+
+  if (q.includes('setting') || q.includes('prompt') || q.includes('system prompt') || q.includes('sozlama')) {
+    showPage('settings');
+    return 'Settings tab opened. You can edit SentPro runtime identity, model prompt, thresholds, platform behavior, export/import configuration, and reset demo state.';
+  }
+
+  if (q.includes('mood') || q.includes('kayfiyat')) {
+    return buildMoodAnswer();
+  }
+
+  if (q.includes('risk') || q.includes('critical') || q.includes('admin attention') || q.includes('problem') || q.includes('muammo')) {
+    return buildRiskAnswer();
+  }
+
+  if (q.includes('trend') || q.includes('recent')) {
+    return buildTrendAnswer();
+  }
+
+  if (q.includes('summary') || q.includes('summarize') || q.includes('xulosa') || q.includes('overview')) {
+    return buildExecutiveChatSummary();
+  }
+
+  if (q.includes('refresh') || q.includes('reload')) {
+    await loadDashboard();
+    await assistantRefreshContext();
+    return 'Dashboard and Copilot context refreshed. Current context is now synchronized with backend state.';
+  }
+
+  return buildExecutiveChatSummary();
+}
+
+function buildExecutiveChatSummary() {
+  const d = state.dashboard || {};
+  const o = d.overview || {};
+  const mood = d.mood || d.university_mood || {};
+  const total = o.total_analyzed || o.total || assistantState.records.length || 0;
+  const sentiment = Math.round(Number(o.avg_sentiment || mood.university_score || 0) * 100);
+  const confidence = Math.round(Number(o.avg_confidence || 0) * 100);
+  const critical = o.high_critical_count || o.high_critical || 0;
+  const admin = o.admin_attention_count || o.requires_admin_attention || 0;
+  const topIssue = o.top_issue || getTopIssueLabel();
+
+  return `Executive summary:
+
+• Total analyzed feedback: ${total}
+• Institution sentiment: ${sentiment}%
+• AI confidence: ${confidence}%
+• High/Critical signals: ${critical}
+• Admin attention cases: ${admin}
+• Main issue area: ${topIssue}
+
+Management interpretation:
+${critical > 0 || admin > 0
+  ? 'There are signals that require human review. Prioritize high/critical feedback and assign owners for admin attention cases.'
+  : 'No strong critical pattern dominates currently. Continue monitoring trends and collect more feedback for stronger institutional confidence.'}
+
+Recommended next action:
+Generate Executive PDF or open Records to inspect individual signals.`;
+}
+
+function buildMoodAnswer() {
+  const d = state.dashboard || {};
+  const mood = d.mood || d.university_mood || {};
+  const o = d.overview || {};
+
+  const score = Math.round(Number(mood.university_score || o.avg_sentiment || 0) * 100);
+  const teaching = Math.round(Number(mood.teaching_quality || 0) * 100);
+  const fairness = Math.round(Number(mood.fairness || 0) * 100);
+
+  return `Current mood signal:
+
+• University score: ${score}%
+• Teaching quality: ${teaching}%
+• Fairness: ${fairness}%
+• Dominant emotion: ${mood.dominant_emotion || 'not enough data'}
+
+Interpretation:
+${score >= 70
+  ? 'Mood is generally stable/positive.'
+  : score >= 45
+    ? 'Mood is mixed. Watch for repeated complaints or falling trend.'
+    : 'Mood is weak. Management should inspect negative feedback and issue distribution.'}`;
+}
+
+function buildRiskAnswer() {
+  const records = assistantState.records.map(r => ({ r, out: assistantRecordOutput(r) }));
+
+  const risky = records.filter(x => {
+    const severity = String(x.out.severity || '').toLowerCase();
+    return severity === 'high' || severity === 'critical' || x.out.requires_admin_attention;
+  }).slice(0, 5);
+
+  if (!risky.length) {
+    return `No high/critical risk record is currently loaded.
+
+Still recommended:
+• monitor negative trend
+• inspect latest feedback
+• keep admin attention threshold active`;
+  }
+
+  return `Emerging / high-priority problems:
+
+${risky.map((x, i) => {
+  return `${i + 1}. ${x.out.issue_category || 'unknown issue'} · ${x.out.severity || 'severity unknown'}
+   ${x.out.summary_uz || x.out.summary || x.r.text || 'No summary available'}`;
+}).join('\n\n')}
+
+Recommended action:
+Open Records tab and review these cases before any administrative decision.`;
+}
+
+function buildTrendAnswer() {
+  const d = state.dashboard || {};
+  const trends = d.trends || {};
+  const items = trends.trend_data || trends.items || d.trend_data || d.sentiment_over_time || [];
+
+  if (!items.length) {
+    return 'Trend data is not sufficient yet. Run batch analysis or simulation to populate recent trend signals.';
+  }
+
+  const last = items.slice(-5);
+
+  return `Recent trend signal:
+
+${last.map((x, i) => `${i + 1}. ${JSON.stringify(x)}`).join('\n')}
+
+Interpretation:
+Use this trend to detect whether mood is improving, stable, or moving toward negative/critical feedback concentration.`;
+}
+
+function buildRecordsAnswer() {
+  const total = assistantState.records.length;
+  const negative = assistantState.records.filter(r => assistantRecordOutput(r).sentiment === 'negative').length;
+  const admin = assistantState.records.filter(r => assistantRecordOutput(r).requires_admin_attention).length;
+
+  return `Records opened.
+
+Loaded context:
+• Records: ${total}
+• Negative feedback: ${negative}
+• Admin attention: ${admin}
+
+You can now filter by sentiment, severity, issue category, or inspect individual feedback output.`;
+}
+
+function buildLogsAnswer() {
+  const logs = assistantState.logs || [];
+  const errors = logs.filter(l => String(l.level || '').toUpperCase() === 'ERROR').length;
+  const warns = logs.filter(l => String(l.level || '').toUpperCase() === 'WARN').length;
+
+  return `Logs opened.
+
+Audit status:
+• Loaded logs: ${logs.length}
+• Errors: ${errors}
+• Warnings: ${warns}
+
+${errors > 0
+  ? 'There are backend/system errors. Inspect Loglar → Inspector for raw payload and event details.'
+  : 'No loaded ERROR-level event found in current context.'}`;
+}
+
+function getTopIssueLabel() {
+  const d = state.dashboard || {};
+  const issues = d.issues?.issue_distribution || d.overview?.issue_distribution || d.issue_distribution || {};
+
+  const top = Object.entries(issues).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0];
+  return top?.[0] || 'not enough data';
+}
+
+function assistantRecordOutput(r) {
+  return r.output || r.outputFromAI || r.analysis || r;
+}
+
+
+// ─────────────────────────────────────────────────────────────
 // Executive One-Page PDF Report
 // ─────────────────────────────────────────────────────────────
 
@@ -5090,7 +5456,7 @@ function renderExecutiveReport(data) {
       <header class="exec-header">
         <div>
           <div class="exec-kicker">SENTIMENT.UZ · EXECUTIVE BRIEFING</div>
-          <div class="exec-title">One-page LMS Feedback Intelligence Report</div>
+          <div class="exec-title">LMS Feedback Intelligence Report</div>
           <div class="exec-subtitle">
             Current and recent institutional mood, feedback trends, emerging problems, risk signals, and recommended management actions.
           </div>
@@ -5100,7 +5466,7 @@ function renderExecutiveReport(data) {
           <b>${esc(data.healthText)}</b>
           Generated: ${esc(data.generatedAt)}<br/>
           Source: LMS AI Analyzer<br/>
-          Format: A4 landscape / one page
+          Format: A4 landscape
         </div>
       </header>
 
