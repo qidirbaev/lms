@@ -18,12 +18,12 @@ const API_BASE =
 
 const SENTPRO_RUNTIME = {
   provider: 'Vertex AI Endpoint',
-  model: 'SentPro-FI-1.0',
-  family: 'SentPro',
-  endpoint: 'sentpro-feedback-intelligence',
+  model: 'SentoPro-Light-2.7',
+  family: 'SentoPro',
+  endpoint: 'sentopro-feedback-intelligence',
   region: 'global',
   project: 'diplom-loyixa',
-  version: 'v1.0',
+  version: 'v2.7.1',
   mode: 'Production inference',
   description: 'Custom LMS feedback sentiment, risk, topic, fairness and recommendation engine'
 };
@@ -1055,7 +1055,10 @@ function showPage(page) {
 
   if (page === 'records') loadRecords();
   if (page === 'logs') loadLogs();
-  if (page === 'settings') health();
+  if (page === 'settings') {
+    loadPlatformSettingsUI();
+    health();
+  }
   if (page === 'integration') loadIntegrationStatus();
 }
 
@@ -4151,6 +4154,243 @@ async function runIntegrationTest() {
 
 
 // ─────────────────────────────────────────────────────────────
+// Platform Settings / Prompt Studio
+// ─────────────────────────────────────────────────────────────
+
+const DEFAULT_SYSTEM_PROMPT = `You are SentPro, a custom LMS feedback intelligence engine.
+
+Return ONLY valid JSON.
+Do not use markdown.
+Do not add explanations outside JSON.
+
+Rules:
+- Analyze Uzbek, Russian, English and mixed feedback.
+- Detect sentiment, severity, issue category, fairness, credibility and admin attention.
+- Never invent severe risks without explicit evidence.
+- Positive feedback should normally have no risk.
+- For vague feedback, lower confidence.
+- Uzbek summary must be in Uzbek.
+- topics max 3.
+- subtopics max 5.
+- keywords max 4.
+
+Output must follow the outputFromAI schema exactly.`;
+
+const DEFAULT_PLATFORM_SETTINGS = {
+  modelName: 'SentPro-FI-1.0',
+  provider: 'Vertex AI Endpoint',
+  endpoint: 'sentpro-feedback-intelligence',
+  region: 'global',
+  defaultLang: 'uz',
+  theme: 'dark',
+  apiBase: API_BASE,
+  reportTitle: 'Sentiment.uz Executive Feedback Report',
+  adminThreshold: 0.70,
+  criticalThreshold: 0.85,
+  confidenceThreshold: 0.55,
+  riskDetection: true,
+  fairnessCheck: true,
+  topicExtraction: true,
+  executiveSummary: true,
+  systemPrompt: DEFAULT_SYSTEM_PROMPT
+};
+
+function getPlatformSettings() {
+  try {
+    return {
+      ...DEFAULT_PLATFORM_SETTINGS,
+      ...(JSON.parse(localStorage.getItem('sentpro_platform_settings') || '{}'))
+    };
+  } catch {
+    return { ...DEFAULT_PLATFORM_SETTINGS };
+  }
+}
+
+function setPlatformSettings(settings) {
+  localStorage.setItem('sentpro_platform_settings', JSON.stringify(settings));
+}
+
+function loadPlatformSettingsUI() {
+  const s = getPlatformSettings();
+
+  safeEl('set-model-name', el => { el.value = s.modelName; });
+  safeEl('set-provider', el => { el.value = s.provider; });
+  safeEl('set-endpoint', el => { el.value = s.endpoint; });
+  safeEl('set-region', el => { el.value = s.region; });
+  safeEl('set-default-lang', el => { el.value = s.defaultLang; });
+  safeEl('set-default-theme', el => { el.value = s.theme; });
+  safeEl('set-api-base', el => { el.value = s.apiBase; });
+  safeEl('set-report-title', el => { el.value = s.reportTitle; });
+  safeEl('set-system-prompt', el => { el.value = s.systemPrompt; });
+
+  safeEl('set-admin-threshold', el => { el.value = s.adminThreshold; });
+  safeEl('set-critical-threshold', el => { el.value = s.criticalThreshold; });
+  safeEl('set-confidence-threshold', el => { el.value = s.confidenceThreshold; });
+
+  safeEl('set-risk-detection', el => { el.checked = !!s.riskDetection; });
+  safeEl('set-fairness-check', el => { el.checked = !!s.fairnessCheck; });
+  safeEl('set-topic-extraction', el => { el.checked = !!s.topicExtraction; });
+  safeEl('set-executive-summary', el => { el.checked = !!s.executiveSummary; });
+
+  syncSettingsRanges();
+  renderSettingsSnapshot();
+  renderIcons();
+}
+
+function readPlatformSettingsUI() {
+  const current = getPlatformSettings();
+
+  return {
+    ...current,
+    modelName: $('set-model-name')?.value || current.modelName,
+    provider: $('set-provider')?.value || current.provider,
+    endpoint: $('set-endpoint')?.value || current.endpoint,
+    region: $('set-region')?.value || current.region,
+    defaultLang: $('set-default-lang')?.value || current.defaultLang,
+    theme: $('set-default-theme')?.value || current.theme,
+    apiBase: $('set-api-base')?.value || current.apiBase,
+    reportTitle: $('set-report-title')?.value || current.reportTitle,
+    systemPrompt: $('set-system-prompt')?.value || current.systemPrompt,
+    adminThreshold: Number($('set-admin-threshold')?.value || current.adminThreshold),
+    criticalThreshold: Number($('set-critical-threshold')?.value || current.criticalThreshold),
+    confidenceThreshold: Number($('set-confidence-threshold')?.value || current.confidenceThreshold),
+    riskDetection: !!$('set-risk-detection')?.checked,
+    fairnessCheck: !!$('set-fairness-check')?.checked,
+    topicExtraction: !!$('set-topic-extraction')?.checked,
+    executiveSummary: !!$('set-executive-summary')?.checked
+  };
+}
+
+function savePlatformSettings() {
+  const s = readPlatformSettingsUI();
+  setPlatformSettings(s);
+
+  state.lang = s.defaultLang;
+  state.theme = s.theme;
+  localStorage.setItem('lms_lang', state.lang);
+  localStorage.setItem('lms_theme', state.theme);
+
+  applyTheme();
+  applyStaticTranslations();
+  renderSettingsSnapshot();
+
+  toast('Platform settings saved', 'success', {
+    title: 'Settings updated'
+  });
+}
+
+function renderSettingsSnapshot() {
+  safeEl('settings-snapshot', el => {
+    el.textContent = JSON.stringify(readPlatformSettingsUI(), null, 2);
+  });
+}
+
+function syncSettingsRanges() {
+  safeEl('admin-threshold-val', el => {
+    el.textContent = Number($('set-admin-threshold')?.value || 0).toFixed(2);
+  });
+  safeEl('critical-threshold-val', el => {
+    el.textContent = Number($('set-critical-threshold')?.value || 0).toFixed(2);
+  });
+  safeEl('confidence-threshold-val', el => {
+    el.textContent = Number($('set-confidence-threshold')?.value || 0).toFixed(2);
+  });
+  renderSettingsSnapshot();
+}
+
+function showSettingsTab(tab) {
+  ['runtime', 'prompts', 'analysis', 'platform', 'danger'].forEach(x => {
+    $(`settings-tab-${x}`)?.classList.toggle('active', x === tab);
+    $(`settings-section-${x}`)?.classList.toggle('active', x === tab);
+  });
+  renderIcons();
+}
+
+function resetSystemPrompt() {
+  safeEl('set-system-prompt', el => { el.value = DEFAULT_SYSTEM_PROMPT; });
+  renderSettingsSnapshot();
+  toast('System prompt restored', 'success');
+}
+
+function copySystemPrompt() {
+  const prompt = $('set-system-prompt')?.value || '';
+  navigator.clipboard?.writeText(prompt);
+  toast('System prompt copied', 'success');
+}
+
+function previewPromptPayload() {
+  const s = readPlatformSettingsUI();
+
+  safeEl('prompt-preview', el => {
+    el.innerHTML = `
+      <pre class="json-viewer">${esc(JSON.stringify({
+        model: s.modelName,
+        provider: s.provider,
+        endpoint: s.endpoint,
+        thresholds: {
+          admin_attention: s.adminThreshold,
+          critical_risk: s.criticalThreshold,
+          minimum_confidence: s.confidenceThreshold
+        },
+        enabled_modules: {
+          risk_detection: s.riskDetection,
+          fairness_check: s.fairnessCheck,
+          topic_extraction: s.topicExtraction,
+          executive_summary: s.executiveSummary
+        },
+        system_prompt: s.systemPrompt
+      }, null, 2))}</pre>
+    `;
+  });
+}
+
+function exportPlatformSettings() {
+  const s = readPlatformSettingsUI();
+  const blob = new Blob([JSON.stringify(s, null, 2)], {
+    type: 'application/json;charset=utf-8;'
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sentpro-platform-settings-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast('Settings exported', 'success');
+}
+
+function importPlatformSettings() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      setPlatformSettings({ ...DEFAULT_PLATFORM_SETTINGS, ...parsed });
+      loadPlatformSettingsUI();
+      toast('Settings imported', 'success');
+    } catch (e) {
+      toast(e.message, 'error', { title: 'Import failed' });
+    }
+  };
+
+  input.click();
+}
+
+function resetPlatformSettings() {
+  if (!confirm('Reset all platform settings to defaults?')) return;
+  localStorage.removeItem('sentpro_platform_settings');
+  loadPlatformSettingsUI();
+  toast('Platform settings reset', 'success');
+}
+
+
+// ─────────────────────────────────────────────────────────────
 // Logs / Health / Reset
 // ─────────────────────────────────────────────────────────────
 
@@ -4461,6 +4701,7 @@ function exportLogsCSV() {
 async function health() {
   try {
     const h = await api('/health').catch(() => ({}));
+    const s = getPlatformSettings();
 
     const runtime = {
       ...h,
@@ -4482,10 +4723,10 @@ async function health() {
       el.className = `ai-badge ai-badge-online sentpro-badge`;
     });
 
-    safeEl('s-provider', el => { el.textContent = runtime.provider; });
-    safeEl('s-project', el => { el.textContent = runtime.project; });
-    safeEl('s-model', el => { el.textContent = runtime.model; });
-    safeEl('s-count', el => { el.textContent = runtime.processed_count; });
+    safeEl('s-provider', el => { el.textContent = s.provider; });
+    safeEl('s-project', el => { el.textContent = h.project || 'diplom-loyixa'; });
+    safeEl('s-model', el => { el.textContent = s.modelName; });
+    safeEl('s-count', el => { el.textContent = h.processed_count ?? '—'; });
 
     safeEl('health-info', el => {
       el.innerHTML = `

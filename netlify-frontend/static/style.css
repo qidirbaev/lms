@@ -6898,3 +6898,120 @@ body.is-loading::after {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── Settings practical control surface ───────────────────── */
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: .9rem;
+  align-items: start;
+}
+
+.settings-sidebar {
+  position: sticky;
+  top: 68px;
+  padding: .55rem;
+  display: grid;
+  gap: .35rem;
+}
+
+.settings-tab {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  border-radius: 12px;
+  padding: .7rem .75rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .8rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.settings-tab:hover {
+  background: var(--bg-4);
+  color: var(--text);
+}
+
+.settings-tab.active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.settings-tab.danger.active {
+  background: var(--neg);
+  color: white;
+}
+
+.settings-tab svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.settings-section {
+  display: none;
+}
+
+.settings-section.active {
+  display: block;
+}
+
+.settings-codearea {
+  min-height: 360px;
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+.settings-prompt-actions {
+  display: flex;
+  gap: .55rem;
+  flex-wrap: wrap;
+}
+
+.settings-range {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.settings-switch {
+  min-height: 46px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  border-radius: 12px;
+  padding: .65rem .75rem;
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin-bottom: .6rem;
+  color: var(--text-2);
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.settings-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.settings-switch:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+@media (max-width: 980px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-sidebar {
+    position: relative;
+    top: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

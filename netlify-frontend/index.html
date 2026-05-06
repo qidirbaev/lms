@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentimen.uz | LMS Feedback System</title>
+  <title>Sentiment.uz | LMS Feedback System</title>
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico" />
@@ -1241,26 +1241,33 @@
           <div>
             <div class="eyebrow">CONTROL SURFACE</div>
             <h2>Sozlamalar</h2>
-            <div class="subtitle">Runtime, platform health, demo controls, and project identity</div>
+            <div class="subtitle">SentPro runtime, model prompts, thresholds, platform behavior and demo controls</div>
           </div>
 
-          <button class="btn btn-secondary btn-sm settings-about-btn" type="button" onclick="showAboutProjectModal()">
-            <i data-lucide="info"></i>
-            Ma’lumot
-          </button>
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="exportPlatformSettings()">
+              <i data-lucide="download"></i> Export
+            </button>
+            <button class="btn btn-secondary btn-sm" type="button" onclick="importPlatformSettings()">
+              <i data-lucide="upload"></i> Import
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="savePlatformSettings()">
+              <i data-lucide="save"></i> Saqlash
+            </button>
+          </div>
         </div>
 
         <div class="page-body settings-body">
           <div class="settings-command-grid">
             <div class="settings-status-card">
               <div class="settings-orb">
-                <i data-lucide="activity"></i>
+                <i data-lucide="brain-circuit"></i>
               </div>
 
               <div>
-                <div class="eyebrow">AI RUNTIME</div>
-                <h3>Sentiment Engine</h3>
-                <p>Live inference backend and analysis pipeline status.</p>
+                <div class="eyebrow">SENTPRO RUNTIME</div>
+                <h3>SentPro Feedback Intelligence</h3>
+                <p>Vertex AI endpoint orqali ishlaydigan feedback analysis engine.</p>
               </div>
 
               <div class="settings-live-badge">
@@ -1290,39 +1297,229 @@
             </div>
           </div>
 
-          <div class="grid-2 responsive-grid mt-3">
-            <div class="card settings-panel">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Platform Health</div>
-                  <div class="text-muted text-sm">Backend availability and service diagnostics.</div>
-                </div>
-                <i data-lucide="shield-check" class="settings-panel-icon"></i>
-              </div>
-
-              <div id="health-info">
-                <div class="text-muted">—</div>
-              </div>
-            </div>
-
-            <div class="card settings-danger-panel">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Demo Control</div>
-                  <div class="text-muted text-sm">Clear generated dashboard state without touching source files.</div>
-                </div>
-                <i data-lucide="database-zap" class="settings-panel-icon"></i>
-              </div>
-
-              <button class="btn btn-danger full-width" onclick="resetDemo()">
-                <i data-lucide="trash-2"></i>
-                Reset Demo State
+          <div class="settings-layout mt-3">
+            <aside class="settings-sidebar card">
+              <button class="settings-tab active" onclick="showSettingsTab('runtime')" id="settings-tab-runtime">
+                <i data-lucide="server-cog"></i><span>Runtime</span>
               </button>
+              <button class="settings-tab" onclick="showSettingsTab('prompts')" id="settings-tab-prompts">
+                <i data-lucide="message-square-code"></i><span>Prompt Studio</span>
+              </button>
+              <button class="settings-tab" onclick="showSettingsTab('analysis')" id="settings-tab-analysis">
+                <i data-lucide="sliders-horizontal"></i><span>Analysis Rules</span>
+              </button>
+              <button class="settings-tab" onclick="showSettingsTab('platform')" id="settings-tab-platform">
+                <i data-lucide="layout-dashboard"></i><span>Platform</span>
+              </button>
+              <button class="settings-tab danger" onclick="showSettingsTab('danger')" id="settings-tab-danger">
+                <i data-lucide="database-zap"></i><span>Danger Zone</span>
+              </button>
+            </aside>
 
-              <p class="text-muted text-sm mt-3">
-                Processed results and dashboard state will be cleared. Source JSON files remain unchanged.
-              </p>
-            </div>
+            <main class="settings-content">
+              <section class="settings-section active" id="settings-section-runtime">
+                <div class="grid-2 responsive-grid">
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Runtime Identity</div>
+                        <div class="text-muted text-sm">Visible model and endpoint configuration.</div>
+                      </div>
+                      <i data-lucide="cpu" class="settings-panel-icon"></i>
+                    </div>
+
+                    <div class="form-grid grid-2">
+                      <div class="field">
+                        <label>Model name</label>
+                        <input class="input" id="set-model-name" />
+                      </div>
+                      <div class="field">
+                        <label>Provider</label>
+                        <input class="input" id="set-provider" />
+                      </div>
+                      <div class="field">
+                        <label>Endpoint</label>
+                        <input class="input" id="set-endpoint" />
+                      </div>
+                      <div class="field">
+                        <label>Region</label>
+                        <input class="input" id="set-region" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Platform Health</div>
+                        <div class="text-muted text-sm">Backend diagnostics and runtime response.</div>
+                      </div>
+                      <button class="btn btn-secondary btn-sm" onclick="health()">
+                        <i data-lucide="refresh-cw"></i>
+                      </button>
+                    </div>
+
+                    <div id="health-info">
+                      <div class="text-muted">—</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="settings-section" id="settings-section-prompts">
+                <div class="card settings-panel">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">SentPro System Prompt</div>
+                      <div class="text-muted text-sm">Controls JSON strictness, tone, risk behavior and output schema.</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="resetSystemPrompt()">
+                      <i data-lucide="rotate-ccw"></i> Default
+                    </button>
+                  </div>
+
+                  <div class="field">
+                    <label>System prompt</label>
+                    <textarea class="textarea settings-codearea" id="set-system-prompt"></textarea>
+                  </div>
+
+                  <div class="settings-prompt-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="copySystemPrompt()">
+                      <i data-lucide="copy"></i> Copy
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="previewPromptPayload()">
+                      <i data-lucide="eye"></i> Preview payload
+                    </button>
+                  </div>
+
+                  <div id="prompt-preview" class="mt-3"></div>
+                </div>
+              </section>
+
+              <section class="settings-section" id="settings-section-analysis">
+                <div class="grid-2 responsive-grid">
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Risk Thresholds</div>
+                        <div class="text-muted text-sm">Rules used to visually classify feedback severity.</div>
+                      </div>
+                      <i data-lucide="shield-alert" class="settings-panel-icon"></i>
+                    </div>
+
+                    <div class="field">
+                      <label>Admin attention threshold: <b id="admin-threshold-val">0.70</b></label>
+                      <input class="settings-range" id="set-admin-threshold" type="range" min="0" max="1" step="0.05" oninput="syncSettingsRanges()" />
+                    </div>
+
+                    <div class="field">
+                      <label>Critical risk threshold: <b id="critical-threshold-val">0.85</b></label>
+                      <input class="settings-range" id="set-critical-threshold" type="range" min="0" max="1" step="0.05" oninput="syncSettingsRanges()" />
+                    </div>
+
+                    <div class="field">
+                      <label>Minimum confidence: <b id="confidence-threshold-val">0.55</b></label>
+                      <input class="settings-range" id="set-confidence-threshold" type="range" min="0" max="1" step="0.05" oninput="syncSettingsRanges()" />
+                    </div>
+                  </div>
+
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Analysis Toggles</div>
+                        <div class="text-muted text-sm">Enable/disable visible analysis capabilities.</div>
+                      </div>
+                      <i data-lucide="toggle-right" class="settings-panel-icon"></i>
+                    </div>
+
+                    <label class="settings-switch"><input id="set-risk-detection" type="checkbox" /> <span>Critical risk detection</span></label>
+                    <label class="settings-switch"><input id="set-fairness-check" type="checkbox" /> <span>Fairness scoring</span></label>
+                    <label class="settings-switch"><input id="set-topic-extraction" type="checkbox" /> <span>Topic extraction</span></label>
+                    <label class="settings-switch"><input id="set-executive-summary" type="checkbox" /> <span>Executive summary generation</span></label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="settings-section" id="settings-section-platform">
+                <div class="grid-2 responsive-grid">
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Platform Behavior</div>
+                        <div class="text-muted text-sm">Frontend defaults saved in localStorage.</div>
+                      </div>
+                      <i data-lucide="settings-2" class="settings-panel-icon"></i>
+                    </div>
+
+                    <div class="form-grid grid-2">
+                      <div class="field">
+                        <label>Default language</label>
+                        <select class="select" id="set-default-lang">
+                          <option value="uz">Uzbek</option>
+                          <option value="en">English</option>
+                          <option value="ru">Russian</option>
+                        </select>
+                      </div>
+
+                      <div class="field">
+                        <label>Theme</label>
+                        <select class="select" id="set-default-theme">
+                          <option value="dark">Dark</option>
+                          <option value="light">Light</option>
+                        </select>
+                      </div>
+
+                      <div class="field">
+                        <label>API base URL</label>
+                        <input class="input" id="set-api-base" />
+                      </div>
+
+                      <div class="field">
+                        <label>Report title</label>
+                        <input class="input" id="set-report-title" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card settings-panel">
+                    <div class="card-header">
+                      <div>
+                        <div class="card-title">Current Config Snapshot</div>
+                        <div class="text-muted text-sm">What will be saved/exported.</div>
+                      </div>
+                    </div>
+
+                    <pre class="json-viewer" id="settings-snapshot">{}</pre>
+                  </div>
+                </div>
+              </section>
+
+              <section class="settings-section" id="settings-section-danger">
+                <div class="card settings-danger-panel">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Demo Control</div>
+                      <div class="text-muted text-sm">Clear generated dashboard state without touching source files.</div>
+                    </div>
+                    <i data-lucide="database-zap" class="settings-panel-icon"></i>
+                  </div>
+
+                  <button class="btn btn-danger full-width" onclick="resetDemo()">
+                    <i data-lucide="trash-2"></i>
+                    Reset Demo State
+                  </button>
+
+                  <button class="btn btn-ghost full-width mt-3" onclick="resetPlatformSettings()">
+                    <i data-lucide="rotate-ccw"></i>
+                    Reset Platform Settings
+                  </button>
+
+                  <p class="text-muted text-sm mt-3">
+                    Demo reset clears processed results from backend. Platform settings reset clears only browser localStorage configuration.
+                  </p>
+                </div>
+              </section>
+            </main>
           </div>
         </div>
       </section>
