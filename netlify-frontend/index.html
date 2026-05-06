@@ -9,6 +9,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -184,6 +186,10 @@
 
           <button class="btn btn-secondary btn-sm" type="button" onclick="loadDashboard()">
             <i data-lucide="refresh-cw"></i>
+          </button>
+
+          <button class="btn btn-primary btn-sm" type="button" id="executive-pdf-btn" onclick="generateExecutivePDF()">
+            <i data-lucide="file-down"></i>
           </button>
         </div>
       </div>
@@ -1321,6 +1327,8 @@
       <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
+
+  <div id="executive-report-root" aria-hidden="true"></div>
 
   <script src="/static/app.js"></script>
   <script>

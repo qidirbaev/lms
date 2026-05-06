@@ -4485,6 +4485,363 @@ async function resetDemo() {
   }
 }
 
+
+// ─────────────────────────────────────────────────────────────
+// Executive One-Page PDF Report
+// ─────────────────────────────────────────────────────────────
+
+async function getExecutiveRecords() {
+  try {
+    const d = await api('/records');
+    return d.items || [];
+  } catch {
+    return [];
+  }
+}
+
+function clampPct(v) {
+  const n = Number(v || 0);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(100, Math.round(n * 100)));
+}
+
+function pickArray(...items) {
+  for (const x of items) {
+    if (Array.isArray(x) && x.length) return x;
+  }
+  return [];
+}
+
+function topPairs(obj, limit = 5) {
+  if (!obj || typeof obj !== 'object') return [];
+  return Object.entries(obj)
+    .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+    .slice(0, limit)
+    .map(([label, value]) => ({ label, value }));
+}
+
+function recordOut(r) {
+  return r.output || r.outputFromAI || r.analysis || r;
+}
+
+function execHealthLabel(score, critical) {
+  if (critical > 0) return ['Critical attention', 'bad'];
+  if (score >= 0.72) return ['Stable', 'good'];
+  if (score >= 0.48) return ['Watchlist', 'warn'];
+  return ['Unstable', 'bad'];
+}
+
+function buildExecutiveReportData(dashboard, records) {
+  const overview = dashboard?.overview || {};
+  const mood = dashboard?.mood || dashboard?.university_mood || {};
+  const trends = dashboard?.trends || {};
+  const issues = dashboard?.issues || {};
+  const risks = dashboard?.risks || {};
+  const keywords = dashboard?.keywords || {};
+
+  const total = overview.total_analyzed || overview.total || records.length || 0;
+  const avgSentiment = Number(overview.avg_sentiment ?? overview.average_sentiment ?? mood.university_score ?? 0);
+  const avgConfidence = Number(overview.avg_confidence ?? overview.confidence ?? 0);
+  const highCritical = Number(overview.high_critical_count ?? overview.high_critical ?? 0);
+  const adminAttention = Number(overview.admin_attention_count ?? overview.requires_admin_attention ?? 0);
+
+  const negativeRecords = records
+    .map(r => ({ r, out: recordOut(r) }))
+    .filter(x => ['negative'].includes(String(x.out.sentiment || '').toLowerCase()))
+    .slice(0, 5);
+
+  const riskRecords = records
+    .map(r => ({ r, out: recordOut(r) }))
+    .filter(x => ['high', 'critical'].includes(String(x.out.severity || '').toLowerCase()) || x.out.requires_admin_attention)
+    .slice(0, 4);
+
+  const issuePairs = topPairs(
+    issues.issue_distribution ||
+    overview.issue_distribution ||
+    dashboard?.issue_distribution ||
+    {},
+    5
+  );
+
+  const sentimentPairs = topPairs(
+    overview.sentiment_distribution ||
+    dashboard?.sentiment_distribution ||
+    {},
+    3
+  );
+
+  const trendItems = pickArray(
+    trends.trend_data,
+    trends.items,
+    dashboard?.trend_data,
+    dashboard?.sentiment_over_time
+  ).slice(-5);
+
+  const topKeywords = pickArray(
+    keywords.top_keywords,
+    keywords.negative_words,
+    dashboard?.top_keywords
+  ).slice(0, 6);
+
+  const emergingProblems = riskRecords.length
+    ? riskRecords.map(x => x.out.summary_uz || x.out.summary || x.out.issue_category || 'High-risk feedback requires review')
+    : negativeRecords.map(x => x.out.summary_uz || x.out.summary || x.out.issue_category || 'Negative feedback trend requires review');
+
+  const [healthText, healthClass] = execHealthLabel(avgSentiment, highCritical);
+
+  return {
+    generatedAt: new Date().toLocaleString(),
+    total,
+    avgSentiment,
+    avgConfidence,
+    highCritical,
+    adminAttention,
+    healthText,
+    healthClass,
+    dominantEmotion: mood.dominant_emotion || mood.emotion || '—',
+    universityScore: Number(mood.university_score ?? avgSentiment ?? 0),
+    teachingQuality: Number(mood.teaching_quality ?? 0),
+    fairness: Number(mood.fairness ?? 0),
+    topIssue: overview.top_issue || issuePairs[0]?.label || '—',
+    executiveSummary:
+      overview.executive_summary ||
+      dashboard?.executive_summary ||
+      `Current LMS feedback signals show ${healthText.toLowerCase()} status. Main attention area: ${overview.top_issue || issuePairs[0]?.label || 'not enough data'}.`,
+    issuePairs,
+    sentimentPairs,
+    trendItems,
+    topKeywords,
+    emergingProblems: emergingProblems.slice(0, 5),
+    recommendations: [
+      highCritical > 0 ? 'Prioritize human review for high/critical feedback signals within 24 hours.' : 'Continue weekly monitoring; no critical pattern dominates currently.',
+      adminAttention > 0 ? 'Assign admin owners for feedback requiring institutional action.' : 'Keep admin escalation threshold unchanged.',
+      issuePairs[0]?.label ? `Open a targeted improvement task for “${issuePairs[0].label}”.` : 'Increase dataset volume to improve institutional signal confidence.',
+      'Use this report in management meetings instead of forcing stakeholders through multiple dashboard tabs.'
+    ]
+  };
+}
+
+function execKpi(label, value, sub = '') {
+  return `
+    <div class="exec-card">
+      <div class="exec-kpi-label">${esc(label)}</div>
+      <div class="exec-kpi-value">${esc(value)}</div>
+      <div class="exec-kpi-sub">${esc(sub)}</div>
+    </div>
+  `;
+}
+
+function execBars(items, fallbackLabel = 'No data') {
+  const clean = items.length ? items : [{ label: fallbackLabel, value: 0 }];
+
+  const max = Math.max(...clean.map(x => Number(x.value || 0)), 1);
+
+  return `
+    <div class="exec-bars">
+      ${clean.map(x => {
+        const w = Math.round((Number(x.value || 0) / max) * 100);
+        return `
+          <div class="exec-bar-row">
+            <span>${esc(humanize(String(x.label)))}</span>
+            <div class="exec-bar-track">
+              <div class="exec-bar-fill" style="width:${w}%"></div>
+            </div>
+            <b>${esc(x.value)}</b>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderExecutiveReport(data) {
+  const root = $('executive-report-root');
+  if (!root) return;
+
+  root.innerHTML = `
+    <div class="exec-report" id="executive-report-page">
+      <header class="exec-header">
+        <div>
+          <div class="exec-kicker">SENTIMENT.UZ · EXECUTIVE BRIEFING</div>
+          <div class="exec-title">One-page LMS Feedback Intelligence Report</div>
+          <div class="exec-subtitle">
+            Current and recent institutional mood, feedback trends, emerging problems, risk signals, and recommended management actions.
+          </div>
+        </div>
+
+        <div class="exec-stamp">
+          <b>${esc(data.healthText)}</b>
+          Generated: ${esc(data.generatedAt)}<br/>
+          Source: LMS AI Analyzer<br/>
+          Format: A4 landscape / one page
+        </div>
+      </header>
+
+      <main class="exec-main">
+        <section class="exec-left">
+          <div class="exec-kpi-grid">
+            ${execKpi('Analyzed', data.total, 'total feedback')}
+            ${execKpi('Sentiment', clampPct(data.avgSentiment) + '%', 'institution health')}
+            ${execKpi('Confidence', clampPct(data.avgConfidence) + '%', 'AI certainty')}
+            ${execKpi('Critical', data.highCritical, 'human review')}
+          </div>
+
+          <div class="exec-card">
+            <div class="exec-section-title">
+              Executive conclusion
+              <span class="exec-badge ${esc(data.healthClass)}">${esc(data.healthText)}</span>
+            </div>
+            <div class="exec-summary">${esc(data.executiveSummary)}</div>
+          </div>
+
+          <div class="exec-grid-2">
+            <div class="exec-card">
+              <div class="exec-section-title">Issue distribution</div>
+              ${execBars(data.issuePairs, 'No issues')}
+            </div>
+
+            <div class="exec-card">
+              <div class="exec-section-title">Sentiment mix</div>
+              ${execBars(data.sentimentPairs, 'No sentiment')}
+            </div>
+          </div>
+
+          <div class="exec-card">
+            <div class="exec-section-title">Recommended management actions</div>
+            <div class="exec-list">
+              ${data.recommendations.map((x, i) => `
+                <div class="exec-list-item">
+                  <span class="exec-list-index">${i + 1}</span>
+                  <span>${esc(x)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </section>
+
+        <section class="exec-right">
+          <div class="exec-card exec-mood-box">
+            <div class="exec-section-title">Mood and quality signals</div>
+            ${execBars([
+              { label: 'University score', value: clampPct(data.universityScore) },
+              { label: 'Teaching quality', value: clampPct(data.teachingQuality) },
+              { label: 'Fairness', value: clampPct(data.fairness) }
+            ])}
+            <div class="exec-kpi-sub" style="margin-top:10px">
+              Dominant emotion: ${esc(data.dominantEmotion)}
+            </div>
+          </div>
+
+          <div class="exec-card exec-risk-box">
+            <div class="exec-section-title">
+              Emerging / potential problems
+              <span class="exec-badge ${data.emergingProblems.length ? 'bad' : 'good'}">
+                ${data.emergingProblems.length ? 'Watchlist' : 'Clear'}
+              </span>
+            </div>
+            <div class="exec-list">
+              ${
+                data.emergingProblems.length
+                  ? data.emergingProblems.map((x, i) => `
+                      <div class="exec-list-item">
+                        <span class="exec-list-index">${i + 1}</span>
+                        <span>${esc(x)}</span>
+                      </div>
+                    `).join('')
+                  : `<div class="exec-summary">No strong emerging problem pattern detected in current data.</div>`
+              }
+            </div>
+          </div>
+
+          <div class="exec-card">
+            <div class="exec-section-title">Recent trend signal</div>
+            <div class="exec-list">
+              ${
+                data.trendItems.length
+                  ? data.trendItems.map((x, i) => `
+                    <div class="exec-list-item">
+                      <span class="exec-list-index">${i + 1}</span>
+                      <span>${esc(JSON.stringify(x).slice(0, 120))}</span>
+                    </div>
+                  `).join('')
+                  : `<div class="exec-summary">Trend data is not yet sufficient. Run batch analysis or simulation to populate recent trend signals.</div>`
+              }
+            </div>
+          </div>
+
+          <div class="exec-card">
+            <div class="exec-section-title">Top keywords / signals</div>
+            <div class="exec-list">
+              ${
+                data.topKeywords.length
+                  ? data.topKeywords.map((x, i) => `
+                    <div class="exec-list-item">
+                      <span class="exec-list-index">${i + 1}</span>
+                      <span>${esc(typeof x === 'string' ? x : JSON.stringify(x))}</span>
+                    </div>
+                  `).join('')
+                  : `<div class="exec-summary">No keyword cluster available yet.</div>`
+              }
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="exec-footer">
+        <span>AI-generated decision-support summary. Critical signals require human verification before action.</span>
+        <span>sentiment.uz · LMS Feedback Intelligence Platform</span>
+      </footer>
+    </div>
+  `;
+}
+
+async function generateExecutivePDF() {
+  const btn = $('executive-pdf-btn');
+  setButtonLoading?.(btn, true, 'Preparing PDF');
+
+  try {
+    if (!state.dashboard) {
+      state.dashboard = await api('/dashboard');
+    }
+
+    const records = await getExecutiveRecords();
+    const data = buildExecutiveReportData(state.dashboard, records);
+    renderExecutiveReport(data);
+
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    const page = $('executive-report-page');
+    if (!page) throw new Error('Executive report container not found');
+
+    if (window.html2canvas && window.jspdf?.jsPDF) {
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        backgroundColor: '#09090b',
+        useCORS: true
+      });
+
+      const img = canvas.toDataURL('image/png');
+      const pdf = new window.jspdf.jsPDF('landscape', 'mm', 'a4');
+
+      pdf.addImage(img, 'PNG', 0, 0, 297, 210);
+      pdf.save(`executive-feedback-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+
+      toast('Executive PDF generated', 'success', {
+        title: 'Report ready',
+        actions: [{ label: 'Open Overview', onClick: () => showPage('overview') }]
+      });
+    } else {
+      window.print();
+      toast('PDF libraries not loaded. Browser print fallback opened.', 'warn');
+    }
+  } catch (e) {
+    toast(e.message, 'error', { title: 'PDF generation failed' });
+  } finally {
+    setButtonLoading?.(btn, false);
+  }
+}
+
+
 // ─────────────────────────────────────────────────────────────
 // Bootstrap
 // ─────────────────────────────────────────────────────────────
