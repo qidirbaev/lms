@@ -878,6 +878,50 @@ function empty(text) {
   `;
 }
 
+function loadingPanel(title = 'Yuklanmoqda', subtitle = 'AI platforma ma’lumotlarni tayyorlamoqda') {
+  return `
+    <div class="loading-panel">
+      <div class="loading-panel-inner">
+        <div class="processing-orb"></div>
+        <div>
+          <div class="loading-title">${esc(title)}</div>
+          <div class="loading-subtitle">${esc(subtitle)}</div>
+        </div>
+        <div class="ai-loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function skeletonCards(count = 3) {
+  return Array.from({ length: count }).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton-line w-35"></div>
+      <div class="skeleton-line w-100"></div>
+      <div class="skeleton-line w-85"></div>
+      <div class="skeleton-line w-55"></div>
+      <div class="skeleton-pill"></div>
+    </div>
+  `).join('');
+}
+
+function setButtonLoading(btn, loading, loadingText = 'Processing') {
+  if (!btn) return;
+
+  if (loading) {
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> ${esc(loadingText)}`;
+    return;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+  delete btn.dataset.originalHtml;
+}
+
 function table(headers, rows) {
   return `
     <div class="table-wrap">
@@ -933,8 +977,7 @@ async function doLogin() {
   }
 
   if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner"></span> ${esc(t('signing_in'))}`;
+    setButtonLoading(btn, true, t('signing_in'));
   }
 
   try {
@@ -958,8 +1001,7 @@ async function doLogin() {
     }
   } finally {
     if (btn) {
-      btn.disabled = false;
-      btn.textContent = t('sign_in');
+      setButtonLoading(btn, false);
     }
   }
 }
@@ -2699,12 +2741,7 @@ async function loadRecords() {
       if (v) q.set(k, v);
     });
 
-    $('records-list').innerHTML = `
-      <div class="empty-state card records-empty">
-        <span class="spinner"></span>
-        <p>Yozuvlar yuklanmoqda...</p>
-      </div>
-    `;
+    $('records-list').innerHTML = skeletonCards(4);
 
     const d = await api(`/records?${q.toString()}`);
     recordsCache = d.items || [];
@@ -3916,8 +3953,7 @@ async function analyzeSim() {
 
   try {
     if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner"></span> Analyzing...`;
+      setButtonLoading(btn, true, 'Analyzing');
     }
 
     $('sim-result-panel').innerHTML = `
@@ -3945,8 +3981,7 @@ async function analyzeSim() {
     toast(e.message, 'error');
   } finally {
     if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = `<i data-lucide="zap"></i> Analyze with AI`;
+      setButtonLoading(btn, false);
     }
     renderIcons();
   }
@@ -4276,6 +4311,10 @@ function renderLogsPanel() {
 
 async function loadLogs() {
   try {
+    safeEl('logs-list', el => {
+      el.innerHTML = skeletonCards(5);
+    });
+
     const level = $('log-level-filter')?.value;
     const d = await api(`/logs${level ? `?level=${encodeURIComponent(level)}` : ''}`);
 
