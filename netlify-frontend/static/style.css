@@ -628,7 +628,7 @@ select {
   background-size: 15px 15px; */
 }
 
-.select {
+/* .select {
   width: 100%;
   min-height: 38px;
   background: var(--bg-2);
@@ -640,9 +640,9 @@ select {
   outline: none;
   transition: border-color .15s, box-shadow .15s, background .15s;
 
-  /* width: 72px !important; */
+  width: 72px !important;
   min-width: 72px;
-  /* height: 40px; */
+  height: 40px;
 
   padding: 0 30px 0 14px !important;
   border-radius: 12px;
@@ -656,6 +656,19 @@ select {
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 15px 15px;
+} */
+
+.select {
+  width: 100%;
+  height: 42px;
+  min-width: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 0 38px 0 14px !important;
+  font-size: .82rem;
+  outline: none;
 }
 
 .topbar-select {
@@ -6001,4 +6014,108 @@ tbody tr:hover {
   .logs-compact-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Clean custom select ───────────────────────────────────── */
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select > select.select {
+  display: none !important;
+}
+
+.custom-select-btn {
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text);
+  padding: 0 12px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  font-size: .82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+
+.custom-select-btn:hover {
+  background: var(--bg-3);
+  border-color: var(--border-strong);
+}
+
+.custom-select.open .custom-select-btn {
+  border-color: var(--text-3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.custom-select-btn span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.custom-select-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: var(--text-3);
+  transition: transform .15s ease;
+}
+
+.custom-select.open .custom-select-btn svg {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  z-index: 9000;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--surface) 96%, var(--text) 4%);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: .35rem;
+  display: none;
+}
+
+.custom-select.open .custom-select-menu {
+  display: grid;
+  gap: .2rem;
+}
+
+.custom-select-option {
+  border: 0;
+  width: 100%;
+  background: transparent;
+  color: var(--text-2);
+  text-align: left;
+  border-radius: 10px;
+  padding: .58rem .7rem;
+  font-size: .8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.custom-select-option:hover {
+  background: var(--bg-4);
+  color: var(--text);
+}
+
+.custom-select-option.active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.topbar .custom-select {
+  width: 76px;
 }

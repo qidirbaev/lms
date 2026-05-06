@@ -16,6 +16,8 @@ const API_BASE =
   window.LMS_API_BASE ||
   'https://begzatkidirbaev-lms.hf.space';
 
+let isUpgradingSelects = false;
+
 function renderIcons() {
   if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
     console.warn('Lucide icons library is not loaded');
@@ -27,7 +29,82 @@ function renderIcons() {
       'stroke-width': 2
     }
   });
+
+  if (!isUpgradingSelects) {
+    requestAnimationFrame(() => upgradeSelects());
+  }
 }
+
+function upgradeSelects(root = document) {
+  root.querySelectorAll('select.select:not([data-custom-select])').forEach(select => {
+    select.dataset.customSelect = 'true';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'custom-select-btn';
+
+    const menu = document.createElement('div');
+    menu.className = 'custom-select-menu';
+
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    wrapper.appendChild(btn);
+    wrapper.appendChild(menu);
+
+    function sync() {
+      const selected = select.options[select.selectedIndex];
+      btn.innerHTML = `
+        <span>${esc(selected?.textContent || '')}</span>
+        <i data-lucide="chevron-down"></i>
+      `;
+
+      menu.innerHTML = '';
+
+      [...select.options].forEach(opt => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'custom-select-option';
+        item.textContent = opt.textContent;
+
+        if (opt.value === select.value) {
+          item.classList.add('active');
+        }
+
+        item.onclick = () => {
+          select.value = opt.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          wrapper.classList.remove('open');
+          sync();
+        };
+
+        menu.appendChild(item);
+      });
+
+      isUpgradingSelects = true;
+      window.lucide?.createIcons?.({ attrs: { 'stroke-width': 2 } });
+      isUpgradingSelects = false;
+    }
+
+    btn.onclick = e => {
+      e.stopPropagation();
+
+      document.querySelectorAll('.custom-select.open').forEach(x => {
+        if (x !== wrapper) x.classList.remove('open');
+      });
+
+      wrapper.classList.toggle('open');
+    };
+
+    sync();
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.custom-select.open').forEach(x => x.classList.remove('open'));
+});
 
 let state = {
   token: localStorage.getItem('lms_token') || '',
