@@ -2283,31 +2283,186 @@ function redrawVisibleCharts() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Records
+// Records — redesigned intelligence panel
 // ─────────────────────────────────────────────────────────────
 
-function recordsTable(items) {
-  const rows = (items || []).map(r => {
-    const out = r.output || r.outputFromAI || r;
-    return `
-      <tr onclick="openRecord('${esc(r.feedback_id)}')">
-        <td>${esc(r.feedback_id)}</td>
-        <td>${esc(r.course_id || '')}</td>
-        <td>${esc(r.teacher_fullname || r.teacher_id || '')}</td>
-        <td>${badge(out.sentiment)}</td>
-        <td>${badge(out.severity)}</td>
-        <td>${esc(out.issue_category || '')}</td>
-        <td>${esc(out.summary_uz || '')}</td>
-      </tr>
-    `;
-  });
+let recordsCache = [];
 
-  return table([t('id'), t('course'), t('teacher'), 'Sentiment', t('severity'), t('issue'), t('summary')], rows);
+function recordOutput(r) {
+  return r.output || r.outputFromAI || r.analysis || r;
+}
+
+function num01(v, fallback = 0) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(1, n));
+}
+
+function percent(v) {
+  return `${Math.round(num01(v) * 100)}%`;
+}
+
+function recordClass(out) {
+  const sentiment = String(out.sentiment || '').toLowerCase();
+  const severity = String(out.severity || '').toLowerCase();
+
+  if (severity === 'critical') return 'is-critical';
+  if (severity === 'high') return 'is-high';
+  if (sentiment === 'positive') return 'is-positive';
+  if (sentiment === 'negative') return 'is-negative';
+  return 'is-neutral';
+}
+
+function recordSearchText(r) {
+  const out = recordOutput(r);
+  return [
+    r.feedback_id,
+    r.course_id,
+    r.course_name,
+    r.teacher_id,
+    r.teacher_fullname,
+    out.sentiment,
+    out.severity,
+    out.issue_category,
+    out.summary_uz,
+    out.recommended_action,
+    out.language
+  ].join(' ').toLowerCase();
+}
+
+function filteredRecords() {
+  const q = ($('filter-search')?.value || '').trim().toLowerCase();
+  if (!q) return recordsCache;
+  return recordsCache.filter(r => recordSearchText(r).includes(q));
+}
+
+function recordMetric(label, value, sub = '') {
+  return `
+    <div class="record-metric-card">
+      <div class="record-metric-label">${esc(label)}</div>
+      <div class="record-metric-value">${esc(value)}</div>
+      ${sub ? `<div class="record-metric-sub">${esc(sub)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderRecordsMetrics(items) {
+  const total = items.length;
+  const negative = items.filter(r => recordOutput(r).sentiment === 'negative').length;
+  const positive = items.filter(r => recordOutput(r).sentiment === 'positive').length;
+  const highRisk = items.filter(r => ['high', 'critical'].includes(String(recordOutput(r).severity || '').toLowerCase())).length;
+  const admin = items.filter(r => recordOutput(r).requires_admin_attention === true).length;
+
+  const avgConfidence = total
+    ? items.reduce((s, r) => s + num01(recordOutput(r).confidence ?? recordOutput(r).confidence_score ?? 0), 0) / total
+    : 0;
+
+  $('records-metrics').innerHTML = [
+    recordMetric('Jami yozuvlar', total, 'joriy filter natijasi'),
+    recordMetric('Positive', positive, `${total ? Math.round((positive / total) * 100) : 0}% ulush`),
+    recordMetric('Negative', negative, `${total ? Math.round((negative / total) * 100) : 0}% ulush`),
+    recordMetric('High/Critical', highRisk, 'inson tekshiruvi kerak'),
+    recordMetric('Ishonch', percent(avgConfidence), 'o‘rtacha AI confidence')
+  ].join('');
+}
+
+function renderRecordCard(r) {
+  const out = recordOutput(r);
+
+  const confidence = num01(out.confidence ?? out.confidence_score ?? out.sentiment_score ?? 0);
+  const fairness = num01(out.feedback_fairness?.score ?? out.fairness_score ?? 0);
+  const credibility = num01(out.feedback_credibility?.score ?? out.credibility_score ?? 0);
+
+  const id = r.feedback_id || out.feedback_id || 'unknown';
+  const course = r.course_name || r.course_id || '—';
+  const teacher = r.teacher_fullname || r.teacher_id || '—';
+  const issue = out.issue_category || 'none';
+  const summary = out.summary_uz || out.summary || r.text || r.raw_text || 'Xulosa mavjud emas';
+
+  return `
+    <article class="record-card ${recordClass(out)}" onclick="openRecord('${esc(id)}')">
+      <div class="record-card-main">
+        <div>
+          <div class="record-title-row">
+            <span class="record-id">${esc(id)}</span>
+            ${badge(out.sentiment)}
+            ${badge(out.severity || 'low')}
+            ${out.requires_admin_attention ? badge('admin attention') : ''}
+          </div>
+
+          <p class="record-summary">${esc(summary)}</p>
+
+          <div class="record-meta-grid">
+            <div class="record-meta">
+              <span>Fan</span>
+              <b title="${esc(course)}">${esc(course)}</b>
+            </div>
+            <div class="record-meta">
+              <span>O‘qituvchi</span>
+              <b title="${esc(teacher)}">${esc(teacher)}</b>
+            </div>
+            <div class="record-meta">
+              <span>Issue</span>
+              <b title="${esc(issue)}">${esc(issue)}</b>
+            </div>
+            <div class="record-meta">
+              <span>Til</span>
+              <b>${esc(out.language || r.lang || '—')}</b>
+            </div>
+          </div>
+        </div>
+
+        <aside class="record-side">
+          <div class="record-score">
+            <div class="record-score-top">
+              <span>Confidence</span>
+              <b>${percent(confidence)}</b>
+            </div>
+            <div class="record-score-bar"><span style="width:${Math.round(confidence * 100)}%"></span></div>
+          </div>
+
+          <div class="record-score">
+            <div class="record-score-top">
+              <span>Fair / Credible</span>
+              <b>${percent((fairness + credibility) / 2)}</b>
+            </div>
+            <div class="record-score-bar"><span style="width:${Math.round(((fairness + credibility) / 2) * 100)}%"></span></div>
+          </div>
+
+          <span class="record-open-hint">
+            <i data-lucide="mouse-pointer-click"></i> Batafsil ko‘rish
+          </span>
+        </aside>
+      </div>
+    </article>
+  `;
+}
+
+function renderRecordsPanel() {
+  const items = filteredRecords();
+
+  renderRecordsMetrics(items);
+
+  if (!items.length) {
+    $('records-list').innerHTML = `
+      <div class="empty-state card records-empty">
+        <div class="empty-icon"></div>
+        <h3>Yozuv topilmadi</h3>
+        <p>Filterlarni tozalang yoki batch/test/simulyatsiya orqali yangi feedback tahlil qiling.</p>
+      </div>
+    `;
+    renderIcons();
+    return;
+  }
+
+  $('records-list').innerHTML = items.map(renderRecordCard).join('');
+  renderIcons();
 }
 
 async function loadRecords() {
   try {
     const q = new URLSearchParams();
+
     const map = {
       sentiment: 'filter-sentiment',
       severity: 'filter-severity',
@@ -2320,18 +2475,75 @@ async function loadRecords() {
       if (v) q.set(k, v);
     });
 
+    $('records-list').innerHTML = `
+      <div class="empty-state card records-empty">
+        <span class="spinner"></span>
+        <p>Yozuvlar yuklanmoqda...</p>
+      </div>
+    `;
+
     const d = await api(`/records?${q.toString()}`);
-    $('records-list').innerHTML = `<div class="card">${recordsTable(d.items || [])}</div>`;
+    recordsCache = d.items || [];
+
+    renderRecordsPanel();
   } catch (e) {
     toast(e.message, 'error');
   }
 }
 
 function clearFilters() {
-  ['filter-sentiment', 'filter-severity', 'filter-issue', 'filter-admin'].forEach(id => {
+  ['filter-search', 'filter-sentiment', 'filter-severity', 'filter-issue', 'filter-admin'].forEach(id => {
     if ($(id)) $(id).value = '';
   });
   loadRecords();
+}
+
+function exportRecordsCSV() {
+  const items = filteredRecords();
+
+  if (!items.length) {
+    toast('Export uchun yozuv topilmadi', 'warn');
+    return;
+  }
+
+  const headers = [
+    'feedback_id',
+    'course',
+    'teacher',
+    'sentiment',
+    'severity',
+    'issue_category',
+    'confidence',
+    'requires_admin_attention',
+    'summary'
+  ];
+
+  const rows = items.map(r => {
+    const out = recordOutput(r);
+    return [
+      r.feedback_id || out.feedback_id || '',
+      r.course_name || r.course_id || '',
+      r.teacher_fullname || r.teacher_id || '',
+      out.sentiment || '',
+      out.severity || '',
+      out.issue_category || '',
+      out.confidence ?? out.confidence_score ?? '',
+      out.requires_admin_attention ?? '',
+      out.summary_uz || out.summary || ''
+    ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `records-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast('CSV export tayyor', 'success');
 }
 
 async function openRecord(feedbackId) {
