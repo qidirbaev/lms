@@ -4797,7 +4797,7 @@ function renderExecutiveReport(data) {
 
 async function generateExecutivePDF() {
   const btn = $('executive-pdf-btn');
-  setButtonLoading?.(btn, true, 'Preparing PDF');
+  setButtonLoading?.(btn, true, '...');
 
   try {
     if (!state.dashboard) {
