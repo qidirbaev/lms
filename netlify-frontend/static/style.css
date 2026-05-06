@@ -8246,3 +8246,7 @@ body:not(.authenticated) .spilot-drawer {
   width: 15px;
   height: 15px;
 }
+
+.notifier-live-badge {
+  border: 0px !important;
+}

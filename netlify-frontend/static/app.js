@@ -5577,6 +5577,33 @@ async function generateExecutivePDF() {
 // Notifier / Alert Orchestration
 // ─────────────────────────────────────────────────────────────
 
+async function sendTelegramFromBrowser(botToken, chatId, message) {
+  if (!botToken) {
+    throw new Error('Bot token is required for browser fallback.');
+  }
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: String(chatId),
+      text: message,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    })
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok || !data.ok) {
+    throw new Error(data.description || `Telegram browser send failed: HTTP ${res.status}`);
+  }
+
+  return data;
+}
+
 function setNotifierButtonLoading(btn, loading, text = 'Processing') {
   if (!btn) return;
 
@@ -5735,15 +5762,34 @@ async function sendNotifierTest(btn = null) {
 
   setNotifierButtonLoading(btn || $('notifier-test-btn'), true, 'Sending');
 
+  const message = `
+<b>✅ SentPro Notifier Test</b>
+
+Telegram channel is connected successfully.
+
+This channel can receive:
+• critical feedback alerts
+• emerging negative trend warnings
+• admin attention cases
+• system errors
+• integration failures
+• batch reports
+`;
+
   try {
-    await api('/notifier/telegram/test', {
-      method: 'POST',
-      body: JSON.stringify({
-        bot_token: s.botToken || null,
-        chat_id: s.chatId,
-        message: 'test'
-      })
-    });
+    try {
+      await api('/notifier/telegram/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          bot_token: s.botToken || null,
+          chat_id: s.chatId,
+          message,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (backendErr) {
+      await sendTelegramFromBrowser(s.botToken, s.chatId, message);
+    }
 
     addNotifierHistory('Telegram test sent', 'Channel connection verified');
     toast('Telegram test notification sent', 'success', { title: 'Notifier' });
@@ -5776,25 +5822,37 @@ ${escTelegram(body)}
 <i>Sent by SentPro Event Notifier</i>
 `;
 
-  await api('/notifier/telegram/send', {
-    method: 'POST',
-    body: JSON.stringify({
-      bot_token: s.botToken || null,
-      chat_id: s.chatId,
-      message,
-      parse_mode: 'HTML'
-    })
-  });
+  try {
+    try {
+      await api('/notifier/telegram/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          bot_token: s.botToken || null,
+          chat_id: s.chatId,
+          message,
+          parse_mode: 'HTML'
+        })
+      });
+    } catch (backendErr) {
+      await sendTelegramFromBrowser(s.botToken, s.chatId, message);
+    }
 
-  if (key) {
-    notifierState.lastKeys.add(key);
-    localStorage.setItem('sentpro_notifier_dedupe', JSON.stringify([...notifierState.lastKeys].slice(-200)));
+    if (key) {
+      notifierState.lastKeys.add(key);
+      localStorage.setItem(
+        'sentpro_notifier_dedupe',
+        JSON.stringify([...notifierState.lastKeys].slice(-200))
+      );
+    }
+
+    notifierState.sentToday += 1;
+    syncNotifierUI();
+    addNotifierHistory(title, body);
+    return true;
+  } catch (e) {
+    toast(e.message, 'error', { title: 'Telegram failed' });
+    return false;
   }
-
-  notifierState.sentToday += 1;
-  syncNotifierUI();
-  addNotifierHistory(title, body);
-  return true;
 }
 
 function escTelegram(v) {
