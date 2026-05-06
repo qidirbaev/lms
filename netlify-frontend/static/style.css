@@ -845,63 +845,88 @@ tbody tr:hover {
   background: transparent;
 }
 
-/* ── Charts: compact shadcn analytics style ───────────────── */
+/* ── Charts: shadcn compact analytics ─────────────────────── */
 
 .chart-card,
-.trend-main-chart,
-.overview-chart-card {
-  min-height: 260px !important;
+.overview-chart-card,
+.trend-main-chart {
+  min-height: 300px !important;
+  height: auto !important;
   max-height: none !important;
   padding: .95rem;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--text) 4%, transparent), transparent 30%),
-    var(--surface);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.overview-chart-card {
+  height: 300px !important;
 }
 
 .chart-card .card-header,
-.trend-main-chart .card-header,
-.overview-chart-card .card-header {
-  margin-bottom: .55rem;
+.overview-chart-card .card-header,
+.trend-main-chart .card-header {
+  flex-shrink: 0;
+  margin-bottom: .65rem;
 }
 
 .chart-box,
 .chart-container {
   position: relative !important;
   flex: 1 1 auto !important;
-  height: 190px !important;
-  min-height: 190px !important;
-  max-height: 190px !important;
+  height: 230px !important;
+  min-height: 230px !important;
+  max-height: 230px !important;
   overflow: hidden !important;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background:
-    linear-gradient(to bottom, color-mix(in srgb, var(--text) 3%, transparent), transparent),
-    var(--bg-2);
-  padding: .55rem;
+  border-radius: 14px;
+  background: var(--bg-2);
+  padding: .65rem .75rem .95rem;
 }
 
-.trend-chart-box {
+.overview-chart-card .chart-box {
   height: 230px !important;
   min-height: 230px !important;
   max-height: 230px !important;
 }
 
-.chart-box canvas,
-.chart-container canvas,
-.chart-card canvas {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 100% !important;
+.trend-chart-box {
+  height: 310px !important;
+  min-height: 310px !important;
+  max-height: 310px !important;
 }
 
-.chart-card:hover,
-.trend-main-chart:hover,
-.overview-chart-card:hover {
-  border-color: var(--border-strong);
+.trend-main-chart {
+  min-height: 390px !important;
+}
+
+.chart-box canvas,
+.chart-container canvas,
+.chart-card canvas,
+.overview-chart-card canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  display: block !important;
+}
+
+@media (max-width: 520px) {
+  .chart-card,
+  .overview-chart-card {
+    min-height: 300px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .chart-box,
+  .chart-container,
+  .overview-chart-card .chart-box {
+    height: 230px !important;
+    min-height: 230px !important;
+    max-height: 230px !important;
+  }
 }
 
 /* ── JSON / logs / stats ───────────────────────────────────── */
@@ -3637,22 +3662,6 @@ body.is-loading::after {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: .85rem;
-}
-
-.overview-chart-card {
-  height: 280px !important;
-  max-height: 280px !important;
-}
-
-.overview-chart-card .chart-box {
-  /* height: 205px !important; */
-  height: 220px !important;
-  max-height: 205px !important;
-}
-
-.overview-chart-card canvas {
-  height: 205px !important;
-  max-height: 205px !important;
 }
 
 .overview-mini-dist {

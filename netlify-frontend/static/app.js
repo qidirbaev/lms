@@ -2477,28 +2477,47 @@ function chart(id, type, labels, data, label = '') {
   }
 
   const isDark = state.theme !== 'light';
-
-  const textColor = isDark ? '#a1a1aa' : '#52525b';
+  const textColor = isDark ? '#71717a' : '#71717a';
   const strongText = isDark ? '#fafafa' : '#09090b';
   const gridColor = isDark ? 'rgba(255,255,255,.055)' : 'rgba(0,0,0,.055)';
   const borderColor = isDark ? 'rgba(255,255,255,.10)' : 'rgba(0,0,0,.10)';
 
-  const css = getComputedStyle(document.documentElement);
-  const palette = [
-    css.getPropertyValue('--pos').trim() || '#22c55e',
-    css.getPropertyValue('--neu').trim() || '#a1a1aa',
-    css.getPropertyValue('--neg').trim() || '#ef4444',
-    css.getPropertyValue('--info').trim() || '#3b82f6',
-    css.getPropertyValue('--warn').trim() || '#f59e0b',
-    css.getPropertyValue('--high').trim() || '#f97316'
+  const palette = {
+    positive: '#22c55e',
+    neutral: '#a1a1aa',
+    negative: '#ef4444',
+    info: '#3b82f6',
+    warn: '#f59e0b',
+    high: '#f97316'
+  };
+
+  const fallbackColors = [
+    palette.positive,
+    palette.neutral,
+    palette.negative,
+    palette.info,
+    palette.warn,
+    palette.high
   ];
 
-  const cleanLabels = labels?.length ? labels : ['No data'];
-  const cleanData = data?.length ? data : [0];
+  const cleanLabels = (labels || []).map(x => humanize(String(x || 'Unknown')));
+  const cleanData = (data || []).map(v => Number(v || 0));
+
+  const finalLabels = cleanLabels.length ? cleanLabels : ['No data'];
+  const finalData = cleanData.length ? cleanData : [0];
 
   const isDoughnut = type === 'doughnut';
   const isLine = type === 'line';
   const isBar = type === 'bar';
+
+  const chartColors = finalLabels.map((x, i) => {
+    const key = x.toLowerCase();
+    if (key.includes('positive')) return palette.positive;
+    if (key.includes('neutral')) return palette.neutral;
+    if (key.includes('negative')) return palette.negative;
+    if (key.includes('none')) return palette.neutral;
+    return fallbackColors[i % fallbackColors.length];
+  });
 
   el.removeAttribute('height');
   el.removeAttribute('width');
@@ -2508,45 +2527,37 @@ function chart(id, type, labels, data, label = '') {
   state.charts[id] = new Chart(el, {
     type,
     data: {
-      labels: cleanLabels,
+      labels: finalLabels,
       datasets: [{
         label,
-        data: cleanData,
-
-        backgroundColor: isLine
-          ? 'rgba(255,255,255,.055)'
-          : cleanLabels.map((_, i) => palette[i % palette.length]),
-
-        borderColor: isLine
-          ? strongText
-          : cleanLabels.map((_, i) => palette[i % palette.length]),
-
+        data: finalData,
+        backgroundColor: isLine ? 'rgba(24,24,27,.05)' : chartColors,
+        borderColor: isLine ? strongText : chartColors,
         borderWidth: isLine ? 2 : 0,
-        borderRadius: isBar ? 7 : 0,
+        borderRadius: isBar ? 8 : 0,
         borderSkipped: false,
-
-        tension: isLine ? 0.18 : 0,
+        barPercentage: isBar ? 0.52 : undefined,
+        categoryPercentage: isBar ? 0.62 : undefined,
+        tension: isLine ? 0.08 : 0,
         pointRadius: isLine ? 2.5 : 0,
         pointHoverRadius: isLine ? 4 : 0,
         pointBackgroundColor: strongText,
         pointBorderColor: isDark ? '#09090b' : '#ffffff',
         pointBorderWidth: 2,
-
-        cutout: isDoughnut ? '72%' : undefined,
-        hoverOffset: isDoughnut ? 3 : 0
+        cutout: isDoughnut ? '74%' : undefined,
+        hoverOffset: isDoughnut ? 2 : 0
       }]
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      resizeDelay: 120,
       animation: false,
+      resizeDelay: 120,
 
       layout: {
         padding: isDoughnut
-          ? { top: 4, right: 4, bottom: 4, left: 4 }
-          : { top: 8, right: 8, bottom: 0, left: 0 }
+          ? { top: 4, right: 12, bottom: 6, left: 12 }
+          : { top: 10, right: 12, bottom: 14, left: 6 }
       },
 
       plugins: {
@@ -2559,28 +2570,25 @@ function chart(id, type, labels, data, label = '') {
             boxHeight: 8,
             usePointStyle: true,
             pointStyle: 'circle',
-            padding: 14,
+            padding: 12,
             font: {
               size: 11,
               weight: '700'
             }
           }
         },
-
         tooltip: {
-          enabled: true,
           displayColors: false,
           backgroundColor: isDark ? '#18181b' : '#ffffff',
           titleColor: strongText,
           bodyColor: textColor,
           borderColor,
           borderWidth: 1,
-          padding: 10,
           cornerRadius: 10,
+          padding: 10,
           titleFont: { size: 12, weight: '800' },
           bodyFont: { size: 11, weight: '650' },
           callbacks: {
-            title: items => items?.[0]?.label || '',
             label: ctx => `${label || 'Value'}: ${ctx.formattedValue}`
           }
         }
@@ -2595,15 +2603,23 @@ function chart(id, type, labels, data, label = '') {
               ticks: {
                 color: textColor,
                 maxRotation: 0,
+                minRotation: 0,
                 autoSkip: true,
+                padding: 8,
                 font: {
                   size: 10,
                   weight: '700'
+                },
+                callback: function(value) {
+                  const raw = this.getLabelForValue(value);
+                  return String(raw).length > 14 ? String(raw).slice(0, 13) + '…' : raw;
                 }
               }
             },
             y: {
               beginAtZero: true,
+              suggestedMax: isLine ? 100 : undefined,
+              max: isLine ? 100 : undefined,
               border: { display: false },
               grid: {
                 color: gridColor,
@@ -2612,11 +2628,12 @@ function chart(id, type, labels, data, label = '') {
               ticks: {
                 color: textColor,
                 padding: 8,
-                maxTicksLimit: 4,
+                maxTicksLimit: isLine ? 3 : 4,
                 font: {
                   size: 10,
                   weight: '700'
-                }
+                },
+                callback: v => isLine ? `${v}%` : v
               }
             }
           }
@@ -2644,36 +2661,30 @@ function drawCharts() {
     t('issue_distribution')
   );
 
+  const satisfactionRaw = d.overview?.satisfaction_averages || d.overview?.satisfaction_dimensions || {};
+  const satisfactionValues = Object.values(satisfactionRaw).map(v => {
+    const n = Number(v || 0);
+    return n <= 1 ? Math.round(n * 100) : n;
+  });
+
   chart(
     'chart-dims',
     'bar',
-    Object.keys(d.overview?.satisfaction_averages || d.overview?.satisfaction_dimensions || {}),
-    Object.values(d.overview?.satisfaction_averages || d.overview?.satisfaction_dimensions || {}),
-    t('satisfaction_dimensions')
+    Object.keys(satisfactionRaw),
+    satisfactionValues,
+    'Score'
   );
 
   const tr = d.trends?.sentiment_over_time || d.trends?.daily || d.trends?.monthly || [];
 
   const trendLabels = tr.map(x => x.period);
-  const trendValues = tr.map(x =>
-    x.avg_sentiment ?? ((x.positive || 0) + (x.neutral || 0) * 0.5) / Math.max(1, x.total || 1)
-  );
-  
-  chart(
-    'chart-trend',
-    'line',
-    trendLabels,
-    trendValues.map(v => Math.round(Number(v || 0) * 100)),
-    'Sentiment %'
-  );
+  const trendValues = tr.map(x => {
+    const raw = x.avg_sentiment ?? ((x.positive || 0) + (x.neutral || 0) * 0.5) / Math.max(1, x.total || 1);
+    return Math.round(Number(raw || 0) * 100);
+  });
 
-  chart(
-    'chart-mood-trend',
-    'line',
-    trendLabels,
-    trendValues.map(v => Math.round(Number(v || 0) * 100)),
-    'Mood %'
-  );
+  chart('chart-trend', 'line', trendLabels, trendValues, 'Sentiment');
+  chart('chart-mood-trend', 'line', trendLabels, trendValues, 'Mood');
 }
 
 function redrawVisibleCharts() {
