@@ -5,10 +5,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 import os
 import json
+import time
 
 from fastapi import FastAPI, HTTPException, Header, Request, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+import requests
 
 from . import config
 from . import logger_service as logger
@@ -777,22 +779,38 @@ def get_telegram_bot_token(payload_token: Optional[str] = None) -> str:
 def send_telegram_message(bot_token: str, chat_id: str, message: str, parse_mode: str = "HTML") -> Dict[str, Any]:
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
 
-    data = urllib.parse.urlencode({
+    payload = {
         "chat_id": chat_id,
         "text": message,
         "parse_mode": parse_mode,
-        "disable_web_page_preview": "true"
-    }).encode("utf-8")
+        "disable_web_page_preview": True,
+    }
 
-    req = urllib.request.Request(url, data=data, method="POST")
+    last_error = None
 
-    try:
-        with urllib.request.urlopen(req, timeout=15) as res:
-            body = res.read().decode("utf-8")
-            return json.loads(body)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Telegram send failed: {str(e)}")
+    for attempt in range(1, 4):
+        try:
+            res = requests.post(url, json=payload, timeout=(10, 35))
+            data = res.json()
 
+            if not res.ok or not data.get("ok"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=data.get("description") or f"Telegram API error HTTP {res.status_code}"
+                )
+
+            return data
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            last_error = e
+            time.sleep(1.2 * attempt)
+
+    raise HTTPException(
+        status_code=504,
+        detail=f"Telegram timeout/network failure after retries: {str(last_error)}"
+    )
 
 @app.post("/notifier/telegram/send", response_model=TelegramNotifyResponse)
 def post_telegram_notify(payload: TelegramNotifyRequest, authorization: str = Header(default=None)):

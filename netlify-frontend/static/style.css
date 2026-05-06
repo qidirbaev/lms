@@ -8234,3 +8234,15 @@ body:not(.authenticated) .spilot-drawer {
     justify-self: start;
   }
 }
+
+.btn-loading,
+.btn:disabled {
+  opacity: .72;
+  cursor: wait !important;
+  pointer-events: none;
+}
+
+.btn-loading .spinner {
+  width: 15px;
+  height: 15px;
+}

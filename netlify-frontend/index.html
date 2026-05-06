@@ -1139,7 +1139,7 @@
             <button class="btn btn-secondary btn-sm" onclick="loadNotifierSettings()">
               <i data-lucide="rotate-ccw"></i> Reload
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="sendNotifierTest()">
+            <button id="notifier-test-btn" class="btn btn-secondary btn-sm" onclick="sendNotifierTest(this)">
               <i data-lucide="send"></i> Test Telegram
             </button>
             <button class="btn btn-primary btn-sm" onclick="saveNotifierSettings()">
@@ -1210,7 +1210,7 @@
                   </div>
 
                   <div class="action-row">
-                    <button class="btn btn-secondary btn-sm" onclick="sendNotifierTest()">
+                    <button id="notifier-save-btn" class="btn btn-primary btn-sm" onclick="saveNotifierSettings(this)">
                       <i data-lucide="send"></i> Send test
                     </button>
                     <button class="btn btn-ghost btn-sm" onclick="copyNotifierSetupGuide()">
@@ -1240,13 +1240,13 @@
                   </div>
 
                   <div class="action-row mt-3">
-                    <button class="btn btn-primary btn-sm" onclick="startNotifierMonitor()">
+                    <button id="notifier-start-btn" class="btn btn-primary btn-sm" onclick="startNotifierMonitor(this)">
                       <i data-lucide="play"></i> Start monitor
                     </button>
                     <button class="btn btn-secondary btn-sm" onclick="stopNotifierMonitor()">
                       <i data-lucide="pause"></i> Stop
                     </button>
-                    <button class="btn btn-ghost btn-sm" onclick="runNotifierCheckNow()">
+                    <button id="notifier-check-btn" class="btn btn-ghost btn-sm" onclick="runNotifierCheckNow(this)">
                       <i data-lucide="scan-line"></i> Check now
                     </button>
                   </div>

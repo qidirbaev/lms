@@ -5577,6 +5577,23 @@ async function generateExecutivePDF() {
 // Notifier / Alert Orchestration
 // ─────────────────────────────────────────────────────────────
 
+function setNotifierButtonLoading(btn, loading, text = 'Processing') {
+  if (!btn) return;
+
+  if (loading) {
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    btn.innerHTML = `<span class="spinner"></span> ${esc(text)}`;
+    return;
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('btn-loading');
+  btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+  delete btn.dataset.originalHtml;
+}
+
 const notifierState = {
   timer: null,
   sentToday: 0,
@@ -5660,11 +5677,17 @@ function readNotifierSettingsUI() {
   };
 }
 
-function saveNotifierSettings() {
-  const s = readNotifierSettingsUI();
-  setNotifierSettings(s);
-  syncNotifierUI();
-  toast('Notifier settings saved', 'success', { title: 'Notifier' });
+function saveNotifierSettings(btn = null) {
+  setNotifierButtonLoading(btn || $('notifier-save-btn'), true, 'Saving');
+
+  setTimeout(() => {
+    const s = readNotifierSettingsUI();
+    setNotifierSettings(s);
+    syncNotifierUI();
+
+    toast('Notifier settings saved', 'success', { title: 'Notifier' });
+    setNotifierButtonLoading(btn || $('notifier-save-btn'), false);
+  }, 350);
 }
 
 function syncNotifierUI() {
@@ -5702,13 +5725,15 @@ function enableRecommendedNotifierRules() {
   toast('Recommended notifier rules enabled', 'success');
 }
 
-async function sendNotifierTest() {
+async function sendNotifierTest(btn = null) {
   const s = readNotifierSettingsUI();
 
   if (!s.chatId) {
     toast('Telegram chat ID is required', 'warn', { title: 'Notifier' });
     return;
   }
+
+  setNotifierButtonLoading(btn || $('notifier-test-btn'), true, 'Sending');
 
   try {
     await api('/notifier/telegram/test', {
@@ -5724,6 +5749,8 @@ async function sendNotifierTest() {
     toast('Telegram test notification sent', 'success', { title: 'Notifier' });
   } catch (e) {
     toast(e.message, 'error', { title: 'Telegram failed' });
+  } finally {
+    setNotifierButtonLoading(btn || $('notifier-test-btn'), false);
   }
 }
 
@@ -5805,24 +5832,29 @@ function renderNotifierHistory() {
   });
 }
 
-function startNotifierMonitor() {
-  saveNotifierSettings();
+function startNotifierMonitor(btn = null) {
+  setNotifierButtonLoading(btn || $('notifier-start-btn'), true, 'Starting');
 
-  stopNotifierMonitor();
+  setTimeout(() => {
+    saveNotifierSettings();
 
-  const s = readNotifierSettingsUI();
-  const intervalMs = Math.max(10, s.interval || 30) * 1000;
+    stopNotifierMonitor();
 
-  notifierState.timer = setInterval(runNotifierCheckNow, intervalMs);
+    const s = readNotifierSettingsUI();
+    const intervalMs = Math.max(10, s.interval || 30) * 1000;
 
-  safeEl('notifier-monitor-status', el => { el.textContent = 'Running'; });
-  safeEl('notifier-live-badge', el => {
-    el.className = 'notifier-live-badge active';
-    el.innerHTML = `<span class="pulse-dot"></span> Monitoring`;
-  });
+    notifierState.timer = setInterval(() => runNotifierCheckNow(), intervalMs);
 
-  toast('Notifier monitor started', 'success');
-  runNotifierCheckNow();
+    safeEl('notifier-monitor-status', el => { el.textContent = 'Running'; });
+    safeEl('notifier-live-badge', el => {
+      el.className = 'notifier-live-badge active';
+      el.innerHTML = `<span class="pulse-dot"></span> Monitoring`;
+    });
+
+    toast('Notifier monitor started', 'success');
+    setNotifierButtonLoading(btn || $('notifier-start-btn'), false);
+    runNotifierCheckNow();
+  }, 400);
 }
 
 function stopNotifierMonitor() {
@@ -5838,7 +5870,9 @@ function stopNotifierMonitor() {
   });
 }
 
-async function runNotifierCheckNow() {
+async function runNotifierCheckNow(btn = null) {
+  setNotifierButtonLoading(btn || $('notifier-check-btn'), true, 'Checking');
+
   const s = readNotifierSettingsUI();
 
   try {
@@ -5859,6 +5893,8 @@ async function runNotifierCheckNow() {
     });
   } catch (e) {
     toast(e.message, 'error', { title: 'Notifier check failed' });
+  } finally {
+    setNotifierButtonLoading(btn || $('notifier-check-btn'), false);
   }
 }
 
@@ -5935,17 +5971,55 @@ async function evaluateNotifierRules(s, dashboard, records, logs) {
 }
 
 function copyNotifierSetupGuide() {
-  const text = `Telegram setup:
-1. Open @BotFather
-2. Create bot with /newbot
-3. Copy bot token
-4. Send any message to your bot
-5. Get chat_id using https://api.telegram.org/bot<TOKEN>/getUpdates
-6. Paste token/chat_id into SentPro Notifier
-7. Click Test Telegram`;
+  const token = $('notify-bot-token')?.value || '<BOT_TOKEN>';
 
-  navigator.clipboard?.writeText(text);
-  toast('Telegram setup guide copied', 'success');
+  const guide = `SentPro Telegram Notifier Setup
+
+1) Create bot
+- Open Telegram
+- Search: @BotFather
+- Send: /newbot
+- Choose bot name
+- Choose username ending with bot, example: sentpro_alert_bot
+- Copy the bot token
+
+2) Start the bot
+- Open your new bot in Telegram
+- Click Start
+- Send any message, example: hello
+
+3) Get your chat_id
+Open this URL in browser:
+https://api.telegram.org/bot${token}/getUpdates
+
+Find:
+"chat":{"id":123456789
+
+That number is your chat_id.
+
+4) For group/channel alerts
+- Add the bot to the group/channel
+- Make it admin if needed
+- Send a message in that group
+- Open getUpdates again
+- Group chat_id usually starts with -100...
+
+5) Paste into SentPro
+- Bot token → Bot token field
+- chat_id → Chat ID field
+- Click Test Telegram
+
+6) If timeout happens
+- Click Test again after 10–20 seconds
+- Check Hugging Face Space internet access
+- Check token/chat_id
+- Try direct browser:
+https://api.telegram.org/bot<TOKEN>/getMe`;
+
+  navigator.clipboard?.writeText(guide);
+  toast('Detailed Telegram setup guide copied', 'success', {
+    title: 'Notifier setup'
+  });
 }
 
 
