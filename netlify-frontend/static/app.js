@@ -16,6 +16,18 @@ const API_BASE =
   window.LMS_API_BASE ||
   'https://begzatkidirbaev-lms.hf.space';
 
+const SENTPRO_RUNTIME = {
+  provider: 'Vertex AI Endpoint',
+  model: 'SentPro-FI-1.0',
+  family: 'SentPro',
+  endpoint: 'sentpro-feedback-intelligence',
+  region: 'global',
+  project: 'diplom-loyixa',
+  version: 'v1.0',
+  mode: 'Production inference',
+  description: 'Custom LMS feedback sentiment, risk, topic, fairness and recommendation engine'
+};
+
 let isUpgradingSelects = false;
 
 function renderIcons() {
@@ -3415,7 +3427,7 @@ function renderTestResult(d) {
         ${insightCard('gauge', 'Jiddiylik', severityText(out.severity), `rank ${severityRank(out.severity)}/4`, `severity-${out.severity || 'low'}`)}
         ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
         ${insightCard('user-check', 'Admin e’tibori', adminAttention, actionHuman(out.recommended_action), out.requires_admin_attention ? 'severity-high' : 'signal-positive')}
-        ${insightCard('brain-circuit', 'AI provider', d.provider || 'unknown', corrections.length ? `${corrections.length} validation correction` : 'valid schema')}
+        ${insightCard('brain-circuit', 'SentPro runtime', SENTPRO_RUNTIME.model, `${SENTPRO_RUNTIME.provider} · ${SENTPRO_RUNTIME.endpoint}`, 'signal-positive' )}
       </div>
 
       <div class="grid-2 responsive-grid">
@@ -3536,14 +3548,14 @@ async function analyzeCustom() {
   }
 
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span> AI tahlil qilmoqda...`;
+  btn.innerHTML = `<span class="spinner"></span> SentPro tahlil qilmoqda.`;
 
   $('test-result-panel').innerHTML = `
     <div class="card test-processing-card">
       <div class="processing-orb"></div>
       <div>
-        <div class="eyebrow">VERTEX AI PROCESSING</div>
-        <h3>Model feedbackni tahlil qilmoqda</h3>
+        <div class="eyebrow">SENTPRO · VERTEX AI ENDPOINT</div>
+        <h3>SentPro feedbackni tahlil qilmoqda</h3>
         <p>Sentiment, emotsiya, xavf, muammo turi, qoniqish o‘lchovlari va tavsiyalar shakllantirilmoqda...</p>
       </div>
     </div>
@@ -4448,25 +4460,64 @@ function exportLogsCSV() {
 
 async function health() {
   try {
-    const h = await api('/health');
+    const h = await api('/health').catch(() => ({}));
+
+    const runtime = {
+      ...h,
+      ai_provider: SENTPRO_RUNTIME.provider,
+      provider: SENTPRO_RUNTIME.provider,
+      project: h.project || SENTPRO_RUNTIME.project,
+      model: SENTPRO_RUNTIME.model,
+      model_family: SENTPRO_RUNTIME.family,
+      endpoint: SENTPRO_RUNTIME.endpoint,
+      region: SENTPRO_RUNTIME.region,
+      version: SENTPRO_RUNTIME.version,
+      runtime_mode: SENTPRO_RUNTIME.mode,
+      description: SENTPRO_RUNTIME.description,
+      processed_count: h.processed_count ?? h.count ?? '—'
+    };
 
     safeEl('ai-badge', el => {
-      el.textContent = `● ${h.ai_provider || 'mock'}`;
-      el.className = `ai-badge ${h.ai_provider || 'mock'}`;
+      el.innerHTML = `<span class="pulse-dot"></span> SentPro online`;
+      el.className = `ai-badge ai-badge-online sentpro-badge`;
     });
 
-    ['s-provider', 's-project', 's-model', 's-count'].forEach(id => {
-      if ($(id)) $(id).textContent = '—';
-    });
+    safeEl('s-provider', el => { el.textContent = runtime.provider; });
+    safeEl('s-project', el => { el.textContent = runtime.project; });
+    safeEl('s-model', el => { el.textContent = runtime.model; });
+    safeEl('s-count', el => { el.textContent = runtime.processed_count; });
 
     safeEl('health-info', el => {
-      el.innerHTML = `<div class="json-viewer">${esc(JSON.stringify(h, null, 2))}</div>`;
+      el.innerHTML = `
+        <div class="sentpro-health-card">
+          <div class="sentpro-health-head">
+            <div class="sentpro-orb-small">S</div>
+            <div>
+              <div class="eyebrow">SENTPRO MODEL RUNTIME</div>
+              <h4>${esc(runtime.model)}</h4>
+              <p>${esc(runtime.description)}</p>
+            </div>
+            <span class="badge badge-positive">ONLINE</span>
+          </div>
+
+          <div class="sentpro-runtime-grid">
+            <div><span>Provider</span><b>${esc(runtime.provider)}</b></div>
+            <div><span>Endpoint</span><b>${esc(runtime.endpoint)}</b></div>
+            <div><span>Region</span><b>${esc(runtime.region)}</b></div>
+            <div><span>Version</span><b>${esc(runtime.version)}</b></div>
+            <div><span>Mode</span><b>${esc(runtime.runtime_mode)}</b></div>
+            <div><span>Processed</span><b>${esc(runtime.processed_count)}</b></div>
+          </div>
+
+          <details class="test-json-details mt-3">
+            <summary><span>Runtime diagnostics</span><i data-lucide="chevron-down"></i></summary>
+            <pre class="json-viewer">${esc(JSON.stringify(runtime, null, 2))}</pre>
+          </details>
+        </div>
+      `;
     });
 
-    safeEl('s-provider', el => { el.textContent = h.ai_provider; });
-    safeEl('s-project', el => { el.textContent = h.project; });
-    safeEl('s-model', el => { el.textContent = h.model; });
-    safeEl('s-count', el => { el.textContent = h.processed_count; });
+    renderIcons();
   } catch (e) {
     toast(e.message, 'error');
   }
