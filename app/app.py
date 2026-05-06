@@ -23,6 +23,7 @@ from .models import (
     AnalyzeCustomRequest, SimulateRequest, RecordsFilterRequest,
 )
 
+from .assistant_service import AssistantChatRequest, assistant_chat
 from fastapi.middleware.cors import CORSMiddleware
 
 # ─── Init ────────────────────────────────────────────────────────────────────
@@ -727,6 +728,14 @@ def get_logs(level: str = None, limit: int = 200, authorization: str = Header(de
     require_auth(authorization)
     logs = logger.get_logs(level_filter=level, limit=limit)
     return {"count": len(logs), "logs": logs, "items": logs}
+
+
+# ─── S-Pilot Assistant ───────────────────────────────────────────────────────
+
+@app.post("/assistant/chat")
+def post_assistant_chat(req: AssistantChatRequest, authorization: str = Header(default=None)):
+    require_auth(authorization)
+    return assistant_chat(req)
 
 
 # ─── Reset ────────────────────────────────────────────────────────────────────

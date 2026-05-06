@@ -7452,3 +7452,337 @@ body.is-loading::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   S-Pilot Copilot Drawer
+───────────────────────────────────────────────────────────── */
+
+.spilot-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 15000;
+  height: 48px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-lg);
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  font-size: .8rem;
+  font-weight: 950;
+  transition: transform .15s, box-shadow .15s;
+}
+
+.spilot-fab:hover {
+  transform: translateY(-2px);
+}
+
+.spilot-fab svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+.spilot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 14990;
+  background: rgba(0,0,0,.48);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+
+.spilot-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.spilot-drawer {
+  position: fixed;
+  top: .9rem;
+  right: .9rem;
+  bottom: .9rem;
+  width: min(520px, calc(100vw - 1.8rem));
+  z-index: 15000;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--info) 14%, transparent), transparent 32%),
+    var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(calc(100% + 1.5rem));
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+}
+
+.spilot-drawer.open {
+  transform: translateX(0);
+}
+
+.spilot-head {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.spilot-brand {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.spilot-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  font-weight: 950;
+}
+
+.spilot-title {
+  font-size: .95rem;
+  font-weight: 950;
+  letter-spacing: -.035em;
+}
+
+.spilot-subtitle {
+  margin-top: .1rem;
+  color: var(--text-3);
+  font-size: .72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spilot-icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-2);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+}
+
+.spilot-icon-btn:hover {
+  background: var(--bg-4);
+  color: var(--text);
+}
+
+.spilot-icon-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.spilot-status {
+  height: 38px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  color: var(--text-3);
+  font-size: .72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.spilot-status.thinking {
+  color: var(--info);
+}
+
+.spilot-status.error {
+  color: var(--neg);
+}
+
+.spilot-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--text) 4%, transparent), transparent 30%),
+    var(--bg);
+}
+
+.spilot-msg {
+  max-width: 88%;
+  display: grid;
+  gap: .28rem;
+}
+
+.spilot-msg.user {
+  align-self: flex-end;
+}
+
+.spilot-msg.assistant {
+  align-self: flex-start;
+}
+
+.spilot-bubble {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: .8rem .9rem;
+  font-size: .84rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.spilot-msg.user .spilot-bubble {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+  border-bottom-right-radius: 6px;
+}
+
+.spilot-msg.assistant .spilot-bubble {
+  background: var(--surface);
+  color: var(--text-2);
+  border-bottom-left-radius: 6px;
+}
+
+.spilot-meta {
+  color: var(--text-4);
+  font-size: .65rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.spilot-msg.user .spilot-meta {
+  text-align: right;
+}
+
+.spilot-actions {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+  margin-top: .4rem;
+}
+
+.spilot-action {
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-2);
+  border-radius: 999px;
+  padding: .38rem .6rem;
+  font-size: .72rem;
+  font-weight: 850;
+}
+
+.spilot-action:hover {
+  background: var(--bg-4);
+  color: var(--text);
+}
+
+.spilot-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.spilot-thinking span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--text-3);
+  animation: dotPulse 1s ease-in-out infinite;
+}
+
+.spilot-thinking span:nth-child(2) { animation-delay: .14s; }
+.spilot-thinking span:nth-child(3) { animation-delay: .28s; }
+
+.spilot-suggestions {
+  padding: .75rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: .45rem;
+  overflow-x: auto;
+}
+
+.spilot-suggestions button {
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-2);
+  border-radius: 999px;
+  padding: .42rem .65rem;
+  font-size: .72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.spilot-suggestions button:hover {
+  background: var(--bg-4);
+  color: var(--text);
+}
+
+.spilot-input-wrap {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: .65rem;
+  align-items: end;
+}
+
+.spilot-input {
+  min-height: 48px;
+  max-height: 130px;
+  resize: vertical;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--bg-2);
+  color: var(--text);
+  padding: .75rem .85rem;
+  font-size: .82rem;
+  outline: none;
+}
+
+.spilot-input:focus {
+  border-color: var(--text-3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.spilot-send {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+}
+
+.spilot-send svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+@media (max-width: 620px) {
+  .spilot-drawer {
+    inset: .5rem;
+    width: auto;
+    border-radius: 18px;
+  }
+
+  .spilot-msg {
+    max-width: 94%;
+  }
+}

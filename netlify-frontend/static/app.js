@@ -8,7 +8,7 @@
 const pages = [
   'overview', 'mood', 'courses', 'teachers', 'trends', 'issues',
   'risks', 'keywords', 'records', 'batch', 'test', 'simulate',
-  'integration', 'assistant', 'logs', 'settings'
+  'integration', 'logs', 'settings'
 ];
 
 const API_BASE =
@@ -1056,7 +1056,6 @@ function showPage(page) {
 
   if (page === 'records') loadRecords();
   if (page === 'logs') loadLogs();
-  if (page === 'assistant') initAssistant();
   if (page === 'settings') {
     loadPlatformSettingsUI();
     health();
@@ -1083,7 +1082,6 @@ function applyStaticTranslations() {
     integration: 'integration',
     logs: 'logs',
     settings: 'settings',
-    assistant: 'assistant',
   };
 
   Object.entries(navMap).forEach(([id, key]) => {
@@ -4917,365 +4915,284 @@ async function resetDemo() {
 
 
 // ─────────────────────────────────────────────────────────────
-// SentoPro Copilot / Admin Assistant
+// S-Pilot — Real Gemini Copilot Drawer
 // ─────────────────────────────────────────────────────────────
 
-const assistantState = {
+const spilotState = {
+  opened: false,
   initialized: false,
-  records: [],
-  logs: []
+  history: [],
+  busy: false
 };
 
-function initAssistant() {
-  if (!assistantState.initialized) {
-    assistantState.initialized = true;
+function openSPilot() {
+  spilotState.opened = true;
 
-    safeEl('assistant-messages', el => {
-      el.innerHTML = '';
-    });
+  $('spilot-drawer')?.classList.add('open');
+  $('spilot-overlay')?.classList.add('open');
+  $('spilot-drawer')?.setAttribute('aria-hidden', 'false');
 
-    addAssistantMessage(
+  if (!spilotState.initialized) {
+    spilotState.initialized = true;
+    addSPilotMessage(
       'assistant',
-      'S-Pilot online.\n\nI can summarize the platform, explain risks, inspect records/logs, generate executive PDF, navigate tabs, and help admins understand what is happening right now.'
+      'S-Pilot online.\n\nI am your Gemini-powered admin copilot for SentPro. Ask me about mood, trends, risks, records, logs, integrations, settings, or executive reporting.'
     );
   }
 
-  assistantRefreshContext();
+  setTimeout(() => $('spilot-input')?.focus(), 120);
   renderIcons();
 }
 
-async function assistantRefreshContext() {
-  try {
-    if (!state.dashboard) {
-      state.dashboard = await api('/dashboard');
-    }
+function closeSPilot() {
+  spilotState.opened = false;
 
-    const [recordsRes, logsRes] = await Promise.allSettled([
-      api('/records'),
-      api('/logs')
-    ]);
-
-    assistantState.records =
-      recordsRes.status === 'fulfilled'
-        ? (recordsRes.value.items || recordsRes.value.records || [])
-        : [];
-
-    assistantState.logs =
-      logsRes.status === 'fulfilled'
-        ? (logsRes.value.logs || logsRes.value.items || [])
-        : [];
-
-    renderAssistantContext();
-
-    toast('Copilot context refreshed', 'success', {
-      title: 'S-Pilot'
-    });
-  } catch (e) {
-    toast(e.message, 'error', { title: 'S-Pilot context error' });
-  }
+  $('spilot-drawer')?.classList.remove('open');
+  $('spilot-overlay')?.classList.remove('open');
+  $('spilot-drawer')?.setAttribute('aria-hidden', 'true');
 }
 
-function renderAssistantContext() {
-  const d = state.dashboard || {};
-  const o = d.overview || {};
-  const mood = d.mood || d.university_mood || {};
-
-  const total = o.total_analyzed || o.total || assistantState.records.length || 0;
-  const highCritical = o.high_critical_count || o.high_critical || 0;
-  const adminAttention = o.admin_attention_count || o.requires_admin_attention || 0;
-  const avgSentiment = Math.round(Number(o.avg_sentiment || mood.university_score || 0) * 100);
-
-  safeEl('assistant-context-box', el => {
-    el.innerHTML = `
-      <div class="assistant-context-item">
-        <span>Total analyzed</span>
-        <b>${esc(total)}</b>
-      </div>
-      <div class="assistant-context-item">
-        <span>Institution sentiment</span>
-        <b>${esc(avgSentiment)}%</b>
-      </div>
-      <div class="assistant-context-item">
-        <span>High/Critical</span>
-        <b>${esc(highCritical)}</b>
-      </div>
-      <div class="assistant-context-item">
-        <span>Admin attention</span>
-        <b>${esc(adminAttention)}</b>
-      </div>
-      <div class="assistant-context-item">
-        <span>Loaded logs</span>
-        <b>${esc(assistantState.logs.length)}</b>
-      </div>
-    `;
+function setSPilotStatus(text, mode = '') {
+  safeEl('spilot-status', el => {
+    el.className = `spilot-status ${mode}`;
+    el.innerHTML = `<span class="pulse-dot"></span> ${esc(text)}`;
   });
 }
 
-function addAssistantMessage(role, text) {
-  const box = $('assistant-messages');
+function addSPilotMessage(role, text, actions = []) {
+  const box = $('spilot-messages');
   if (!box) return;
 
   const el = document.createElement('div');
-  el.className = `assistant-msg ${role}`;
+  el.className = `spilot-msg ${role}`;
+
   el.innerHTML = `
-    <div class="assistant-bubble">${esc(text)}</div>
-    <div class="assistant-msg-meta">${role === 'user' ? 'You' : 'S-Pilot'} · ${new Date().toLocaleTimeString()}</div>
+    <div class="spilot-bubble">${esc(text)}</div>
+    ${
+      actions.length
+        ? `<div class="spilot-actions">
+            ${actions.map((a, i) => `
+              <button class="spilot-action" data-action-index="${i}">
+                ${esc(a.label || humanize(a.type || 'Action'))}
+              </button>
+            `).join('')}
+          </div>`
+        : ''
+    }
+    <div class="spilot-meta">${role === 'user' ? 'You' : 'S-Pilot'} · ${new Date().toLocaleTimeString()}</div>
+  `;
+
+  el.querySelectorAll('.spilot-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.actionIndex);
+      executeSPilotAction(actions[idx]);
+    });
+  });
+
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+
+  if (role === 'user' || role === 'assistant') {
+    spilotState.history.push({ role, content: text });
+    spilotState.history = spilotState.history.slice(-16);
+  }
+}
+
+function addSPilotThinking() {
+  const box = $('spilot-messages');
+  if (!box) return null;
+
+  const el = document.createElement('div');
+  el.className = 'spilot-msg assistant';
+  el.dataset.thinking = 'true';
+  el.innerHTML = `
+    <div class="spilot-bubble">
+      <span class="spilot-thinking">
+        Thinking with Gemini 3.1
+        <span></span><span></span><span></span>
+      </span>
+    </div>
+    <div class="spilot-meta">Vertex AI · live reasoning</div>
   `;
 
   box.appendChild(el);
   box.scrollTop = box.scrollHeight;
+  return el;
 }
 
-function assistantQuick(text) {
-  safeEl('assistant-input', el => {
+function spilotAsk(text) {
+  safeEl('spilot-input', el => {
     el.value = text;
   });
-  sendAssistantMessage();
+  sendSPilotMessage();
 }
 
-function assistantInputKeydown(e) {
+function spilotKeydown(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    sendAssistantMessage();
+    sendSPilotMessage();
   }
 }
 
-async function sendAssistantMessage() {
-  const input = $('assistant-input');
-  const text = (input?.value || '').trim();
+async function sendSPilotMessage() {
+  if (spilotState.busy) return;
 
-  if (!text) return;
+  const input = $('spilot-input');
+  const message = (input?.value || '').trim();
+  if (!message) return;
 
   input.value = '';
-  addAssistantMessage('user', text);
+  spilotState.busy = true;
 
-  const thinkingId = `thinking-${Date.now()}`;
-  addAssistantMessage('assistant', 'Analyzing platform context...');
+  addSPilotMessage('user', message);
+  const thinking = addSPilotThinking();
+  setSPilotStatus('Gemini 3.1 is reasoning on platform context...', 'thinking');
 
   try {
-    const answer = await assistantRespond(text);
-    const messages = $('assistant-messages');
-    const last = messages?.lastElementChild;
-    if (last) last.remove();
+    const context = await buildSPilotContext();
 
-    addAssistantMessage('assistant', answer);
+    const response = await api('/assistant/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        context,
+        history: spilotState.history.slice(-12)
+      })
+    });
+
+    thinking?.remove();
+
+    addSPilotMessage(
+      'assistant',
+      response.answer || 'No answer returned.',
+      response.actions || []
+    );
+
+    if (Array.isArray(response.actions) && response.actions.length) {
+      response.actions.forEach(action => {
+        if (action.type === 'navigate' || action.type === 'generate_pdf' || action.type === 'refresh_dashboard') {
+          executeSPilotAction(action);
+        }
+      });
+    }
+
+    setSPilotStatus(`${response.provider || 'Vertex AI Gemini'} · ${response.model || 'Gemini'}`, '');
   } catch (e) {
-    const messages = $('assistant-messages');
-    const last = messages?.lastElementChild;
-    if (last) last.remove();
+    thinking?.remove();
 
-    addAssistantMessage('assistant', `Error: ${e.message}`);
+    addSPilotMessage(
+      'assistant',
+      `I could not reach Gemini right now.\n\nReason: ${e.message}\n\nCheck backend /assistant/chat, Vertex credentials, GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION and VERTEX_MODEL.`
+    );
+
+    setSPilotStatus('Gemini connection failed', 'error');
+    toast(e.message, 'error', { title: 'S-Pilot failed' });
+  } finally {
+    spilotState.busy = false;
+    renderIcons();
   }
 }
 
-async function assistantRespond(input) {
-  const q = input.toLowerCase();
-
+async function buildSPilotContext() {
   if (!state.dashboard) {
     state.dashboard = await api('/dashboard');
   }
 
-  if (!assistantState.records.length || !assistantState.logs.length) {
-    await assistantRefreshContext();
+  const [recordsResult, logsResult, integrationsResult, healthResult] = await Promise.allSettled([
+    api('/records?limit=30'),
+    api('/logs?limit=50'),
+    api('/integrations/status'),
+    api('/health')
+  ]);
+
+  const records =
+    recordsResult.status === 'fulfilled'
+      ? (recordsResult.value.items || [])
+      : [];
+
+  const logs =
+    logsResult.status === 'fulfilled'
+      ? (logsResult.value.logs || logsResult.value.items || [])
+      : [];
+
+  const integrations =
+    integrationsResult.status === 'fulfilled'
+      ? integrationsResult.value
+      : null;
+
+  const health =
+    healthResult.status === 'fulfilled'
+      ? healthResult.value
+      : null;
+
+  return {
+    current_page: state.currentPage,
+    local_time: new Date().toLocaleString(),
+    runtime: typeof SENTPRO_RUNTIME !== 'undefined' ? SENTPRO_RUNTIME : {},
+    health,
+    dashboard: state.dashboard,
+    records: {
+      total_loaded: records.length,
+      latest: records.slice(0, 20),
+      negative_count: records.filter(r => r.sentiment === 'negative').length,
+      admin_attention_count: records.filter(r => r.requires_admin_attention).length,
+      high_or_critical_count: records.filter(r => ['high', 'critical'].includes(String(r.severity || '').toLowerCase())).length
+    },
+    logs: {
+      total_loaded: logs.length,
+      latest: logs.slice(0, 30),
+      error_count: logs.filter(l => String(l.level || '').toUpperCase() === 'ERROR').length,
+      warn_count: logs.filter(l => String(l.level || '').toUpperCase() === 'WARN').length
+    },
+    integrations,
+    frontend_capabilities: {
+      can_navigate: true,
+      can_generate_pdf: typeof generateExecutivePDF === 'function',
+      can_refresh_dashboard: typeof loadDashboard === 'function',
+      pages
+    }
+  };
+}
+
+function executeSPilotAction(action) {
+  if (!action || !action.type) return;
+
+  const type = action.type;
+  const target = action.target;
+
+  if (type === 'navigate') {
+    if (target && pages.includes(target)) {
+      showPage(target);
+      toast(`Opened ${target}`, 'success', { title: 'S-Pilot action' });
+    }
+    return;
   }
 
-  if (q.includes('pdf') || q.includes('report') || q.includes('executive')) {
+  if (type === 'generate_pdf') {
     generateExecutivePDF();
-    return 'Executive PDF generation started. I opened the one-page management report pipeline.';
+    return;
   }
 
-  if (q.includes('record') || q.includes('yozuv')) {
-    showPage('records');
-    return buildRecordsAnswer();
+  if (type === 'refresh_dashboard') {
+    loadDashboard();
+    toast('Dashboard refresh started', 'success', { title: 'S-Pilot action' });
+    return;
   }
 
-  if (q.includes('log') || q.includes('error') || q.includes('xato')) {
-    showPage('logs');
-    return buildLogsAnswer();
+  if (type === 'open_record') {
+    const id = action.payload?.feedback_id;
+    if (id && typeof openRecord === 'function') {
+      openRecord(id);
+    }
+    return;
   }
 
-  if (q.includes('integration') || q.includes('token') || q.includes('lms') || q.includes('hemis')) {
-    showPage('integration');
-    return 'Integration tab opened. Use it to inspect secure REST token flow, LMS/HEMIS ingestion path, validation, rate limiting, and endpoint status.';
+  if (type === 'clear_chat') {
+    safeEl('spilot-messages', el => {
+      el.innerHTML = '';
+    });
+    spilotState.history = [];
   }
-
-  if (q.includes('batch')) {
-    showPage('batch');
-    return 'Batch tab opened. From there you can upload JSON, validate schema, preview mappings, and run SentPro batch analysis.';
-  }
-
-  if (q.includes('setting') || q.includes('prompt') || q.includes('system prompt') || q.includes('sozlama')) {
-    showPage('settings');
-    return 'Settings tab opened. You can edit SentPro runtime identity, model prompt, thresholds, platform behavior, export/import configuration, and reset demo state.';
-  }
-
-  if (q.includes('mood') || q.includes('kayfiyat')) {
-    return buildMoodAnswer();
-  }
-
-  if (q.includes('risk') || q.includes('critical') || q.includes('admin attention') || q.includes('problem') || q.includes('muammo')) {
-    return buildRiskAnswer();
-  }
-
-  if (q.includes('trend') || q.includes('recent')) {
-    return buildTrendAnswer();
-  }
-
-  if (q.includes('summary') || q.includes('summarize') || q.includes('xulosa') || q.includes('overview')) {
-    return buildExecutiveChatSummary();
-  }
-
-  if (q.includes('refresh') || q.includes('reload')) {
-    await loadDashboard();
-    await assistantRefreshContext();
-    return 'Dashboard and Copilot context refreshed. Current context is now synchronized with backend state.';
-  }
-
-  return buildExecutiveChatSummary();
-}
-
-function buildExecutiveChatSummary() {
-  const d = state.dashboard || {};
-  const o = d.overview || {};
-  const mood = d.mood || d.university_mood || {};
-  const total = o.total_analyzed || o.total || assistantState.records.length || 0;
-  const sentiment = Math.round(Number(o.avg_sentiment || mood.university_score || 0) * 100);
-  const confidence = Math.round(Number(o.avg_confidence || 0) * 100);
-  const critical = o.high_critical_count || o.high_critical || 0;
-  const admin = o.admin_attention_count || o.requires_admin_attention || 0;
-  const topIssue = o.top_issue || getTopIssueLabel();
-
-  return `Executive summary:
-
-• Total analyzed feedback: ${total}
-• Institution sentiment: ${sentiment}%
-• AI confidence: ${confidence}%
-• High/Critical signals: ${critical}
-• Admin attention cases: ${admin}
-• Main issue area: ${topIssue}
-
-Management interpretation:
-${critical > 0 || admin > 0
-  ? 'There are signals that require human review. Prioritize high/critical feedback and assign owners for admin attention cases.'
-  : 'No strong critical pattern dominates currently. Continue monitoring trends and collect more feedback for stronger institutional confidence.'}
-
-Recommended next action:
-Generate Executive PDF or open Records to inspect individual signals.`;
-}
-
-function buildMoodAnswer() {
-  const d = state.dashboard || {};
-  const mood = d.mood || d.university_mood || {};
-  const o = d.overview || {};
-
-  const score = Math.round(Number(mood.university_score || o.avg_sentiment || 0) * 100);
-  const teaching = Math.round(Number(mood.teaching_quality || 0) * 100);
-  const fairness = Math.round(Number(mood.fairness || 0) * 100);
-
-  return `Current mood signal:
-
-• University score: ${score}%
-• Teaching quality: ${teaching}%
-• Fairness: ${fairness}%
-• Dominant emotion: ${mood.dominant_emotion || 'not enough data'}
-
-Interpretation:
-${score >= 70
-  ? 'Mood is generally stable/positive.'
-  : score >= 45
-    ? 'Mood is mixed. Watch for repeated complaints or falling trend.'
-    : 'Mood is weak. Management should inspect negative feedback and issue distribution.'}`;
-}
-
-function buildRiskAnswer() {
-  const records = assistantState.records.map(r => ({ r, out: assistantRecordOutput(r) }));
-
-  const risky = records.filter(x => {
-    const severity = String(x.out.severity || '').toLowerCase();
-    return severity === 'high' || severity === 'critical' || x.out.requires_admin_attention;
-  }).slice(0, 5);
-
-  if (!risky.length) {
-    return `No high/critical risk record is currently loaded.
-
-Still recommended:
-• monitor negative trend
-• inspect latest feedback
-• keep admin attention threshold active`;
-  }
-
-  return `Emerging / high-priority problems:
-
-${risky.map((x, i) => {
-  return `${i + 1}. ${x.out.issue_category || 'unknown issue'} · ${x.out.severity || 'severity unknown'}
-   ${x.out.summary_uz || x.out.summary || x.r.text || 'No summary available'}`;
-}).join('\n\n')}
-
-Recommended action:
-Open Records tab and review these cases before any administrative decision.`;
-}
-
-function buildTrendAnswer() {
-  const d = state.dashboard || {};
-  const trends = d.trends || {};
-  const items = trends.trend_data || trends.items || d.trend_data || d.sentiment_over_time || [];
-
-  if (!items.length) {
-    return 'Trend data is not sufficient yet. Run batch analysis or simulation to populate recent trend signals.';
-  }
-
-  const last = items.slice(-5);
-
-  return `Recent trend signal:
-
-${last.map((x, i) => `${i + 1}. ${JSON.stringify(x)}`).join('\n')}
-
-Interpretation:
-Use this trend to detect whether mood is improving, stable, or moving toward negative/critical feedback concentration.`;
-}
-
-function buildRecordsAnswer() {
-  const total = assistantState.records.length;
-  const negative = assistantState.records.filter(r => assistantRecordOutput(r).sentiment === 'negative').length;
-  const admin = assistantState.records.filter(r => assistantRecordOutput(r).requires_admin_attention).length;
-
-  return `Records opened.
-
-Loaded context:
-• Records: ${total}
-• Negative feedback: ${negative}
-• Admin attention: ${admin}
-
-You can now filter by sentiment, severity, issue category, or inspect individual feedback output.`;
-}
-
-function buildLogsAnswer() {
-  const logs = assistantState.logs || [];
-  const errors = logs.filter(l => String(l.level || '').toUpperCase() === 'ERROR').length;
-  const warns = logs.filter(l => String(l.level || '').toUpperCase() === 'WARN').length;
-
-  return `Logs opened.
-
-Audit status:
-• Loaded logs: ${logs.length}
-• Errors: ${errors}
-• Warnings: ${warns}
-
-${errors > 0
-  ? 'There are backend/system errors. Inspect Loglar → Inspector for raw payload and event details.'
-  : 'No loaded ERROR-level event found in current context.'}`;
-}
-
-function getTopIssueLabel() {
-  const d = state.dashboard || {};
-  const issues = d.issues?.issue_distribution || d.overview?.issue_distribution || d.issue_distribution || {};
-
-  const top = Object.entries(issues).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0];
-  return top?.[0] || 'not enough data';
-}
-
-function assistantRecordOutput(r) {
-  return r.output || r.outputFromAI || r.analysis || r;
 }
 
 
@@ -5664,4 +5581,6 @@ window.addEventListener('DOMContentLoaded', () => {
     langSelect.value = state.lang;
     langSelect.addEventListener('change', e => setLanguage(e.target.value));
   }
+
+  renderIcons();
 });
