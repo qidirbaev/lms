@@ -1030,30 +1030,114 @@
       </section>
 
       <!-- Logs -->
-      <section class="page" id="page-logs">
-        <div class="page-header">
+      <section class="page logs-page" id="page-logs">
+        <div class="page-header logs-hero">
           <div>
-            <h2>Tizim loglari</h2>
-            <div class="subtitle">Vaqt belgili faoliyat jurnali</div>
+            <div class="eyebrow">AUDIT OBSERVABILITY</div>
+            <h2>Loglar</h2>
+            <div class="subtitle">AI tahlil, integratsiya, batch, xavf signallari va tizim holati bo‘yicha audit konsoli</div>
           </div>
 
           <div class="action-row">
-            <select class="select topbar-select" id="log-level-filter">
-              <option value="">All</option>
-              <option value="INFO">INFO</option>
-              <option value="WARN">WARN</option>
-              <option value="ERROR">ERROR</option>
-            </select>
-
+            <button class="btn btn-secondary btn-sm" onclick="exportLogsJSON()">
+              <i data-lucide="file-json"></i> JSON
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="exportLogsCSV()">
+              <i data-lucide="download"></i> CSV
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="loadLogs()">
               <i data-lucide="refresh-cw"></i> Yangilash
             </button>
           </div>
         </div>
 
-        <div class="page-body">
-          <div class="card compact-card">
-            <div id="logs-list"><div class="text-muted text-sm">Yuklanmoqda...</div></div>
+        <div class="page-body logs-body">
+          <div class="logs-command-card card">
+            <div class="logs-search-box">
+              <i data-lucide="search"></i>
+              <input
+                class="input"
+                id="log-search-filter"
+                type="search"
+                placeholder="Event, details, timestamp yoki level bo‘yicha qidirish..."
+                oninput="renderLogsPanel()"
+              />
+            </div>
+
+            <div class="logs-filter-grid">
+              <div class="field">
+                <label>Level</label>
+                <select class="select" id="log-level-filter" onchange="loadLogs()">
+                  <option value="">All</option>
+                  <option value="INFO">INFO</option>
+                  <option value="WARN">WARN</option>
+                  <option value="ERROR">ERROR</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Ko‘rinish</label>
+                <select class="select" id="log-view-mode" onchange="renderLogsPanel()">
+                  <option value="timeline">Timeline</option>
+                  <option value="compact">Compact</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Quick scope</label>
+                <select class="select" id="log-scope-filter" onchange="renderLogsPanel()">
+                  <option value="">Barchasi</option>
+                  <option value="batch">Batch</option>
+                  <option value="integration">Integration</option>
+                  <option value="analysis">Analysis</option>
+                  <option value="risk">Risk</option>
+                  <option value="auth">Auth</option>
+                  <option value="system">System</option>
+                </select>
+              </div>
+
+              <button class="btn btn-ghost btn-sm logs-clear-btn" onclick="clearLogFilters()">
+                <i data-lucide="x"></i> Tozalash
+              </button>
+            </div>
+          </div>
+
+          <div id="logs-metrics" class="logs-metrics"></div>
+
+          <div class="logs-main-grid">
+            <div class="logs-stream card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Event stream</div>
+                  <div class="text-muted text-sm">Real-time audit trail va diagnostika signallari</div>
+                </div>
+                <span id="logs-count-pill" class="badge badge-outline">0 events</span>
+              </div>
+
+              <div id="logs-list">
+                <div class="empty-state">
+                  <span class="spinner"></span>
+                  <p>Loglar yuklanmoqda...</p>
+                </div>
+              </div>
+            </div>
+
+            <aside class="logs-inspector card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Inspector</div>
+                  <div class="text-muted text-sm">Tanlangan event tafsilotlari</div>
+                </div>
+              </div>
+
+              <div id="log-inspector">
+                <div class="logs-inspector-empty">
+                  <i data-lucide="mouse-pointer-click"></i>
+                  <p>Event ustiga bosing. Bu yerda details, scope, payload va audit interpretatsiya chiqadi.</p>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </section>

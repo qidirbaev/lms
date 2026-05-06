@@ -3883,22 +3883,304 @@ async function runIntegrationTest() {
 // Logs / Health / Reset
 // ─────────────────────────────────────────────────────────────
 
+let logsCache = [];
+let selectedLogIndex = null;
+
+function normalizeLog(l, index) {
+  const details = l.details || l.payload || l.meta || {};
+  const event = l.event || l.message || l.action || 'system_event';
+  const level = String(l.level || l.severity || 'INFO').toUpperCase();
+
+  return {
+    index,
+    timestamp: l.timestamp || l.time || l.created_at || '—',
+    level: ['INFO', 'WARN', 'ERROR'].includes(level) ? level : 'INFO',
+    event,
+    details,
+    raw: l,
+    scope: inferLogScope(event, details)
+  };
+}
+
+function inferLogScope(event, details = {}) {
+  const text = `${event} ${JSON.stringify(details)}`.toLowerCase();
+
+  if (text.includes('batch') || text.includes('bulk')) return 'batch';
+  if (text.includes('integration') || text.includes('ingest') || text.includes('token')) return 'integration';
+  if (text.includes('risk') || text.includes('critical') || text.includes('admin_attention')) return 'risk';
+  if (text.includes('analysis') || text.includes('analyze') || text.includes('sentiment')) return 'analysis';
+  if (text.includes('login') || text.includes('auth') || text.includes('401')) return 'auth';
+
+  return 'system';
+}
+
+function logMetric(label, value, sub = '') {
+  return `
+    <div class="log-metric-card">
+      <div class="log-metric-label">${esc(label)}</div>
+      <div class="log-metric-value">${esc(value)}</div>
+      ${sub ? `<div class="log-metric-sub">${esc(sub)}</div>` : ''}
+    </div>
+  `;
+}
+
+function filteredLogs() {
+  const q = ($('log-search-filter')?.value || '').trim().toLowerCase();
+  const scope = $('log-scope-filter')?.value || '';
+
+  return logsCache.filter(l => {
+    const haystack = [
+      l.timestamp,
+      l.level,
+      l.event,
+      l.scope,
+      JSON.stringify(l.details || {})
+    ].join(' ').toLowerCase();
+
+    const okSearch = !q || haystack.includes(q);
+    const okScope = !scope || l.scope === scope;
+
+    return okSearch && okScope;
+  });
+}
+
+function renderLogsMetrics(items) {
+  const total = items.length;
+  const info = items.filter(l => l.level === 'INFO').length;
+  const warn = items.filter(l => l.level === 'WARN').length;
+  const error = items.filter(l => l.level === 'ERROR').length;
+
+  const dominantScope = Object.entries(
+    items.reduce((acc, l) => {
+      acc[l.scope] = (acc[l.scope] || 0) + 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+  $('logs-metrics').innerHTML = [
+    logMetric('Jami event', total, 'joriy filter natijasi'),
+    logMetric('INFO', info, 'normal operatsiyalar'),
+    logMetric('WARN', warn, 'tekshirish kerak'),
+    logMetric('ERROR', error, 'xatoliklar'),
+    logMetric('Dominant scope', dominantScope, 'eng faol modul')
+  ].join('');
+
+  safeEl('logs-count-pill', el => {
+    el.textContent = `${total} events`;
+  });
+}
+
+function logLevelBadge(level) {
+  if (level === 'ERROR') return `<span class="badge badge-critical">ERROR</span>`;
+  if (level === 'WARN') return `<span class="badge badge-medium">WARN</span>`;
+  return `<span class="badge badge-outline">INFO</span>`;
+}
+
+function compactDetails(details) {
+  const s = JSON.stringify(details || {});
+  return s === '{}' ? 'No details' : s;
+}
+
+function renderLogTimeline(items) {
+  return `
+    <div class="log-timeline">
+      ${items.map(l => `
+        <article class="log-event-card level-${esc(l.level)}" onclick="selectLog(${l.index})">
+          <div class="log-event-top">
+            ${logLevelBadge(l.level)}
+            <span class="log-event-name">${esc(l.event)}</span>
+            <span class="log-event-time">${esc(l.timestamp)}</span>
+          </div>
+
+          <div class="log-event-details">${esc(compactDetails(l.details))}</div>
+
+          <div class="log-event-meta">
+            <span class="log-scope-chip">${esc(l.scope)}</span>
+            <span class="text-muted text-sm">audit_index: ${esc(l.index)}</span>
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderLogCompact(items) {
+  return `
+    <div class="logs-compact-table">
+      ${items.map(l => `
+        <div class="logs-compact-row" onclick="selectLog(${l.index})">
+          <span class="text-muted">${esc(l.timestamp)}</span>
+          ${logLevelBadge(l.level)}
+          <b>${esc(l.event)}</b>
+          <code>${esc(compactDetails(l.details))}</code>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderLogsPanel() {
+  const items = filteredLogs();
+  const mode = $('log-view-mode')?.value || 'timeline';
+
+  renderLogsMetrics(items);
+
+  if (!items.length) {
+    $('logs-list').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"></div>
+        <h3>Log topilmadi</h3>
+        <p>Filterlarni tozalang yoki tizimda yangi batch, test, integration yoki analysis operatsiyasini bajaring.</p>
+      </div>
+    `;
+    renderIcons();
+    return;
+  }
+
+  if (mode === 'json') {
+    $('logs-list').innerHTML = `
+      <pre class="json-viewer logs-json-view">${esc(JSON.stringify(items.map(l => l.raw), null, 2))}</pre>
+    `;
+  } else if (mode === 'compact') {
+    $('logs-list').innerHTML = renderLogCompact(items);
+  } else {
+    $('logs-list').innerHTML = renderLogTimeline(items);
+  }
+
+  renderIcons();
+}
+
 async function loadLogs() {
   try {
     const level = $('log-level-filter')?.value;
-    const d = await api(`/logs${level ? `?level=${level}` : ''}`);
+    const d = await api(`/logs${level ? `?level=${encodeURIComponent(level)}` : ''}`);
 
-    $('logs-list').innerHTML = (d.logs || d.items || []).map(l => `
-      <div class="log-row log-${esc(l.level)}">
-        <span>${esc(l.timestamp)}</span>
-        <b>${esc(l.level)}</b>
-        <span>${esc(l.event)}</span>
-        <code>${esc(JSON.stringify(l.details || {}))}</code>
-      </div>
-    `).join('') || `<p class="text-muted">${esc(t('no_logs'))}</p>`;
+    logsCache = (d.logs || d.items || []).map(normalizeLog);
+    selectedLogIndex = null;
+
+    safeEl('log-inspector', el => {
+      el.innerHTML = `
+        <div class="logs-inspector-empty">
+          <i data-lucide="mouse-pointer-click"></i>
+          <p>Event ustiga bosing. Bu yerda details, scope, payload va audit interpretatsiya chiqadi.</p>
+        </div>
+      `;
+    });
+
+    renderLogsPanel();
   } catch (e) {
     toast(e.message, 'error');
   }
+}
+
+function selectLog(index) {
+  const l = logsCache.find(x => x.index === index);
+  if (!l) return;
+
+  selectedLogIndex = index;
+
+  const interpretation =
+    l.level === 'ERROR'
+      ? 'Bu event tizim xatosi yoki bajarilmagan operatsiyani bildiradi. Backend response, API token, schema yoki network holatini tekshiring.'
+      : l.level === 'WARN'
+        ? 'Bu event ishlagan, lekin inson tekshiruvi yoki konfiguratsion e’tibor talab qilishi mumkin.'
+        : 'Bu normal operatsion audit event. Tizim faoliyatini kuzatish uchun saqlangan.';
+
+  $('log-inspector').innerHTML = `
+    <div class="log-inspector-title">
+      ${logLevelBadge(l.level)}
+      <h3>${esc(l.event)}</h3>
+    </div>
+
+    <div class="log-inspector-section">
+      <h4>Audit metadata</h4>
+      <div class="log-inspector-kv">
+        <div><span>Timestamp</span><b>${esc(l.timestamp)}</b></div>
+        <div><span>Level</span><b>${esc(l.level)}</b></div>
+        <div><span>Scope</span><b>${esc(l.scope)}</b></div>
+        <div><span>Index</span><b>${esc(l.index)}</b></div>
+      </div>
+    </div>
+
+    <div class="log-inspector-section">
+      <h4>Interpretatsiya</h4>
+      <p class="text-muted text-sm">${esc(interpretation)}</p>
+    </div>
+
+    <div class="log-inspector-section">
+      <h4>Details payload</h4>
+      <pre class="json-viewer">${esc(JSON.stringify(l.details || {}, null, 2))}</pre>
+    </div>
+
+    <div class="log-inspector-section">
+      <h4>Raw event</h4>
+      <pre class="json-viewer">${esc(JSON.stringify(l.raw || {}, null, 2))}</pre>
+    </div>
+  `;
+
+  renderIcons();
+}
+
+function clearLogFilters() {
+  ['log-search-filter', 'log-level-filter', 'log-scope-filter'].forEach(id => {
+    if ($(id)) $(id).value = '';
+  });
+
+  if ($('log-view-mode')) $('log-view-mode').value = 'timeline';
+
+  loadLogs();
+}
+
+function exportLogsJSON() {
+  const items = filteredLogs();
+
+  if (!items.length) {
+    toast('Export uchun log topilmadi', 'warn');
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(items.map(l => l.raw), null, 2)], {
+    type: 'application/json;charset=utf-8;'
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `logs-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast('JSON export tayyor', 'success');
+}
+
+function exportLogsCSV() {
+  const items = filteredLogs();
+
+  if (!items.length) {
+    toast('Export uchun log topilmadi', 'warn');
+    return;
+  }
+
+  const headers = ['timestamp', 'level', 'scope', 'event', 'details'];
+  const rows = items.map(l => [
+    l.timestamp,
+    l.level,
+    l.scope,
+    l.event,
+    compactDetails(l.details)
+  ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `logs-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast('CSV export tayyor', 'success');
 }
 
 async function health() {
