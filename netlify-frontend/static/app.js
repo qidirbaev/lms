@@ -8,7 +8,7 @@
 const pages = [
   'overview', 'mood', 'courses', 'teachers', 'trends', 'issues',
   'risks', 'keywords', 'records', 'batch', 'test', 'simulate',
-  'integration', 'logs', 'settings'
+  'integration', 'notifier', 'logs', 'settings'
 ];
 
 const API_BASE =
@@ -242,6 +242,7 @@ const I18N = {
     fallback: 'Fallback',
     duration: 'Davomiylik',
     batch_complete: 'Batch yakunlandi',
+    notifier: 'Notifier',
 
     feedback_input: 'Fikr-mulohaza kiritish',
     random_context: 'Tasodifiy kontekst',
@@ -304,6 +305,7 @@ const I18N = {
     test: 'Test Analysis',
     simulate: 'Simulation',
     logs: 'Logs',
+    notifier: 'Notifier',
     settings: 'Settings',
 
     analytics: 'Analytics',
@@ -422,6 +424,7 @@ const I18N = {
     no_data: 'Нет данных',
     no_logs: 'Логи отсутствуют',
     integration: 'Интеграция',
+    notifier: 'Notifier',
     refresh: 'Обновить',
     clear: 'Очистить',
     filter: 'Фильтр',
@@ -677,6 +680,7 @@ const NAV_ICONS = {
   logs: 'list-check',
   settings: 'settings',
   assistant: 'sparkles',
+  notifier: 'bell-ring',
 };
 
 function icon(name) {
@@ -1063,6 +1067,7 @@ function showPage(page) {
     loadPlatformSettingsUI();
     health();
   }
+  if (page === 'notifier') loadNotifierSettings();
   if (page === 'integration') loadIntegrationStatus();
 }
 
@@ -1085,6 +1090,7 @@ function applyStaticTranslations() {
     integration: 'integration',
     logs: 'logs',
     settings: 'settings',
+    notifier: 'notifier',
   };
 
   Object.entries(navMap).forEach(([id, key]) => {
@@ -5564,6 +5570,382 @@ async function generateExecutivePDF() {
   } finally {
     setButtonLoading?.(btn, false);
   }
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// Notifier / Alert Orchestration
+// ─────────────────────────────────────────────────────────────
+
+const notifierState = {
+  timer: null,
+  sentToday: 0,
+  history: [],
+  lastKeys: new Set(JSON.parse(localStorage.getItem('sentpro_notifier_dedupe') || '[]'))
+};
+
+const DEFAULT_NOTIFIER_SETTINGS = {
+  botToken: '',
+  chatId: '',
+  prefix: 'SentPro Alert',
+  interval: 30,
+  negativeThreshold: 40,
+  riskThreshold: 70,
+  rules: {
+    criticalFeedback: true,
+    adminAttention: true,
+    negativeTrend: true,
+    systemError: true,
+    integrationFailure: true,
+    batchComplete: false
+  }
+};
+
+function getNotifierSettings() {
+  try {
+    return {
+      ...DEFAULT_NOTIFIER_SETTINGS,
+      ...(JSON.parse(localStorage.getItem('sentpro_notifier_settings') || '{}'))
+    };
+  } catch {
+    return { ...DEFAULT_NOTIFIER_SETTINGS };
+  }
+}
+
+function setNotifierSettings(s) {
+  localStorage.setItem('sentpro_notifier_settings', JSON.stringify(s));
+}
+
+function loadNotifierSettings() {
+  const s = getNotifierSettings();
+
+  safeEl('notify-bot-token', el => { el.value = s.botToken || ''; });
+  safeEl('notify-chat-id', el => { el.value = s.chatId || ''; });
+  safeEl('notify-prefix', el => { el.value = s.prefix || 'SentPro Alert'; });
+  safeEl('notify-interval', el => { el.value = s.interval || 30; });
+  safeEl('notify-negative-threshold', el => { el.value = s.negativeThreshold || 40; });
+  safeEl('notify-risk-threshold', el => { el.value = s.riskThreshold || 70; });
+
+  safeEl('rule-critical-feedback', el => { el.checked = !!s.rules.criticalFeedback; });
+  safeEl('rule-admin-attention', el => { el.checked = !!s.rules.adminAttention; });
+  safeEl('rule-negative-trend', el => { el.checked = !!s.rules.negativeTrend; });
+  safeEl('rule-system-error', el => { el.checked = !!s.rules.systemError; });
+  safeEl('rule-integration-failure', el => { el.checked = !!s.rules.integrationFailure; });
+  safeEl('rule-batch-complete', el => { el.checked = !!s.rules.batchComplete; });
+
+  syncNotifierUI();
+  renderNotifierHistory();
+  renderIcons();
+}
+
+function readNotifierSettingsUI() {
+  const current = getNotifierSettings();
+
+  return {
+    ...current,
+    botToken: $('notify-bot-token')?.value || '',
+    chatId: $('notify-chat-id')?.value || '',
+    prefix: $('notify-prefix')?.value || 'SentPro Alert',
+    interval: Number($('notify-interval')?.value || 30),
+    negativeThreshold: Number($('notify-negative-threshold')?.value || 40),
+    riskThreshold: Number($('notify-risk-threshold')?.value || 70),
+    rules: {
+      criticalFeedback: !!$('rule-critical-feedback')?.checked,
+      adminAttention: !!$('rule-admin-attention')?.checked,
+      negativeTrend: !!$('rule-negative-trend')?.checked,
+      systemError: !!$('rule-system-error')?.checked,
+      integrationFailure: !!$('rule-integration-failure')?.checked,
+      batchComplete: !!$('rule-batch-complete')?.checked
+    }
+  };
+}
+
+function saveNotifierSettings() {
+  const s = readNotifierSettingsUI();
+  setNotifierSettings(s);
+  syncNotifierUI();
+  toast('Notifier settings saved', 'success', { title: 'Notifier' });
+}
+
+function syncNotifierUI() {
+  const s = readNotifierSettingsUI();
+
+  const activeRules = Object.values(s.rules).filter(Boolean).length;
+
+  safeEl('notify-negative-threshold-val', el => { el.textContent = `${s.negativeThreshold}%`; });
+  safeEl('notify-risk-threshold-val', el => { el.textContent = `${s.riskThreshold}%`; });
+  safeEl('notifier-active-rules', el => { el.textContent = activeRules; });
+  safeEl('notifier-sent-count', el => { el.textContent = notifierState.sentToday; });
+
+  safeEl('notifier-preview', el => {
+    el.textContent =
+`<b>🚨 ${s.prefix}</b>
+
+<b>Event:</b> Critical feedback detected
+<b>Severity:</b> critical
+<b>Scope:</b> Course / Teacher
+<b>Action:</b> Human review required
+
+Sent by SentPro Event Notifier`;
+  });
+}
+
+function enableRecommendedNotifierRules() {
+  safeEl('rule-critical-feedback', el => { el.checked = true; });
+  safeEl('rule-admin-attention', el => { el.checked = true; });
+  safeEl('rule-negative-trend', el => { el.checked = true; });
+  safeEl('rule-system-error', el => { el.checked = true; });
+  safeEl('rule-integration-failure', el => { el.checked = true; });
+  safeEl('rule-batch-complete', el => { el.checked = false; });
+
+  syncNotifierUI();
+  toast('Recommended notifier rules enabled', 'success');
+}
+
+async function sendNotifierTest() {
+  const s = readNotifierSettingsUI();
+
+  if (!s.chatId) {
+    toast('Telegram chat ID is required', 'warn', { title: 'Notifier' });
+    return;
+  }
+
+  try {
+    await api('/notifier/telegram/test', {
+      method: 'POST',
+      body: JSON.stringify({
+        bot_token: s.botToken || null,
+        chat_id: s.chatId,
+        message: 'test'
+      })
+    });
+
+    addNotifierHistory('Telegram test sent', 'Channel connection verified');
+    toast('Telegram test notification sent', 'success', { title: 'Notifier' });
+  } catch (e) {
+    toast(e.message, 'error', { title: 'Telegram failed' });
+  }
+}
+
+async function sendNotifierMessage(title, body, key = '') {
+  const s = readNotifierSettingsUI();
+
+  if (!s.chatId) {
+    toast('Notifier skipped: Telegram chat ID missing', 'warn');
+    return false;
+  }
+
+  if (key && notifierState.lastKeys.has(key)) {
+    return false;
+  }
+
+  const message = `
+<b>🚨 ${escTelegram(s.prefix)}</b>
+
+<b>${escTelegram(title)}</b>
+
+${escTelegram(body)}
+
+<i>Sent by SentPro Event Notifier</i>
+`;
+
+  await api('/notifier/telegram/send', {
+    method: 'POST',
+    body: JSON.stringify({
+      bot_token: s.botToken || null,
+      chat_id: s.chatId,
+      message,
+      parse_mode: 'HTML'
+    })
+  });
+
+  if (key) {
+    notifierState.lastKeys.add(key);
+    localStorage.setItem('sentpro_notifier_dedupe', JSON.stringify([...notifierState.lastKeys].slice(-200)));
+  }
+
+  notifierState.sentToday += 1;
+  syncNotifierUI();
+  addNotifierHistory(title, body);
+  return true;
+}
+
+function escTelegram(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function addNotifierHistory(title, detail) {
+  notifierState.history.unshift({
+    title,
+    detail,
+    time: new Date().toLocaleTimeString()
+  });
+
+  notifierState.history = notifierState.history.slice(0, 20);
+  renderNotifierHistory();
+}
+
+function renderNotifierHistory() {
+  safeEl('notifier-history', el => {
+    if (!notifierState.history.length) {
+      el.innerHTML = `<div class="text-muted text-sm">No notification sent yet.</div>`;
+      return;
+    }
+
+    el.innerHTML = notifierState.history.map(x => `
+      <div class="notifier-history-item">
+        <b>${esc(x.title)}</b>
+        <span>${esc(x.detail)}</span>
+        <span>${esc(x.time)}</span>
+      </div>
+    `).join('');
+  });
+}
+
+function startNotifierMonitor() {
+  saveNotifierSettings();
+
+  stopNotifierMonitor();
+
+  const s = readNotifierSettingsUI();
+  const intervalMs = Math.max(10, s.interval || 30) * 1000;
+
+  notifierState.timer = setInterval(runNotifierCheckNow, intervalMs);
+
+  safeEl('notifier-monitor-status', el => { el.textContent = 'Running'; });
+  safeEl('notifier-live-badge', el => {
+    el.className = 'notifier-live-badge active';
+    el.innerHTML = `<span class="pulse-dot"></span> Monitoring`;
+  });
+
+  toast('Notifier monitor started', 'success');
+  runNotifierCheckNow();
+}
+
+function stopNotifierMonitor() {
+  if (notifierState.timer) {
+    clearInterval(notifierState.timer);
+    notifierState.timer = null;
+  }
+
+  safeEl('notifier-monitor-status', el => { el.textContent = 'Stopped'; });
+  safeEl('notifier-live-badge', el => {
+    el.className = 'notifier-live-badge';
+    el.innerHTML = `<span class="pulse-dot"></span> Idle`;
+  });
+}
+
+async function runNotifierCheckNow() {
+  const s = readNotifierSettingsUI();
+
+  try {
+    const [dashboardRes, recordsRes, logsRes] = await Promise.allSettled([
+      api('/dashboard'),
+      api('/records'),
+      api('/logs')
+    ]);
+
+    const dashboard = dashboardRes.status === 'fulfilled' ? dashboardRes.value : {};
+    const records = recordsRes.status === 'fulfilled' ? (recordsRes.value.items || []) : [];
+    const logs = logsRes.status === 'fulfilled' ? (logsRes.value.logs || logsRes.value.items || []) : [];
+
+    await evaluateNotifierRules(s, dashboard, records, logs);
+
+    safeEl('notifier-monitor-status', el => {
+      el.textContent = `Last check ${new Date().toLocaleTimeString()}`;
+    });
+  } catch (e) {
+    toast(e.message, 'error', { title: 'Notifier check failed' });
+  }
+}
+
+async function evaluateNotifierRules(s, dashboard, records, logs) {
+  const outputs = records.map(r => r.output || r.outputFromAI || r.analysis || r);
+
+  if (s.rules.criticalFeedback) {
+    for (const o of outputs) {
+      const riskProb = Number(o.risk?.probability || 0) * 100;
+      const isCritical = o.severity === 'critical' || riskProb >= s.riskThreshold;
+
+      if (isCritical) {
+        await sendNotifierMessage(
+          'Critical feedback detected',
+          `Feedback ID: ${o.feedback_id || 'unknown'}\nSeverity: ${o.severity || 'unknown'}\nRisk probability: ${Math.round(riskProb)}%\nSummary: ${o.summary_uz || 'No summary'}`,
+          `critical:${o.feedback_id || JSON.stringify(o).slice(0, 50)}`
+        );
+      }
+    }
+  }
+
+  if (s.rules.adminAttention) {
+    for (const o of outputs.filter(x => x.requires_admin_attention)) {
+      await sendNotifierMessage(
+        'Admin attention required',
+        `Feedback ID: ${o.feedback_id || 'unknown'}\nIssue: ${o.issue_category || 'unknown'}\nAction: ${o.recommended_action || 'review'}\nSummary: ${o.summary_uz || 'No summary'}`,
+        `admin:${o.feedback_id || JSON.stringify(o).slice(0, 50)}`
+      );
+    }
+  }
+
+  if (s.rules.negativeTrend && outputs.length) {
+    const neg = outputs.filter(o => o.sentiment === 'negative').length;
+    const pct = Math.round((neg / outputs.length) * 100);
+
+    if (pct >= s.negativeThreshold) {
+      await sendNotifierMessage(
+        'Negative trend emerging',
+        `Negative feedback ratio reached ${pct}%.\nTotal records: ${outputs.length}\nNegative records: ${neg}\nRecommended action: inspect Issues and Records tabs.`,
+        `negative-trend:${pct}:${outputs.length}`
+      );
+    }
+  }
+
+  if (s.rules.systemError) {
+    for (const l of logs.filter(x => String(x.level || '').toUpperCase() === 'ERROR')) {
+      await sendNotifierMessage(
+        'System error detected',
+        `Event: ${l.event || l.message || 'unknown'}\nTime: ${l.timestamp || l.created_at || 'unknown'}\nDetails: ${JSON.stringify(l.details || l).slice(0, 700)}`,
+        `log-error:${l.timestamp || l.created_at || l.event || JSON.stringify(l).slice(0, 80)}`
+      );
+    }
+  }
+
+  if (s.rules.integrationFailure) {
+    const badLogs = logs.filter(l => {
+      const text = JSON.stringify(l).toLowerCase();
+      return text.includes('integration') && (
+        text.includes('fail') ||
+        text.includes('error') ||
+        text.includes('token') ||
+        text.includes('unauthorized')
+      );
+    });
+
+    for (const l of badLogs) {
+      await sendNotifierMessage(
+        'Integration failure detected',
+        `Integration-related problem found in logs.\nEvent: ${l.event || l.message || 'unknown'}\nDetails: ${JSON.stringify(l.details || l).slice(0, 700)}`,
+        `integration:${l.timestamp || l.created_at || l.event || JSON.stringify(l).slice(0, 80)}`
+      );
+    }
+  }
+}
+
+function copyNotifierSetupGuide() {
+  const text = `Telegram setup:
+1. Open @BotFather
+2. Create bot with /newbot
+3. Copy bot token
+4. Send any message to your bot
+5. Get chat_id using https://api.telegram.org/bot<TOKEN>/getUpdates
+6. Paste token/chat_id into SentPro Notifier
+7. Click Test Telegram`;
+
+  navigator.clipboard?.writeText(text);
+  toast('Telegram setup guide copied', 'success');
 }
 
 

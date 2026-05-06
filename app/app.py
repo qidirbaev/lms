@@ -26,6 +26,11 @@ from .models import (
 from .assistant_service import AssistantChatRequest, assistant_chat
 from fastapi.middleware.cors import CORSMiddleware
 
+import urllib.parse
+import urllib.request
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any
+
 # ─── Init ────────────────────────────────────────────────────────────────────
 logger.init()
 data_service.init()
@@ -736,6 +741,117 @@ def get_logs(level: str = None, limit: int = 200, authorization: str = Header(de
 def post_assistant_chat(req: AssistantChatRequest, authorization: str = Header(default=None)):
     require_auth(authorization)
     return assistant_chat(req)
+
+
+# ─── Notifier / Telegram ─────────────────────────────────────
+
+class TelegramNotifyRequest(BaseModel):
+    bot_token: Optional[str] = None
+    chat_id: str
+    message: str
+    parse_mode: str = "HTML"
+
+
+class TelegramNotifyResponse(BaseModel):
+    ok: bool
+    detail: str
+    telegram_response: Dict[str, Any] = Field(default_factory=dict)
+
+
+def get_telegram_bot_token(payload_token: Optional[str] = None) -> str:
+    token = (
+        payload_token
+        or os.getenv("TELEGRAM_BOT_TOKEN")
+        or getattr(config, "TELEGRAM_BOT_TOKEN", "")
+    )
+
+    if not token:
+        raise HTTPException(
+            status_code=400,
+            detail="Telegram bot token missing. Provide bot_token or set TELEGRAM_BOT_TOKEN env variable."
+        )
+
+    return token
+
+
+def send_telegram_message(bot_token: str, chat_id: str, message: str, parse_mode: str = "HTML") -> Dict[str, Any]:
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    data = urllib.parse.urlencode({
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": parse_mode,
+        "disable_web_page_preview": "true"
+    }).encode("utf-8")
+
+    req = urllib.request.Request(url, data=data, method="POST")
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as res:
+            body = res.read().decode("utf-8")
+            return json.loads(body)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Telegram send failed: {str(e)}")
+
+
+@app.post("/notifier/telegram/send", response_model=TelegramNotifyResponse)
+def post_telegram_notify(payload: TelegramNotifyRequest, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    token = get_telegram_bot_token(payload.bot_token)
+    tg = send_telegram_message(
+        bot_token=token,
+        chat_id=payload.chat_id,
+        message=payload.message,
+        parse_mode=payload.parse_mode
+    )
+
+    logger.info("telegram_notification_sent", {
+        "chat_id": payload.chat_id,
+        "message_length": len(payload.message),
+    })
+
+    return TelegramNotifyResponse(
+        ok=bool(tg.get("ok")),
+        detail="Telegram notification sent",
+        telegram_response=tg
+    )
+
+
+@app.post("/notifier/telegram/test", response_model=TelegramNotifyResponse)
+def post_telegram_test(payload: TelegramNotifyRequest, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    token = get_telegram_bot_token(payload.bot_token)
+
+    msg = """
+<b>✅ SentoPro Notifier Test</b>
+
+Telegram channel is connected successfully.
+
+This channel can now receive:
+• critical feedback alerts
+• emerging negative trend warnings
+• admin attention cases
+• system errors
+• integration failures
+• batch completion reports
+"""
+
+    tg = send_telegram_message(
+        bot_token=token,
+        chat_id=payload.chat_id,
+        message=msg,
+        parse_mode="HTML"
+    )
+
+    logger.info("telegram_test_notification_sent", {"chat_id": payload.chat_id})
+
+    return TelegramNotifyResponse(
+        ok=bool(tg.get("ok")),
+        detail="Telegram test notification sent",
+        telegram_response=tg
+    )
 
 
 # ─── Reset ────────────────────────────────────────────────────────────────────

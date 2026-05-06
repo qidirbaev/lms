@@ -154,6 +154,10 @@
         <div class="sidebar-section">
           <div class="sidebar-section-label">Tizim</div>
 
+          <button class="nav-item" onclick="showPage('notifier')" id="nav-notifier">
+            <i data-lucide="bell-ring" class="nav-svg"></i><span>Notifier</span>
+          </button>
+
           <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
             <i data-lucide="list-check" class="nav-svg"></i><span>Loglar</span>
           </button>
@@ -1119,6 +1123,248 @@
             </div>
           </div>
 
+        </div>
+      </section>
+
+      <!-- Notifier -->
+      <section class="page notifier-page" id="page-notifier">
+        <div class="page-header notifier-hero">
+          <div>
+            <div class="eyebrow">ALERT ORCHESTRATION</div>
+            <h2>Notifier</h2>
+            <div class="subtitle">Critical feedback, emerging trends, system errors and integration incidents uchun real-time alert kanallari</div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn btn-secondary btn-sm" onclick="loadNotifierSettings()">
+              <i data-lucide="rotate-ccw"></i> Reload
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="sendNotifierTest()">
+              <i data-lucide="send"></i> Test Telegram
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="saveNotifierSettings()">
+              <i data-lucide="save"></i> Save
+            </button>
+          </div>
+        </div>
+
+        <div class="page-body notifier-body">
+          <div class="notifier-command-grid">
+            <div class="notifier-status-card">
+              <div class="notifier-orb">
+                <i data-lucide="radio-tower"></i>
+              </div>
+              <div>
+                <div class="eyebrow">REAL-TIME ALERT CENTER</div>
+                <h3>SentPro Event Notifier</h3>
+                <p>Feedback va tizim hodisalari yuz berganda mas’ul adminlarga avtomatik xabar yuboradi.</p>
+              </div>
+              <span id="notifier-live-badge" class="notifier-live-badge">
+                <span class="pulse-dot"></span>
+                Idle
+              </span>
+            </div>
+
+            <div class="notifier-mini-card">
+              <span>Active rules</span>
+              <b id="notifier-active-rules">0</b>
+            </div>
+
+            <div class="notifier-mini-card">
+              <span>Channel</span>
+              <b>Telegram</b>
+            </div>
+
+            <div class="notifier-mini-card">
+              <span>Sent today</span>
+              <b id="notifier-sent-count">0</b>
+            </div>
+          </div>
+
+          <div class="notifier-layout mt-3">
+            <main class="notifier-main">
+              <div class="grid-2 responsive-grid">
+                <div class="card notifier-panel">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Telegram Bot Channel</div>
+                      <div class="text-muted text-sm">Demo uchun real Telegram Bot API ishlatiladi.</div>
+                    </div>
+                    <span class="badge badge-positive">LIVE</span>
+                  </div>
+
+                  <div class="field">
+                    <label>Bot token</label>
+                    <input class="input" id="notify-bot-token" type="password" placeholder="123456:ABC-DEF..." />
+                    <div class="notifier-hint">Backend env <b>TELEGRAM_BOT_TOKEN</b> bo‘lsa, bu maydon bo‘sh qolishi mumkin.</div>
+                  </div>
+
+                  <div class="field">
+                    <label>Chat ID</label>
+                    <input class="input" id="notify-chat-id" placeholder="-1001234567890 yoki user chat id" />
+                  </div>
+
+                  <div class="field">
+                    <label>Alert prefix</label>
+                    <input class="input" id="notify-prefix" placeholder="SentPro Alert" />
+                  </div>
+
+                  <div class="action-row">
+                    <button class="btn btn-secondary btn-sm" onclick="sendNotifierTest()">
+                      <i data-lucide="send"></i> Send test
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="copyNotifierSetupGuide()">
+                      <i data-lucide="copy"></i> Setup guide
+                    </button>
+                  </div>
+                </div>
+
+                <div class="card notifier-panel">
+                  <div class="card-header">
+                    <div>
+                      <div class="card-title">Monitor Control</div>
+                      <div class="text-muted text-sm">Browser ochiq turganda hodisalarni tekshiradi va Telegramga yuboradi.</div>
+                    </div>
+                    <i data-lucide="activity" class="notifier-panel-icon"></i>
+                  </div>
+
+                  <div class="notifier-monitor-box">
+                    <div>
+                      <span>Monitor status</span>
+                      <b id="notifier-monitor-status">Stopped</b>
+                    </div>
+                    <div>
+                      <span>Check interval</span>
+                      <b><input id="notify-interval" class="notifier-inline-input" type="number" min="10" value="30" /> sec</b>
+                    </div>
+                  </div>
+
+                  <div class="action-row mt-3">
+                    <button class="btn btn-primary btn-sm" onclick="startNotifierMonitor()">
+                      <i data-lucide="play"></i> Start monitor
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="stopNotifierMonitor()">
+                      <i data-lucide="pause"></i> Stop
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="runNotifierCheckNow()">
+                      <i data-lucide="scan-line"></i> Check now
+                    </button>
+                  </div>
+
+                  <p class="text-muted text-sm mt-3">
+                    Production variantda bu monitoring backend scheduler orqali ishlaydi. Demo uchun frontend monitor yetarli.
+                  </p>
+                </div>
+              </div>
+
+              <div class="card notifier-panel mt-3">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Event Rules</div>
+                    <div class="text-muted text-sm">Feedback/system hodisalari qaysi holatda alert yuborishini tanlang.</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="enableRecommendedNotifierRules()">
+                    <i data-lucide="wand-sparkles"></i> Recommended
+                  </button>
+                </div>
+
+                <div class="notifier-rules-grid">
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-critical-feedback" />
+                    <div>
+                      <b>Critical feedback detected</b>
+                      <span>severity = critical yoki risk probability yuqori bo‘lsa</span>
+                    </div>
+                  </label>
+
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-admin-attention" />
+                    <div>
+                      <b>Admin attention required</b>
+                      <span>requires_admin_attention = true bo‘lgan feedback</span>
+                    </div>
+                  </label>
+
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-negative-trend" />
+                    <div>
+                      <b>Negative trend emerging</b>
+                      <span>negative feedback ulushi thresholddan oshsa</span>
+                    </div>
+                  </label>
+
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-system-error" />
+                    <div>
+                      <b>System error detected</b>
+                      <span>Loglarda ERROR darajali hodisa paydo bo‘lsa</span>
+                    </div>
+                  </label>
+
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-integration-failure" />
+                    <div>
+                      <b>Integration failure</b>
+                      <span>LMS/HEMIS/API token/ingestion muammosi aniqlansa</span>
+                    </div>
+                  </label>
+
+                  <label class="notifier-rule">
+                    <input type="checkbox" id="rule-batch-complete" />
+                    <div>
+                      <b>Batch completed</b>
+                      <span>Batch tahlil yakunlanganda management summary yuborish</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="notifier-thresholds mt-3">
+                  <div class="field">
+                    <label>Negative trend threshold: <b id="notify-negative-threshold-val">40%</b></label>
+                    <input id="notify-negative-threshold" class="settings-range" type="range" min="10" max="90" step="5" oninput="syncNotifierUI()" />
+                  </div>
+
+                  <div class="field">
+                    <label>Risk probability threshold: <b id="notify-risk-threshold-val">70%</b></label>
+                    <input id="notify-risk-threshold" class="settings-range" type="range" min="10" max="100" step="5" oninput="syncNotifierUI()" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card notifier-panel mt-3">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Notification Preview</div>
+                    <div class="text-muted text-sm">Telegramga ketadigan alert formati.</div>
+                  </div>
+                </div>
+
+                <pre id="notifier-preview" class="json-viewer"></pre>
+              </div>
+            </main>
+
+            <aside class="notifier-side">
+              <div class="card notifier-panel">
+                <div class="card-title">Coming Soon Channels</div>
+
+                <div class="notifier-channel-list">
+                  <div class="notifier-channel active"><i data-lucide="send"></i><span>Telegram Bot</span><b>Live</b></div>
+                  <div class="notifier-channel"><i data-lucide="mail"></i><span>Email</span><b>Soon</b></div>
+                  <div class="notifier-channel"><i data-lucide="message-square"></i><span>SMS</span><b>Soon</b></div>
+                  <div class="notifier-channel"><i data-lucide="phone-call"></i><span>Phone Call</span><b>Soon</b></div>
+                  <div class="notifier-channel"><i data-lucide="bell"></i><span>Push</span><b>Soon</b></div>
+                  <div class="notifier-channel"><i data-lucide="messages-square"></i><span>WhatsApp</span><b>Soon</b></div>
+                </div>
+              </div>
+
+              <div class="card notifier-panel mt-3">
+                <div class="card-title">Recent Notification Events</div>
+                <div id="notifier-history" class="notifier-history">
+                  <div class="text-muted text-sm">No notification sent yet.</div>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
       </section>
 
