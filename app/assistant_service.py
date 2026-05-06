@@ -2,6 +2,10 @@
 
 import json
 from typing import Any, Dict, List, Optional
+import os
+
+import tempfile
+from pathlib import Path
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -17,6 +21,20 @@ except Exception:
     genai = None
     types = None
 
+def ensure_google_credentials():
+    raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+
+    if not raw:
+        return
+
+    raw = raw.replace("\\n", "\n")
+
+    cred_path = Path(tempfile.gettempdir()) / "google-sa.json"
+
+    if not cred_path.exists():
+        cred_path.write_text(raw, encoding="utf-8")
+
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(cred_path)
 
 class AssistantMessage(BaseModel):
     role: str
@@ -50,6 +68,8 @@ def _client():
             status_code=500,
             detail="google-genai is not installed. Add google-genai to requirements.txt"
         )
+
+    ensure_google_credentials()
 
     return genai.Client(
         vertexai=True,
