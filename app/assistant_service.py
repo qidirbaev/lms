@@ -260,24 +260,27 @@ USER_MESSAGE:
         parsed = _safe_parse_json(raw)
 
         actions = []
+
         for a in parsed.get("actions", []) or []:
-            if isinstance(a, dict):
-                actions.append(AssistantAction(
-                    type=str(a.get("type", "")).strip(),
-                    target=a.get("target"),
-                    label=a.get("label"),
-                    payload=a.get("payload") or {}
-                ))
+            if not isinstance(a, dict):
+                continue
+
+            label = a.get("label")
+            if label:
+                label = sanitize_assistant_answer(str(label))
+
+            actions.append(AssistantAction(
+                type=str(a.get("type", "")).strip(),
+                target=a.get("target"),
+                label=label,
+                payload=a.get("payload") or {}
+            ))
 
         logger.info("assistant_chat_success", {
             "runtime": "sentopro-neural-v2",
             "message_length": len(message),
             "actions": [a.type for a in actions],
         })
-        
-        label = a.get("label")
-        if label:
-            label = sanitize_assistant_answer(str(label))
 
         return AssistantChatResponse(
             answer=sanitize_assistant_answer(str(parsed.get("answer") or "I could not generate an answer.")),
