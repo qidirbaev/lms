@@ -2477,38 +2477,148 @@ function chart(id, type, labels, data, label = '') {
   }
 
   const isDark = state.theme !== 'light';
-  const textColor = isDark ? '#d4d4d8' : '#27272a';
-  const gridColor = isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)';
+
+  const textColor = isDark ? '#a1a1aa' : '#52525b';
+  const strongText = isDark ? '#fafafa' : '#09090b';
+  const gridColor = isDark ? 'rgba(255,255,255,.055)' : 'rgba(0,0,0,.055)';
+  const borderColor = isDark ? 'rgba(255,255,255,.10)' : 'rgba(0,0,0,.10)';
+
+  const css = getComputedStyle(document.documentElement);
+  const palette = [
+    css.getPropertyValue('--pos').trim() || '#22c55e',
+    css.getPropertyValue('--neu').trim() || '#a1a1aa',
+    css.getPropertyValue('--neg').trim() || '#ef4444',
+    css.getPropertyValue('--info').trim() || '#3b82f6',
+    css.getPropertyValue('--warn').trim() || '#f59e0b',
+    css.getPropertyValue('--high').trim() || '#f97316'
+  ];
+
+  const cleanLabels = labels?.length ? labels : ['No data'];
+  const cleanData = data?.length ? data : [0];
+
+  const isDoughnut = type === 'doughnut';
+  const isLine = type === 'line';
+  const isBar = type === 'bar';
 
   el.removeAttribute('height');
   el.removeAttribute('width');
-  el.style.height = '170px';
-  el.style.maxHeight = '170px';
   el.style.width = '100%';
+  el.style.height = '100%';
 
   state.charts[id] = new Chart(el, {
     type,
     data: {
-      labels,
+      labels: cleanLabels,
       datasets: [{
         label,
-        data,
-        borderWidth: 1
+        data: cleanData,
+
+        backgroundColor: isLine
+          ? 'rgba(255,255,255,.055)'
+          : cleanLabels.map((_, i) => palette[i % palette.length]),
+
+        borderColor: isLine
+          ? strongText
+          : cleanLabels.map((_, i) => palette[i % palette.length]),
+
+        borderWidth: isLine ? 2 : 0,
+        borderRadius: isBar ? 7 : 0,
+        borderSkipped: false,
+
+        tension: isLine ? 0.18 : 0,
+        pointRadius: isLine ? 2.5 : 0,
+        pointHoverRadius: isLine ? 4 : 0,
+        pointBackgroundColor: strongText,
+        pointBorderColor: isDark ? '#09090b' : '#ffffff',
+        pointBorderWidth: 2,
+
+        cutout: isDoughnut ? '72%' : undefined,
+        hoverOffset: isDoughnut ? 3 : 0
       }]
     },
+
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      resizeDelay: 200,
+      resizeDelay: 120,
       animation: false,
-      plugins: {
-        legend: { labels: { color: textColor } }
+
+      layout: {
+        padding: isDoughnut
+          ? { top: 4, right: 4, bottom: 4, left: 4 }
+          : { top: 8, right: 8, bottom: 0, left: 0 }
       },
-      scales: type === 'doughnut'
+
+      plugins: {
+        legend: {
+          display: isDoughnut,
+          position: 'bottom',
+          labels: {
+            color: textColor,
+            boxWidth: 8,
+            boxHeight: 8,
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 14,
+            font: {
+              size: 11,
+              weight: '700'
+            }
+          }
+        },
+
+        tooltip: {
+          enabled: true,
+          displayColors: false,
+          backgroundColor: isDark ? '#18181b' : '#ffffff',
+          titleColor: strongText,
+          bodyColor: textColor,
+          borderColor,
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 10,
+          titleFont: { size: 12, weight: '800' },
+          bodyFont: { size: 11, weight: '650' },
+          callbacks: {
+            title: items => items?.[0]?.label || '',
+            label: ctx => `${label || 'Value'}: ${ctx.formattedValue}`
+          }
+        }
+      },
+
+      scales: isDoughnut
         ? {}
         : {
-            x: { ticks: { color: textColor }, grid: { color: gridColor } },
-            y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
+            x: {
+              border: { display: false },
+              grid: { display: false },
+              ticks: {
+                color: textColor,
+                maxRotation: 0,
+                autoSkip: true,
+                font: {
+                  size: 10,
+                  weight: '700'
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              border: { display: false },
+              grid: {
+                color: gridColor,
+                drawTicks: false
+              },
+              ticks: {
+                color: textColor,
+                padding: 8,
+                maxTicksLimit: 4,
+                font: {
+                  size: 10,
+                  weight: '700'
+                }
+              }
+            }
           }
     }
   });
@@ -2548,9 +2658,22 @@ function drawCharts() {
   const trendValues = tr.map(x =>
     x.avg_sentiment ?? ((x.positive || 0) + (x.neutral || 0) * 0.5) / Math.max(1, x.total || 1)
   );
+  
+  chart(
+    'chart-trend',
+    'line',
+    trendLabels,
+    trendValues.map(v => Math.round(Number(v || 0) * 100)),
+    'Sentiment %'
+  );
 
-  chart('chart-trend', 'line', trendLabels, trendValues, t('sentiment_over_time'));
-  chart('chart-mood-trend', 'line', trendLabels, trendValues, t('mood_trend'));
+  chart(
+    'chart-mood-trend',
+    'line',
+    trendLabels,
+    trendValues.map(v => Math.round(Number(v || 0) * 100)),
+    'Mood %'
+  );
 }
 
 function redrawVisibleCharts() {
@@ -4159,8 +4282,7 @@ async function runIntegrationTest() {
 // Platform Settings / Prompt Studio
 // ─────────────────────────────────────────────────────────────
 
-const DEFAULT_SYSTEM_PROMPT = `You are SentPro, a custom LMS feedback intelligence engine.
-
+const DEFAULT_SYSTEM_PROMPT = `
 Return ONLY valid JSON.
 Do not use markdown.
 Do not add explanations outside JSON.

@@ -845,28 +845,48 @@ tbody tr:hover {
   background: transparent;
 }
 
-/* ── Charts: hard height lock ──────────────────────────────── */
+/* ── Charts: compact shadcn analytics style ───────────────── */
 
-.chart-card {
-  /* height: 240px !important; */
-  height: auto !important;
-  min-height: 280px;
-  padding: 16px;
-  /* min-height: 240px !important; */
-  max-height: 240px !important;
-  overflow: hidden !important;
+.chart-card,
+.trend-main-chart,
+.overview-chart-card {
+  min-height: 260px !important;
+  max-height: none !important;
+  padding: .95rem;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--text) 4%, transparent), transparent 30%),
+    var(--surface);
+}
+
+.chart-card .card-header,
+.trend-main-chart .card-header,
+.overview-chart-card .card-header {
+  margin-bottom: .55rem;
 }
 
 .chart-box,
 .chart-container {
   position: relative !important;
   flex: 1 1 auto !important;
-  height: 170px !important;
-  min-height: 170px !important;
-  max-height: 170px !important;
+  height: 190px !important;
+  min-height: 190px !important;
+  max-height: 190px !important;
   overflow: hidden !important;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--text) 3%, transparent), transparent),
+    var(--bg-2);
+  padding: .55rem;
+}
+
+.trend-chart-box {
+  height: 230px !important;
+  min-height: 230px !important;
+  max-height: 230px !important;
 }
 
 .chart-box canvas,
@@ -874,8 +894,14 @@ tbody tr:hover {
 .chart-card canvas {
   display: block !important;
   width: 100% !important;
-  height: 170px !important;
-  max-height: 170px !important;
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+.chart-card:hover,
+.trend-main-chart:hover,
+.overview-chart-card:hover {
+  border-color: var(--border-strong);
 }
 
 /* ── JSON / logs / stats ───────────────────────────────────── */
@@ -7137,4 +7163,42 @@ body.is-loading::after {
     grid-column: 1 / -1;
     justify-self: start;
   }
+}
+
+/* ── Compact visual elements alignment ────────────────────── */
+
+.overview-chart-grid,
+.trend-dashboard-grid {
+  gap: .85rem;
+}
+
+.overview-chart-grid .card,
+.trend-dashboard-grid .card {
+  border-radius: 14px;
+}
+
+.overview-dist-row,
+.stat-row {
+  min-height: 34px;
+  padding: .45rem 0;
+}
+
+.badge {
+  border-radius: 8px;
+  padding: .18rem .48rem;
+}
+
+.kpi-card {
+  min-height: 104px;
+  height: auto;
+  border-radius: 14px;
+  padding: .9rem;
+}
+
+.kpi-val {
+  font-size: 24px;
+}
+
+.kpi-label {
+  font-size: .64rem;
 }
