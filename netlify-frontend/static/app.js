@@ -690,18 +690,165 @@ function setLanguage(lang) {
   if (state.currentPage === 'logs') loadLogs();
 }
 
-function toast(msg, type = 'info') {
+const toastState = {
+  items: new Map(),
+  maxVisible: 4
+};
+
+function toast(message, type = 'info', options = {}) {
   const box = $('toast-container');
-  if (!box) return;
+  if (!box) return null;
+
+  const normalizedType = {
+    success: 'success',
+    error: 'error',
+    warn: 'warn',
+    warning: 'warn',
+    info: 'info'
+  }[type] || 'info';
+
+  const titleMap = {
+    success: 'Success',
+    error: 'Error',
+    warn: 'Warning',
+    info: 'System notice'
+  };
+
+  const iconMap = {
+    success: 'check-circle-2',
+    error: 'x-circle',
+    warn: 'triangle-alert',
+    info: 'info'
+  };
+
+  const title = options.title || titleMap[normalizedType];
+  const duration = Number(options.duration ?? 4200);
+  const id = options.id || `${normalizedType}:${message}`;
+
+  const existing = toastState.items.get(id);
+  if (existing) {
+    existing.count += 1;
+    existing.countEl.textContent = existing.count;
+    existing.el.classList.add('has-count');
+
+    existing.textEl.textContent = message;
+    existing.metaEl.textContent = `Updated · ${new Date().toLocaleTimeString()}`;
+
+    clearTimeout(existing.timer);
+    existing.timer = setTimeout(() => dismissToast(id), duration);
+
+    const bar = existing.el.querySelector('.toast-progress');
+    if (bar) {
+      bar.style.animation = 'none';
+      bar.offsetHeight;
+      bar.style.animation = '';
+      bar.style.animationDuration = `${duration}ms`;
+    }
+
+    return existing.el;
+  }
 
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
+  el.className = `toast ${normalizedType}`;
+  el.dataset.toastId = id;
+  el.style.setProperty('--toast-duration', `${duration}ms`);
+
+  const actions = Array.isArray(options.actions) ? options.actions : [];
+
   el.innerHTML = `
-    <span class="toast-mark"></span>
-    <span class="toast-text">${esc(msg)}</span>
+    <div class="toast-icon">
+      <i data-lucide="${iconMap[normalizedType]}"></i>
+    </div>
+
+    <div class="toast-content">
+      <div class="toast-title-row">
+        <div class="toast-title">${esc(title)}</div>
+        <div class="toast-count">1</div>
+      </div>
+
+      <div class="toast-text">${esc(message)}</div>
+      <div class="toast-meta">${esc(new Date().toLocaleTimeString())}</div>
+
+      ${
+        actions.length
+          ? `<div class="toast-actions">
+              ${actions.map((a, i) => `
+                <button class="toast-action" data-action-index="${i}">
+                  ${esc(a.label || 'Action')}
+                </button>
+              `).join('')}
+            </div>`
+          : ''
+      }
+    </div>
+
+    <button class="toast-close" type="button" title="Dismiss">
+      <i data-lucide="x"></i>
+    </button>
+
+    <div class="toast-progress"></div>
   `;
-  box.appendChild(el);
-  setTimeout(() => el.remove(), 3200);
+
+  box.prepend(el);
+
+  const item = {
+    el,
+    count: 1,
+    countEl: el.querySelector('.toast-count'),
+    textEl: el.querySelector('.toast-text'),
+    metaEl: el.querySelector('.toast-meta'),
+    timer: null
+  };
+
+  toastState.items.set(id, item);
+
+  el.querySelector('.toast-close')?.addEventListener('click', () => dismissToast(id));
+
+  el.querySelectorAll('.toast-action').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const index = Number(btn.dataset.actionIndex);
+      const action = actions[index];
+      if (typeof action?.onClick === 'function') action.onClick();
+      if (action?.dismiss !== false) dismissToast(id);
+    });
+  });
+
+  el.addEventListener('mouseenter', () => {
+    clearTimeout(item.timer);
+  });
+
+  el.addEventListener('mouseleave', () => {
+    item.timer = setTimeout(() => dismissToast(id), Math.max(1200, duration / 2));
+  });
+
+  item.timer = setTimeout(() => dismissToast(id), duration);
+
+  while (box.children.length > toastState.maxVisible) {
+    const last = box.lastElementChild;
+    if (last?.dataset.toastId) dismissToast(last.dataset.toastId);
+    else last?.remove();
+  }
+
+  renderIcons();
+  return el;
+}
+
+function dismissToast(id) {
+  const item = toastState.items.get(id);
+  if (!item) return;
+
+  clearTimeout(item.timer);
+  item.el.classList.add('removing');
+
+  setTimeout(() => {
+    item.el.remove();
+    toastState.items.delete(id);
+  }, 190);
+}
+
+function clearToasts() {
+  [...toastState.items.keys()].forEach(dismissToast);
 }
 
 function badge(v) {
