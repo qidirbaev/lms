@@ -1022,10 +1022,13 @@ async function doLogin() {
 function doLogout() {
   localStorage.removeItem('lms_token');
   state.token = '';
+  document.body.classList.remove('authenticated');
   location.reload();
 }
 
 function showApp() {
+  document.body.classList.add('authenticated');
+
   applyTheme();
   applyStaticTranslations();
 
@@ -5131,8 +5134,17 @@ async function buildSPilotContext() {
   return {
     current_page: state.currentPage,
     local_time: new Date().toLocaleString(),
-    runtime: typeof SENTPRO_RUNTIME !== 'undefined' ? SENTPRO_RUNTIME : {},
-    health,
+    runtime: {
+      name: 'SentoPro Runtime',
+      model: 'SentoPro Neural v2.7.1',
+      role: 'institutional feedback intelligence engine'
+    },
+    health: health ? {
+      status: health.status || 'online',
+      processed_count: health.processed_count ?? health.count ?? null,
+      runtime: 'SentoPro Runtime',
+      model: 'SentoPro Neural v2.7.1',
+    } : null,
     dashboard: state.dashboard,
     records: {
       total_loaded: records.length,
