@@ -19,6 +19,7 @@ from . import auth_service
 from . import dashboard_service
 from . import simulation_service
 from . import integration_service
+from . import batch_job_service
 from .ai_service import analyze_feedback, analyze_feedback_batch
 from .models import (
     LoginRequest, AnalyzeFileItemRequest, ProcessBatchRequest,
@@ -36,6 +37,7 @@ from typing import Optional, Dict, Any
 # ─── Init ────────────────────────────────────────────────────────────────────
 logger.init()
 data_service.init()
+batch_job_service.init()
 logger.info("config_loaded", {
     "ai_provider": config.AI_PROVIDER,
     "concurrency": config.BATCH_CONCURRENCY,
@@ -632,150 +634,75 @@ def analyze_file_item(req: AnalyzeFileItemRequest, authorization: str = Header(d
         "dashboard": dashboard_service.get_full_dashboard(),
     }
 
-
 @app.post("/process-batch")
 async def process_batch(req: ProcessBatchRequest, authorization: str = Header(default=None)):
     require_auth(authorization)
 
     try:
-        data = data_service.load_source_file(req.source)
+        job = batch_job_service.create_job(
+            source=req.source,
+            limit=req.limit,
+            batch_size=req.batch_size,
+            use_batch_ai=req.use_batch_ai,
+        )
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    items = data[:req.limit]
-    total = len(items)
+    return {
+        "success": True,
+        "mode": "background_job",
+        "job": job,
+    }
 
-    batch_size = int(req.batch_size or getattr(config, "AI_BATCH_SIZE", 8))
-    batch_size = max(1, min(batch_size, int(getattr(config, "AI_BATCH_MAX_SIZE", 10))))
+@app.get("/batch-jobs")
+def list_batch_jobs(authorization: str = Header(default=None)):
+    require_auth(authorization)
+    return {
+        "jobs": batch_job_service.list_jobs(limit=20)
+    }
 
-    logger.info("batch_started", {
-        "source": req.source,
-        "total": total,
-        "batch_size": batch_size,
-        "use_batch_ai": req.use_batch_ai,
-    })
 
-    start_time = time.time()
-    success_count = 0
-    failed_count = 0
-    fallback_count = 0
-    chunks_total = 0
-    vertex_calls_estimated = 0
-    failed_items = []
+@app.get("/batch-jobs/{job_id}")
+def get_batch_job(job_id: str, authorization: str = Header(default=None)):
+    require_auth(authorization)
 
-    def chunks(arr, size):
-        for i in range(0, len(arr), size):
-            yield i, arr[i:i + size]
+    job = batch_job_service.get_job(job_id)
 
-    for start_idx, chunk in chunks(items, batch_size):
-        chunks_total += 1
-
-        try:
-            if req.use_batch_ai and len(chunk) > 1:
-                vertex_calls_estimated += 1
-                analyses = await asyncio.to_thread(analyze_feedback_batch, chunk)
-
-                if len(analyses) != len(chunk):
-                    raise RuntimeError(
-                        f"Batch output count mismatch: expected {len(chunk)}, got {len(analyses)}"
-                    )
-
-                for offset, analysis in enumerate(analyses):
-                    item = chunk[offset]
-                    feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
-                    data_service.upsert_result(feedback_id, item, analysis)
-
-                    if analysis.get("used_fallback"):
-                        fallback_count += 1
-
-                    success_count += 1
-
-            else:
-                for offset, item in enumerate(chunk):
-                    feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
-
-                    try:
-                        analysis = await asyncio.to_thread(analyze_feedback, item)
-                        data_service.upsert_result(feedback_id, item, analysis)
-
-                        if analysis.get("used_fallback"):
-                            fallback_count += 1
-
-                        success_count += 1
-                    except Exception as item_error:
-                        failed_count += 1
-                        failed_items.append({
-                            "feedback_id": feedback_id,
-                            "index": start_idx + offset,
-                            "error": str(item_error),
-                        })
-                        logger.error("batch_item_failed", {
-                            "feedback_id": feedback_id,
-                            "error": str(item_error),
-                        })
-
-        except Exception as chunk_error:
-            logger.warn("batch_chunk_failed_split_to_single", {
-                "start_index": start_idx,
-                "chunk_size": len(chunk),
-                "error": str(chunk_error),
-            })
-
-            # Important fallback: if one batch response is malformed,
-            # split the chunk into single item calls instead of losing all 8.
-            for offset, item in enumerate(chunk):
-                feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
-
-                try:
-                    analysis = await asyncio.to_thread(analyze_feedback, item)
-                    data_service.upsert_result(feedback_id, item, analysis)
-
-                    if analysis.get("used_fallback"):
-                        fallback_count += 1
-
-                    success_count += 1
-                except Exception as item_error:
-                    failed_count += 1
-                    failed_items.append({
-                        "feedback_id": feedback_id,
-                        "index": start_idx + offset,
-                        "error": str(item_error),
-                    })
-                    logger.error("batch_item_failed_after_split", {
-                        "feedback_id": feedback_id,
-                        "error": str(item_error),
-                    })
-
-    duration = round(time.time() - start_time, 2)
-    throughput = round(success_count / duration, 2) if duration else success_count
-
-    logger.info("batch_completed", {
-        "source": req.source,
-        "total": total,
-        "success": success_count,
-        "failed": failed_count,
-        "fallback": fallback_count,
-        "duration_s": duration,
-        "batch_size": batch_size,
-        "chunks_total": chunks_total,
-        "vertex_calls_estimated": vertex_calls_estimated,
-    })
+    if not job:
+        raise HTTPException(status_code=404, detail="Batch job not found")
 
     return {
-        "source": req.source,
-        "total_requested": total,
-        "success": success_count,
-        "failed": failed_count,
-        "fallback_used": fallback_count,
-        "duration_seconds": duration,
-        "throughput_items_per_second": throughput,
-        "batch_size": batch_size,
-        "chunks_total": chunks_total,
-        "vertex_calls_estimated": vertex_calls_estimated,
-        "old_vertex_calls_estimated": total,
-        "vertex_call_reduction": max(0, total - vertex_calls_estimated),
-        "failed_items": failed_items[:30],
-        "dashboard": dashboard_service.get_full_dashboard(),
+        "job": job
+    }
+
+
+@app.post("/batch-jobs/{job_id}/cancel")
+def cancel_batch_job(job_id: str, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    job = batch_job_service.cancel_job(job_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Batch job not found")
+
+    return {
+        "success": True,
+        "job": job,
+    }
+
+
+@app.get("/batch-jobs/{job_id}/dashboard")
+def get_batch_job_dashboard(job_id: str, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    job = batch_job_service.get_job(job_id)
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Batch job not found")
+
+    return {
+        "job": job,
+        "dashboard": batch_job_service.job_dashboard(),
     }
 
 @app.post("/analyze-custom")

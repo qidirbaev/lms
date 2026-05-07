@@ -251,9 +251,18 @@ def save_uploaded_source(items: list, filename: str = "uploaded.json") -> dict:
     errors = []
     warnings = []
 
+    upload_id = uuid.uuid4().hex[:8]
+
     for idx, item in enumerate(items):
         try:
             mapped, item_warnings = normalize_uploaded_feedback(item, idx)
+
+            original_id = mapped.get("feedback_id")
+            mapped["feedback_id"] = f"upload-{upload_id}-{idx + 1:05d}"
+
+            mapped.setdefault("mapping_audit", {})
+            mapped["mapping_audit"]["upload_id"] = upload_id
+            mapped["mapping_audit"]["original_feedback_id"] = original_id
             normalized.append(mapped)
             warnings.extend([{"index": idx, "warning": w} for w in item_warnings])
         except Exception as e:

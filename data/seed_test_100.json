@@ -1,0 +1,2440 @@
+[
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01454",
+    "content": {
+      "raw_text": "Нагрузка конечно катта, лекин domla hammasini tushuntirib beryapti. Это darslar uchun minnatdorman.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-09-24T12:29:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "IT-202",
+      "teacher_id": "T-09",
+      "teacher_fullname": "Mirzayeva Feruza",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "IT-24-02",
+        "department_name": "Information Technologies",
+        "course_points": 96,
+        "gpa": 4.1,
+        "course_attendance_rate": 0.99
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Linux Systems",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 4,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_heavy",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01455",
+    "content": {
+      "raw_text": "Topshiriqlar hajmi biroz ko'payib ketdi, lekin mavzularni tushunishga yordam beryapti. Yana ham ixchamroq qilsa yaxshi bo'lardi.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-09-11T17:11:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "CS-201",
+      "teacher_id": "T-02",
+      "teacher_fullname": "Abdullayev Sherzod",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "CS-24-04",
+        "department_name": "Computer Science",
+        "course_points": 70,
+        "gpa": 3.3,
+        "course_attendance_rate": 0.65
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Algorithms & Data Structures",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-CS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "workload",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01456",
+    "content": {
+      "raw_text": "Amaliyotlar qiziqarli o'tyapti, lekin ba'zida topshiriqlar juda murakkab tuyulyapti. Domla tushuntirishni sal soddalashtirsa bo'lardi.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-02-09T22:04:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IT-101",
+      "teacher_id": "T-08",
+      "teacher_fullname": "Hamidov Sardor",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "IT-24-02",
+        "department_name": "Information Technologies",
+        "course_points": 77,
+        "gpa": 3.2,
+        "course_attendance_rate": 0.62
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "IT Fundamentals",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 1,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "useful_practicals",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01457",
+    "content": {
+      "raw_text": "Darsda amaliy mashqlar ko'p, bu juda yaxshi. Biroq ba'zi mavzular bo'yicha qo'shimcha tushuntirish kerak.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-09-07T15:58:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "DS-201",
+      "teacher_id": "T-11",
+      "teacher_fullname": "Tursunova Malika",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "DS-24-02",
+        "department_name": "Data Science",
+        "course_points": 72,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.65
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Data Analysis",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-DS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "useful_practicals",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01458",
+    "content": {
+      "raw_text": "Domla, topshiriqlar juda qiyin va prosta ulgurmayapmiz. Bu kursdagi yuklama bo'yicha qayta o'ylab ko'rsangiz yaxshi bo'lardi.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2024-09-08T22:46:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "IT-101",
+      "teacher_id": "T-09",
+      "teacher_fullname": "Mirzayeva Feruza",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "IT-24-02",
+        "department_name": "Information Technologies",
+        "course_points": 88,
+        "gpa": 4.5,
+        "course_attendance_rate": 0.95
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "IT Fundamentals",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 4,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": true
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01459",
+    "content": {
+      "raw_text": "Ishlar juda ko'p, prosta ulgurish qiyin bo'lyapti. Kurs bo'yicha fikrim shunaqa.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-02-24T15:48:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IS-401",
+      "teacher_id": "T-06",
+      "teacher_fullname": "Umarova Shahlo",
+      "student_context": {
+        "year": 3,
+        "gender": "female",
+        "group_id": "IS-23-04",
+        "department_name": "Information Systems",
+        "course_points": 71,
+        "gpa": 3.2,
+        "course_attendance_rate": 0.71
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Information Security",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01460",
+    "content": {
+      "raw_text": "Amaliyotlar zo'r, lekin topwiriqlar juda qiyin. Prosta hammasini birdaniga qilish qiyin bo'lyapti.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-15T17:40:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "CS-202",
+      "teacher_id": "T-02",
+      "teacher_fullname": "Abdullayev Sherzod",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "CS-25-05",
+        "department_name": "Computer Science",
+        "course_points": 68,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.73
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Computer Architecture",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-CS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "useful_practicals",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": true,
+        "vague": false,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01461",
+    "content": {
+      "raw_text": "Topwiriqlar juda qiyin, umuman tushunmadim. Domla prosta qiyin narsalarni beryapti.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2024-02-08T20:11:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "CN-402",
+      "teacher_id": "T-13",
+      "teacher_fullname": "Toshmatov Jasur",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "CN-22-04",
+        "department_name": "Computer Networks",
+        "course_points": 31,
+        "gpa": 2.8,
+        "course_attendance_rate": 0.58
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "SDN",
+        "course_level": "graduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-CN"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "medium",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01462",
+    "content": {
+      "raw_text": "Ustoz har doim savollarimizga tez javob beradi. Portalda ham dars materiallari doim joyida, umuman universitet tizimi bo'yicha hammasi yaxshi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-02-23T09:54:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "IS-401",
+      "teacher_id": "T-07",
+      "teacher_fullname": "Xasanova Zulfiya",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "IS-23-05",
+        "department_name": "Information Systems",
+        "course_points": 85,
+        "gpa": 4.7,
+        "course_attendance_rate": 0.96
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Information Security",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 21,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "teacher_responsiveness",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": true,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01463",
+    "content": {
+      "raw_text": "Domlaning style-i умуман ёкмади, darsni zerikarli o'tyapti. Капец просто, hamma narsani tushunish qiyin.",
+      "rating": 1
+    },
+    "metadata": {
+      "timestamp": "2024-09-08T20:51:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "CS-202",
+      "teacher_id": "T-01",
+      "teacher_fullname": "Yunusova Barno",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "CS-25-04",
+        "department_name": "Computer Science",
+        "course_points": 28,
+        "gpa": 2.5,
+        "course_attendance_rate": 0.5
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Computer Architecture",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-CS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "teacher_style",
+      "lang_profile": "uz_ru_heavy",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01464",
+    "content": {
+      "raw_text": "Darslar prosta zo'r, lekin ba'zida juda sekin o'tyapti. Domla tezroq mavzularga o'tsa yanada a'lo bo'lardi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-09-14T14:59:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "AM-101",
+      "teacher_id": "T-20",
+      "teacher_fullname": "Yusupov Bobur",
+      "student_context": {
+        "year": 5,
+        "gender": "male",
+        "group_id": "AM-21-02",
+        "department_name": "Applied Mathematics",
+        "course_points": 87,
+        "gpa": 4.3,
+        "course_attendance_rate": 0.81
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Calculus I",
+        "course_level": "graduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 6,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "pace_too_slow",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01465",
+    "content": {
+      "raw_text": "Topshiriqlar hajmi o'rtacha, lekin prosta ba'zida qiyinroq tuyulyapti. Domla bilan ishlash normmi.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-02-19T22:10:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "AM-301",
+      "teacher_id": "T-19",
+      "teacher_fullname": "Iskandarova Sayyora",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "AM-23-05",
+        "department_name": "Applied Mathematics",
+        "course_points": 75,
+        "gpa": 3.3,
+        "course_attendance_rate": 0.69
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Probability Theory",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 8,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01466",
+    "content": {
+      "raw_text": "Domlaning dars o'tish uslubi prosta ajoyib. Har doim qiziqarli va tushunarli tushuntiradi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-02-24T08:14:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "AI-201",
+      "teacher_id": "T-16",
+      "teacher_fullname": "Ravshanov Akbar",
+      "student_context": {
+        "year": 1,
+        "gender": "female",
+        "group_id": "AI-25-04",
+        "department_name": "Artificial Intelligence",
+        "course_points": 84,
+        "gpa": 4.4,
+        "course_attendance_rate": 0.93
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Intro to AI",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 14,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "teacher_style",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01467",
+    "content": {
+      "raw_text": "Materiallar juda sifatli va qiziqarli. Hammasi yaxshi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-02-27T17:29:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "IT-401",
+      "teacher_id": "T-09",
+      "teacher_fullname": "Mirzayeva Feruza",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "IT-22-04",
+        "department_name": "Information Technologies",
+        "course_points": 99,
+        "gpa": 4.1,
+        "course_attendance_rate": 0.83
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "IT Service Management",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 4,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "materials_quality",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01468",
+    "content": {
+      "raw_text": "Nazariya juda ko'p, biroz zerikarli bo'lib qolyapti. Yana nimalardir qo'shish kerak.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-09-21T10:35:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "IT-202",
+      "teacher_id": "T-10",
+      "teacher_fullname": "Salimov Doniyor",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "IT-23-01",
+        "department_name": "Information Technologies",
+        "course_points": 98,
+        "gpa": 4.7,
+        "course_attendance_rate": 0.96
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Linux Systems",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "too_much_theory",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01469",
+    "content": {
+      "raw_text": "Topwiriqlar juda qiyin, lekin qiziqarli. Prosta zo'r.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2025-02-03T15:24:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "AM-101",
+      "teacher_id": "T-19",
+      "teacher_fullname": "Iskandarova Sayyora",
+      "student_context": {
+        "year": 3,
+        "gender": "female",
+        "group_id": "AM-23-01",
+        "department_name": "Applied Mathematics",
+        "course_points": 89,
+        "gpa": 4.5,
+        "course_attendance_rate": 0.93
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Calculus I",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 8,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01470",
+    "content": {
+      "raw_text": "Нагрузка juda катта, domla prosta o'quvchilarni o'ylamayapti. Hamma topshiriqlarni bir vaqtda topshirish qiyin.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-06T14:01:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "IS-201",
+      "teacher_id": "T-07",
+      "teacher_fullname": "Xasanova Zulfiya",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "IS-24-02",
+        "department_name": "Information Systems",
+        "course_points": 72,
+        "gpa": 3.3,
+        "course_attendance_rate": 0.64
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Database Management",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 21,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_heavy",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01471",
+    "content": {
+      "raw_text": "Domla savollarga tez javob beradi, bu prosta zo'r. Lekin ba'zi darslarda tushuntirish biroz noaniq bo'lib qolyapti.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-02-02T12:06:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IT-401",
+      "teacher_id": "T-08",
+      "teacher_fullname": "Hamidov Sardor",
+      "student_context": {
+        "year": 4,
+        "gender": "female",
+        "group_id": "IT-22-01",
+        "department_name": "Information Technologies",
+        "course_points": 72,
+        "gpa": 3.5,
+        "course_attendance_rate": 0.68
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "IT Service Management",
+        "course_level": "graduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 1,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "teacher_responsiveness",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": true,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01472",
+    "content": {
+      "raw_text": "Materiallar sifati normalniy, lekin prosta ba'zi mavzular eskirib qolgan. Yangiroq ma'lumotlar qo'shilsa yaxshi bo'lardi.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-02-23T12:18:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IT-202",
+      "teacher_id": "T-09",
+      "teacher_fullname": "Mirzayeva Feruza",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "IT-24-01",
+        "department_name": "Information Technologies",
+        "course_points": 63,
+        "gpa": 3.1,
+        "course_attendance_rate": 0.74
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Linux Systems",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 4,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "materials_quality",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01473",
+    "content": {
+      "raw_text": "Topshiriqlar juda qiyin va tushunarsiz. Prosta qila olmayapmiz.",
+      "rating": 1
+    },
+    "metadata": {
+      "timestamp": "2025-02-14T13:28:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IS-101",
+      "teacher_id": "T-07",
+      "teacher_fullname": "Xasanova Zulfiya",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "IS-25-04",
+        "department_name": "Information Systems",
+        "course_points": 21,
+        "gpa": 2.4,
+        "course_attendance_rate": 0.44
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Intro to IS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 21,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01474",
+    "content": {
+      "raw_text": "Darsdagi topshiriqlar juda qiyin. Prosta tushunishning iloji yo'q.",
+      "rating": 1
+    },
+    "metadata": {
+      "timestamp": "2024-02-16T11:29:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "SE-201",
+      "teacher_id": "T-03",
+      "teacher_fullname": "Baxromov Ibrohim",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "SE-23-05",
+        "department_name": "Software Engineering",
+        "course_points": 50,
+        "gpa": 2.2,
+        "course_attendance_rate": 0.39
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Software Engineering",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-SE"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01475",
+    "content": {
+      "raw_text": "Domlaning uslubi prosta zo'r, lekin ba'zida darslar juda tez o'tib ketyapti. Biroq baribir qiziqarli.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-02-13T17:17:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "AI-301",
+      "teacher_id": "T-16",
+      "teacher_fullname": "Ravshanov Akbar",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "AI-24-02",
+        "department_name": "Artificial Intelligence",
+        "course_points": 70,
+        "gpa": 3.0,
+        "course_attendance_rate": 0.71
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "NLP",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 14,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "teacher_style",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": true,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01476",
+    "content": {
+      "raw_text": "Amaliy mashg'ulotlar foydali, lekin prosta vaqt kamlik qilyapti. Domla bilan ishlash normalniy.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-09-10T17:03:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "AI-301",
+      "teacher_id": "T-17",
+      "teacher_fullname": "Xolmatov Ulugbek",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "AI-24-03",
+        "department_name": "Artificial Intelligence",
+        "course_points": 76,
+        "gpa": 3.0,
+        "course_attendance_rate": 0.75
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "NLP",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 16,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "useful_practicals",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01477",
+    "content": {
+      "raw_text": "Darslar juda qiziqarli, lekin pace juda tez. LMS'dagi deadline-lar bilan ishlash prosta qiyin bo'lyapti.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-09-20T11:39:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "DS-202",
+      "teacher_id": "T-12",
+      "teacher_fullname": "Qodirov Zafar",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "DS-24-03",
+        "department_name": "Data Science",
+        "course_points": 93,
+        "gpa": 4.7,
+        "course_attendance_rate": 0.9
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Statistics for DS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 22,
+        "teacher_department_id": "DEP-DS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "pace_too_fast",
+      "lang_profile": "uz_ru_en_mixed",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01478",
+    "content": {
+      "raw_text": "Ishlar hajmi katta, prosta ulgurish qiyin. Yana qandaydir yengillik kerak.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-19T18:43:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "AI-301",
+      "teacher_id": "T-16",
+      "teacher_fullname": "Ravshanov Akbar",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "AI-22-05",
+        "department_name": "Artificial Intelligence",
+        "course_points": 79,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.78
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "NLP",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 14,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "high",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01479",
+    "content": {
+      "raw_text": "Topshiriqlar juda ko'p, prosta ulgurmayapmiz. Domla buni tushunishi kerak.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2025-09-14T09:25:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "IS-301",
+      "teacher_id": "T-07",
+      "teacher_fullname": "Xasanova Zulfiya",
+      "student_context": {
+        "year": 5,
+        "gender": "male",
+        "group_id": "IS-21-02",
+        "department_name": "Information Systems",
+        "course_points": 45,
+        "gpa": 2.3,
+        "course_attendance_rate": 0.46
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Enterprise Systems",
+        "course_level": "graduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 21,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "workload",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01480",
+    "content": {
+      "raw_text": "Platforma ishlashi prosta zo'r, hech qanday muammo yo'q. Domla ham hamma narsani o'z vaqtida yuklaydi.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-09-13T12:17:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "AI-201",
+      "teacher_id": "T-15",
+      "teacher_fullname": "Raximova Nilufar",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "AI-25-03",
+        "department_name": "Artificial Intelligence",
+        "course_points": 99,
+        "gpa": 4.1,
+        "course_attendance_rate": 0.94
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Intro to AI",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 16,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "platform_admin",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01481",
+    "content": {
+      "raw_text": "Darslar juda tez o'tyapti, hech narsaga ulgurmayapman. Biroz sekinroq o'tilsa yaxshi bo'lardi.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-09-27T08:22:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "CN-101",
+      "teacher_id": "T-13",
+      "teacher_fullname": "Toshmatov Jasur",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "CN-24-04",
+        "department_name": "Computer Networks",
+        "course_points": 62,
+        "gpa": 3.8,
+        "course_attendance_rate": 0.72
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "TCP/IP Fundamentals",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-CN"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "pace_too_fast",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01482",
+    "content": {
+      "raw_text": "Baholash noaniqroq.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-09-11T16:44:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "CN-201",
+      "teacher_id": "T-14",
+      "teacher_fullname": "Normatova Hulkar",
+      "student_context": {
+        "year": 1,
+        "gender": "female",
+        "group_id": "CN-25-02",
+        "department_name": "Computer Networks",
+        "course_points": 65,
+        "gpa": 3.0,
+        "course_attendance_rate": 0.62
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Network Protocols",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 18,
+        "teacher_department_id": "DEP-CN"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "unfair_grading",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": true
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01483",
+    "content": {
+      "raw_text": "Amaliyotlar yaxshi, lekin prosta ba'zi topshiriqlar mavzuga mos emas. Domla bilan ishlash normalniy.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-09-09T20:20:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "AM-202",
+      "teacher_id": "T-18",
+      "teacher_fullname": "Nazarova Maftuna",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "AM-24-04",
+        "department_name": "Applied Mathematics",
+        "course_points": 78,
+        "gpa": 3.7,
+        "course_attendance_rate": 0.74
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Discrete Math II",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "useful_practicals",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01485",
+    "content": {
+      "raw_text": "LMS portalda online darslar bilan bog'liq muammolar bor, lekin domla harakat qilyapti. Umuman, admin tizimi sal oqsayapti.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-20T09:57:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "DS-202",
+      "teacher_id": "T-11",
+      "teacher_fullname": "Tursunova Malika",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "DS-24-02",
+        "department_name": "Data Science",
+        "course_points": 73,
+        "gpa": 3.7,
+        "course_attendance_rate": 0.65
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Statistics for DS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-DS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "platform_admin",
+      "lang_profile": "uz_ru_en_mixed",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": true,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01487",
+    "content": {
+      "raw_text": "Nazariya juda ko'p, lekin domla juda yaxshi tushuntiradi. Hammasi ajoyib.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2025-02-02T14:39:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IT-201",
+      "teacher_id": "T-08",
+      "teacher_fullname": "Hamidov Sardor",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "IT-23-04",
+        "department_name": "Information Technologies",
+        "course_points": 97,
+        "gpa": 4.7,
+        "course_attendance_rate": 0.8
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Network Administration",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 1,
+        "teacher_department_id": "DEP-IT"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "too_much_theory",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01488",
+    "content": {
+      "raw_text": "Topshiriqlar o'rtacha qiyinlikda. Ba'zida qiziqarli bo'lsa, ba'zida zerikarli.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2025-09-09T18:01:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "SE-201",
+      "teacher_id": "T-04",
+      "teacher_fullname": "Karimova Dilnoza",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "SE-25-05",
+        "department_name": "Software Engineering",
+        "course_points": 60,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.66
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Software Engineering",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 11,
+        "teacher_department_id": "DEP-SE"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01489",
+    "content": {
+      "raw_text": "Platforma ishlashi prosta zo'r, muammo yo'q. Domla ham hamma narsani aniq tushuntiradi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-02-13T10:01:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "IS-202",
+      "teacher_id": "T-06",
+      "teacher_fullname": "Umarova Shahlo",
+      "student_context": {
+        "year": 4,
+        "gender": "female",
+        "group_id": "IS-22-03",
+        "department_name": "Information Systems",
+        "course_points": 70,
+        "gpa": 3.5,
+        "course_attendance_rate": 0.65
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Data Modeling",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-IS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "platform_admin",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01490",
+    "content": {
+      "raw_text": "Baholash umuman adolatsiz, prosta ballarni tushirib qo'yishdi. Topwiriqni bajargan bo'lsam ham past ball qo'yishdi.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2025-02-03T16:32:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "CN-401",
+      "teacher_id": "T-13",
+      "teacher_fullname": "Toshmatov Jasur",
+      "student_context": {
+        "year": 3,
+        "gender": "female",
+        "group_id": "CN-23-04",
+        "department_name": "Computer Networks",
+        "course_points": 48,
+        "gpa": 2.3,
+        "course_attendance_rate": 0.51
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Network Security",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-CN"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "medium",
+      "theme_hint": "unfair_grading",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01491",
+    "content": {
+      "raw_text": "Tushuntirishlar noaniq, prosta nima qilish kerakligini bilmayapmiz. Juda qiyin.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2024-02-19T21:49:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "AM-201",
+      "teacher_id": "T-20",
+      "teacher_fullname": "Yusupov Bobur",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "AM-24-04",
+        "department_name": "Applied Mathematics",
+        "course_points": 52,
+        "gpa": 2.5,
+        "course_attendance_rate": 0.39
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Linear Algebra",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 6,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "clear_explanations",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01492",
+    "content": {
+      "raw_text": "Darslar juda tez, prosta zo'r-da, hech narsani tushunmay qolyapmiz. Topwiriqlar ham qiyin.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2024-09-19T16:55:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "CS-201",
+      "teacher_id": "T-02",
+      "teacher_fullname": "Abdullayev Sherzod",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "CS-22-02",
+        "department_name": "Computer Science",
+        "course_points": 49,
+        "gpa": 2.6,
+        "course_attendance_rate": 0.35
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Algorithms & Data Structures",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-CS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "pace_too_fast",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": true,
+        "contradiction": false,
+        "vague": true,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01493",
+    "content": {
+      "raw_text": "Nazariya juda ko'p, lekin hammasi tushunarli. Domla juda yaxshi o'qituvchi.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2024-02-25T12:00:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "CS-202",
+      "teacher_id": "T-01",
+      "teacher_fullname": "Yunusova Barno",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "CS-24-02",
+        "department_name": "Computer Science",
+        "course_points": 92,
+        "gpa": 4.2,
+        "course_attendance_rate": 0.8
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Computer Architecture",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-CS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "too_much_theory",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01494",
+    "content": {
+      "raw_text": "Domla savollarga javob beradi, lekin prosta ba'zida kech qoladi. Yana ham tezroq bo'lsa yaxshi bo'lardi.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-21T20:25:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "SE-101",
+      "teacher_id": "T-05",
+      "teacher_fullname": "Ergashev Mansur",
+      "student_context": {
+        "year": 3,
+        "gender": "female",
+        "group_id": "SE-23-04",
+        "department_name": "Software Engineering",
+        "course_points": 72,
+        "gpa": 3.2,
+        "course_attendance_rate": 0.74
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Intro to Programming",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 7,
+        "teacher_department_id": "DEP-SE"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "teacher_responsiveness",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01495",
+    "content": {
+      "raw_text": "Topshiriqlar juda qiyin, lekin domla prosta yaxshi odam. Hammasi нормально.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-09-13T09:40:00Z",
+      "semester_id": "2024-FALL",
+      "course_id": "DS-202",
+      "teacher_id": "T-12",
+      "teacher_fullname": "Qodirov Zafar",
+      "student_context": {
+        "year": 2,
+        "gender": "male",
+        "group_id": "DS-24-02",
+        "department_name": "Data Science",
+        "course_points": 64,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.68
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Statistics for DS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "professor",
+        "teaching_experience_years": 22,
+        "teacher_department_id": "DEP-DS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "medium",
+      "theme_hint": "hard_assignments",
+      "lang_profile": "uz_ru_heavy",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01496",
+    "content": {
+      "raw_text": "Domlaning uslubi umuman yoqmadi, prosta darsga qiziqishim qolmadi. Umuman, universitetdagi darslar sifati pasayib ketgan.",
+      "rating": 1
+    },
+    "metadata": {
+      "timestamp": "2025-09-07T10:54:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "SE-101",
+      "teacher_id": "T-03",
+      "teacher_fullname": "Baxromov Ibrohim",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "SE-24-04",
+        "department_name": "Software Engineering",
+        "course_points": 44,
+        "gpa": 2.7,
+        "course_attendance_rate": 0.35
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Intro to Programming",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-SE"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "teacher_style",
+      "lang_profile": "uz_ru_light",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": true,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01497",
+    "content": {
+      "raw_text": "Nazariya ko'p bo'lsa ham, hammasi tushunarli. Domla juda yaxshi tushuntiradi.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-02-17T18:16:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "DS-401",
+      "teacher_id": "T-11",
+      "teacher_fullname": "Tursunova Malika",
+      "student_context": {
+        "year": 5,
+        "gender": "female",
+        "group_id": "DS-21-05",
+        "department_name": "Data Science",
+        "course_points": 95,
+        "gpa": 4.5,
+        "course_attendance_rate": 0.93
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Big Data Technologies",
+        "course_level": "graduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-DS"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "too_much_theory",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01500",
+    "content": {
+      "raw_text": "Domlaning dars o'tish uslubi juda qiziqarli va tushunarli. Hammasi juda zo'r.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2025-09-21T11:03:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "AM-101",
+      "teacher_id": "T-18",
+      "teacher_fullname": "Nazarova Maftuna",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "AM-22-03",
+        "department_name": "Applied Mathematics",
+        "course_points": 99,
+        "gpa": 4.3,
+        "course_attendance_rate": 0.96
+      },
+      "feedback_context": {
+        "feedback_channel": "lms_popup",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Calculus I",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-MATH"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "teacher_style",
+      "lang_profile": "uz_only",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01551",
+    "content": {
+      "raw_text": "Darslar juda tez, lms dagi deadline lar ulgrmyn, kapets.",
+      "rating": 2
+    },
+    "metadata": {
+      "timestamp": "2025-02-23T18:57:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "AI-301",
+      "teacher_id": "T-16",
+      "teacher_fullname": "Ravshanov Akbar",
+      "student_context": {
+        "year": 4,
+        "gender": "male",
+        "group_id": "AI-22-04",
+        "department_name": "Artificial Intelligence",
+        "course_points": 47,
+        "gpa": 2.9,
+        "course_attendance_rate": 0.26
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "NLP",
+        "course_level": "graduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 14,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "low",
+      "attendance_band": "low",
+      "theme_hint": "pace_too_fast",
+      "lang_profile": "uz_ru_en_mixed",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": true,
+        "off_topic": false,
+        "spam_like": true
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01552",
+    "content": {
+      "raw_text": "Domla darsda yaxshi, lekin savollarga javob berishni biroz kechiktiradilar.",
+      "rating": 3
+    },
+    "metadata": {
+      "timestamp": "2024-02-12T10:47:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "SE-201",
+      "teacher_id": "T-03",
+      "teacher_fullname": "Baxromov Ibrohim",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "SE-24-03",
+        "department_name": "Software Engineering",
+        "course_points": 73,
+        "gpa": 3.3,
+        "course_attendance_rate": 0.76
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Software Engineering",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-SE"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "medium",
+      "attendance_band": "high",
+      "theme_hint": "teacher_responsiveness",
+      "lang_profile": "uz_ru_en_mixed",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": true,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01554",
+    "content": {
+      "raw_text": "Преподаватель всегда на связи, это просто кайф, отвечает очень быстро в lms.",
+      "rating": 5
+    },
+    "metadata": {
+      "timestamp": "2025-09-06T08:18:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "AI-401",
+      "teacher_id": "T-15",
+      "teacher_fullname": "Raximova Nilufar",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "AI-23-01",
+        "department_name": "Artificial Intelligence",
+        "course_points": 98,
+        "gpa": 4.0,
+        "course_attendance_rate": 0.86
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Computer Vision",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "associate_professor",
+        "teaching_experience_years": 16,
+        "teacher_department_id": "DEP-AI"
+      }
+    },
+    "generation_controls": {
+      "gpa_band": "high",
+      "attendance_band": "high",
+      "theme_hint": "teacher_responsiveness",
+      "lang_profile": "uz_ru_heavy",
+      "noise": {
+        "sarcasm": false,
+        "contradiction": false,
+        "vague": false,
+        "typos": false,
+        "off_topic": false,
+        "spam_like": false
+      },
+      "exception_case": false
+    }
+  }
+]

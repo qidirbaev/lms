@@ -11,6 +11,9 @@ const pages = [
   'integration', 'notifier', 'logs', 'settings'
 ];
 
+let activeBatchJobId = null;
+let activeBatchPoller = null;
+
 const API_BASE =
   localStorage.getItem('lms_api_base') ||
   window.LMS_API_BASE ||
@@ -3251,25 +3254,27 @@ async function previewSource() {
 
 async function processBatch() {
   const btn = $('process-btn');
+  const cancelBtn = $('batch-cancel-btn');
   const status = $('batch-status');
 
+  const source = $('batch-source').value;
+  const limitRaw = String($('batch-limit').value || '').trim();
+  const limit = Math.max(1, Number.parseInt(limitRaw, 10) || 30);
+
   btn.disabled = true;
+
   status.innerHTML = `
     <div class="batch-processing">
       <div class="processing-orb"></div>
       <div>
-        <div class="eyebrow">AI BATCH RUNNING</div>
-        <h4>Feedbacklar Vertex AI orqali tahlil qilinmoqda</h4>
-        <p>Har bir feedback uchun sentiment, issue, risk, severity, summary va recommendation olinmoqda...</p>
+        <div class="eyebrow">BATCH JOB STARTING</div>
+        <h4>Background processing job yaratilmoqda</h4>
+        <p>Limit: ${limit} · source: ${esc(source)} · chunked Vertex calls enabled.</p>
       </div>
     </div>
   `;
 
   try {
-    const start = Date.now();
-    const source = $('batch-source').value;
-    const limit = Number($('batch-limit').value || 30);
-
     const d = await api('/process-batch', {
       method: 'POST',
       body: JSON.stringify({
@@ -3280,37 +3285,140 @@ async function processBatch() {
       })
     });
 
-    state.dashboard = d.dashboard;
+    activeBatchJobId = d.job.job_id;
 
-    status.innerHTML = `
-      <div class="batch-complete-card">
-        <div class="batch-complete-orb">
-          <span>${d.success}</span>
-          <small>processed</small>
-        </div>
-        <div>
-          <div class="eyebrow">BATCH COMPLETE</div>
-          <h4>${batchSourceLabel(source)} tahlil qilindi</h4>
-          <p>
-            ${d.success} success · ${d.failed} failed · ${d.fallback_used} fallback ·
-            ${d.duration_seconds}s · ${d.chunks_total || 0} chunks ·
-            ~${d.vertex_calls_estimated || 0} Vertex calls
-          </p>
-        </div>
-      </div>
-      <div class="progress-wrap mt-3"><div class="progress-bar" style="width:100%"></div></div>
-    `;
+    if (cancelBtn) cancelBtn.disabled = false;
 
-    renderBatchIntelPanel(d);
-    renderDashboard();
+    toast(`Batch job started: ${activeBatchJobId}`, 'success');
 
-    toast(`${t('batch_complete')}: ${Math.round((Date.now() - start) / 1000)}s`, 'success');
+    startBatchPolling(activeBatchJobId);
   } catch (e) {
+    btn.disabled = false;
     status.innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
-    btn.disabled = false;
     renderIcons();
+  }
+}
+
+function startBatchPolling(jobId) {
+  if (activeBatchPoller) {
+    clearInterval(activeBatchPoller);
+    activeBatchPoller = null;
+  }
+
+  pollBatchJob(jobId);
+
+  activeBatchPoller = setInterval(() => {
+    pollBatchJob(jobId);
+  }, 1500);
+}
+
+async function pollBatchJob(jobId) {
+  try {
+    const d = await api(`/batch-jobs/${jobId}`);
+    const job = d.job;
+
+    renderBatchJobStatus(job);
+
+    const done = ['completed', 'failed', 'partial_failed', 'cancelled'].includes(job.status);
+
+    if (done) {
+      clearInterval(activeBatchPoller);
+      activeBatchPoller = null;
+
+      $('process-btn').disabled = false;
+
+      const cancelBtn = $('batch-cancel-btn');
+      if (cancelBtn) cancelBtn.disabled = true;
+
+      const dash = await api(`/batch-jobs/${jobId}/dashboard`);
+      state.dashboard = dash.dashboard;
+      renderDashboard();
+
+      renderBatchIntelPanel({
+        total_requested: job.total,
+        success: job.success,
+        failed: job.failed,
+        fallback_used: job.fallback_used,
+        duration_seconds: job.duration_seconds,
+        throughput_items_per_second: job.throughput_items_per_second,
+        batch_size: job.batch_size,
+        chunks_total: job.chunks_total,
+        vertex_calls_estimated: job.vertex_calls_estimated,
+        old_vertex_calls_estimated: job.old_vertex_calls_estimated,
+        vertex_call_reduction: job.vertex_call_reduction,
+        failed_items: job.failed_items || []
+      });
+
+      toast(`Batch job ${job.status}`, job.status === 'completed' ? 'success' : 'warn');
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    renderIcons();
+  }
+}
+
+function renderBatchJobStatus(job) {
+  const status = $('batch-status');
+  if (!status) return;
+
+  const pct = Number(job.progress_percent || 0);
+  const statusLabel = String(job.status || '').replaceAll('_', ' ');
+
+  status.innerHTML = `
+    <div class="batch-job-card ${esc(job.status)}">
+      <div class="batch-job-top">
+        <div>
+          <div class="eyebrow">BATCH JOB</div>
+          <h4>${esc(statusLabel.toUpperCase())}</h4>
+          <p>${esc(job.last_message || '')}</p>
+        </div>
+
+        <div class="batch-job-percent">
+          <b>${pct}%</b>
+          <span>${job.processed}/${job.total}</span>
+        </div>
+      </div>
+
+      <div class="progress-wrap mt-3">
+        <div class="progress-bar" style="width:${Math.min(100, pct)}%"></div>
+      </div>
+
+      <div class="batch-job-grid mt-3">
+        ${kpi('Success', job.success || 0, 'processed')}
+        ${kpi('Failed', job.failed || 0, 'errors')}
+        ${kpi('Chunks', `${job.chunks_done || 0}/${job.chunks_total || 0}`, `size ${job.batch_size || 8}`)}
+        ${kpi('Vertex calls', job.vertex_calls_estimated || 0, `${job.vertex_call_reduction || 0} saved`)}
+      </div>
+
+      ${(job.failed_items || []).length ? `
+        <details class="test-json-details mt-3">
+          <summary><span>Failed items</span><i data-lucide="chevron-down"></i></summary>
+          <pre class="json-viewer">${esc(JSON.stringify(job.failed_items, null, 2))}</pre>
+        </details>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function cancelBatchJob() {
+  if (!activeBatchJobId) {
+    toast('No active batch job', 'error');
+    return;
+  }
+
+  try {
+    const d = await api(`/batch-jobs/${activeBatchJobId}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+
+    renderBatchJobStatus(d.job);
+    toast('Cancel requested', 'warn');
+  } catch (e) {
+    toast(e.message, 'error');
   }
 }
 
