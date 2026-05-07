@@ -8547,3 +8547,147 @@ body:not(.authenticated) .spilot-drawer {
     width: 100%;
   }
 }
+
+/* ─────────────────────────────────────────────
+   Integration Command Center — UI repair patch
+   ───────────────────────────────────────────── */
+
+#page-integration .page-body,
+.integration-lab {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#page-integration .card {
+  min-width: 0;
+}
+
+.integration-command-grid {
+  align-items: start;
+}
+
+.integration-panel {
+  min-height: unset !important;
+  height: auto;
+  overflow: hidden;
+}
+
+.integration-command-grid > .card {
+  align-self: start;
+}
+
+/* Fix ugly huge empty white panels */
+.integration-mapper-panel,
+.integration-result-panel,
+.integration-logs-panel,
+.integration-token-panel,
+#integration-status-panel {
+  min-height: 0;
+}
+
+/* Main JSON/code containment */
+#page-integration .json-viewer,
+#page-integration pre,
+#page-integration code {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Make JSON blocks compact and professional */
+#page-integration .json-viewer {
+  max-height: 320px;
+  font-size: .7rem;
+  line-height: 1.55;
+}
+
+/* Sample payload textarea */
+.integration-json-input {
+  min-height: 190px !important;
+  max-height: 260px;
+  resize: vertical;
+}
+
+/* Mapper should not create broken giant columns */
+.integration-map-grid {
+  grid-template-columns: 1fr 1fr !important;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.integration-map-grid > div {
+  min-width: 0;
+}
+
+/* Result details should stay inside card */
+.integration-result-panel .test-json-details {
+  max-width: 100%;
+}
+
+.integration-result-panel .test-json-details .json-viewer {
+  max-height: 300px;
+}
+
+/* cURL card should not stretch page */
+.integration-code {
+  max-height: 260px !important;
+}
+
+/* Better success result card */
+.integration-result-success {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  border: 1px solid color-mix(in srgb, var(--pos) 30%, var(--border));
+  background: var(--pos-bg);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.integration-result-success svg {
+  width: 28px;
+  height: 28px;
+  color: var(--pos);
+  flex: 0 0 auto;
+}
+
+.integration-result-success h4 {
+  font-size: .95rem;
+  font-weight: 950;
+  margin-bottom: .25rem;
+}
+
+.integration-result-success p {
+  font-size: .78rem;
+  color: var(--text-2);
+  margin: .1rem 0;
+}
+
+/* Fix request log visual balance */
+.integration-log-row {
+  min-height: 58px;
+  align-items: center;
+}
+
+.integration-log-row div:last-child {
+  text-align: right;
+}
+
+/* Better responsive behavior */
+@media (max-width: 1280px) {
+  .integration-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .integration-map-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 1281px) {
+  .integration-command-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) !important;
+  }
+}
