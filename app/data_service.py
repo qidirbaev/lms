@@ -3,6 +3,7 @@ import threading
 from datetime import datetime, timezone
 from . import config
 from . import logger_service as logger
+import uuid
 
 _lock = threading.Lock()
 _results: dict = {}  # feedback_id -> result record
@@ -192,7 +193,7 @@ def normalize_uploaded_feedback(item: dict, idx: int) -> tuple[dict, list[str]]:
 
     rating = max(1, min(5, rating))
 
-    feedback_id = item.get("feedback_id") or item.get("id") or f"uploaded-{idx + 1:05d}"
+    feedback_id = item.get("feedback_id") or item.get("id") or f"fb-{uuid.uuid4().hex[:12]}"
 
     course_id = item.get("course_id") or item.get("course") or "UPLOADED-COURSE"
     teacher_id = item.get("teacher_id") or "UPLOADED-TEACHER"

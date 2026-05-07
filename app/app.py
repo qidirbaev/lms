@@ -410,14 +410,54 @@ def ingest_feedback_from_external_system(
         "processed": len(results),
     })
 
+    report = integration_service.build_ingest_report(
+        raw_items,
+        valid_items,
+        errors,
+        warnings,
+        token_record
+    )
+
     return {
         "success": True,
-        "request_log": request_log,
-        "report": integration_service.build_ingest_report(
-            raw_items, valid_items, errors, warnings, token_record
-        ),
-        "results": results,
-        "dashboard": dashboard_service.get_full_dashboard(),
+        "request_id": request_log.get("id"),
+        "status": request_log.get("status"),
+        "accepted": report.get("accepted", 0),
+        "rejected": report.get("rejected", 0),
+        "warnings": report.get("warnings", []),
+        "errors": report.get("errors", []),
+        "results": [
+            {
+                "feedback_id": r.get("feedback_id"),
+                "status": "processed" if r.get("success") else "failed"
+            }
+            for r in results
+        ],
+        "rate_limit": report.get("rate"),
+        "timestamp": report.get("timestamp"),
+    }
+
+
+@app.get("/integrations/request/{request_id}")
+def get_integration_request_details(
+    request_id: str,
+    authorization: str = Header(default=None)
+):
+    require_auth(authorization)
+
+    logs = integration_service.list_request_logs(limit=500)
+
+    item = next(
+        (x for x in logs if x.get("id") == request_id),
+        None
+    )
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    return {
+        "request": item,
+        "dashboard_snapshot": dashboard_service.get_full_dashboard(),
     }
 
 
