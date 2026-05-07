@@ -17,7 +17,7 @@
 
   <meta name="theme-color" content="#09090b" />
   <meta name="msapplication-TileColor" content="#09090b" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <link rel="stylesheet" href="/static/style.css" />
@@ -944,62 +944,57 @@
       <section class="page" id="page-integration">
         <div class="page-header">
           <div>
-            <h2>Integration</h2>
-            <div class="subtitle">LMS, HEMIS va boshqa boshqaruv tizimlarini secure REST orqali ulash</div>
+            <h2>Integration Command Center</h2>
+            <div class="subtitle">LMS, HEMIS, Moodle and SIS systems controlled through secure REST ingestion</div>
           </div>
 
           <div class="action-row">
             <button class="btn btn-secondary btn-sm" onclick="loadIntegrationStatus()">
-              <i data-lucide="refresh-cw"></i> Status
+              <i data-lucide="refresh-cw"></i> Refresh
             </button>
             <button class="btn btn-primary btn-sm" onclick="runIntegrationTest()">
-              <i data-lucide="send"></i> Test ingest
+              <i data-lucide="send"></i> Live test
             </button>
           </div>
         </div>
 
         <div class="page-body integration-lab">
 
-          <div class="integration-hero card">
+          <div class="integration-command-hero card">
             <div>
-              <div class="eyebrow">SECURE REST INTEGRATION</div>
-              <h3>LMS → AI Feedback Analyzer ingestion pipeline</h3>
+              <div class="eyebrow">SECURE REST COMMAND CENTER</div>
+              <h3>External academic systems → AI Feedback Analyzer</h3>
               <p>
-                Tashqi LMS yoki HEMIS token oladi, feedbackni xavfsiz REST endpoint orqali yuboradi,
-                tizim schema/mapping/rate-limit tekshiradi va AI tahlilga uzatadi.
+                Generate tokens, validate schemas, preview field mapping, monitor request logs,
+                track accepted/rejected records, revoke integrations and test real ingestion.
               </p>
             </div>
 
-            <div class="integration-pipeline">
-              <div class="integration-node active"><i data-lucide="key-round"></i><span>Token</span></div>
-              <div class="integration-line"></div>
-              <div class="integration-node active"><i data-lucide="shield-check"></i><span>Validate</span></div>
-              <div class="integration-line"></div>
-              <div class="integration-node active"><i data-lucide="waypoints"></i><span>Map</span></div>
-              <div class="integration-line"></div>
-              <div class="integration-node active"><i data-lucide="brain-circuit"></i><span>Analyze</span></div>
+            <div class="integration-flow">
+              <div class="integration-flow-step"><i data-lucide="key-round"></i><span>Token</span></div>
+              <div class="integration-flow-step"><i data-lucide="shield-check"></i><span>Validate</span></div>
+              <div class="integration-flow-step"><i data-lucide="waypoints"></i><span>Map</span></div>
+              <div class="integration-flow-step"><i data-lucide="brain-circuit"></i><span>Analyze</span></div>
+              <div class="integration-flow-step"><i data-lucide="database-zap"></i><span>Persist</span></div>
             </div>
           </div>
 
-          <div class="integration-grid-main">
-            <div class="card integration-control-card">
+          <div id="integration-metrics-row" class="integration-metrics-row"></div>
+
+          <div class="integration-command-grid">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
-                  <div class="card-title">Create integration token</div>
-                  <div class="text-muted text-sm">LMS/HEMIS uchun secure REST token</div>
+                  <div class="card-title">System onboarding</div>
+                  <div class="text-muted text-sm">Create secure token and choose adapter preset</div>
                 </div>
-                <span class="badge badge-outline">Shown once</span>
+                <span class="badge badge-outline">Token shown once</span>
               </div>
 
               <div class="field">
-                <label>System name</label>
-                <input class="input" id="integration-system-name" value="TUIT LMS" />
-              </div>
-
-              <div class="field">
-                <label>System type</label>
-                <select class="select" id="integration-system-type">
-                  <option value="lms">LMS</option>
+                <label>Preset</label>
+                <select class="select" id="integration-system-type" onchange="applyIntegrationPreset()">
+                  <option value="lms">Generic LMS</option>
                   <option value="hemis">HEMIS</option>
                   <option value="moodle">Moodle</option>
                   <option value="sis">Student Information System</option>
@@ -1007,61 +1002,64 @@
                 </select>
               </div>
 
+              <div class="field">
+                <label>System name</label>
+                <input class="input" id="integration-system-name" value="TUIT LMS" />
+              </div>
+
+              <div id="integration-preset-card" class="integration-preset-card"></div>
+
               <button class="btn btn-primary full-width" onclick="createIntegrationToken()">
                 <i data-lucide="key-round"></i> Generate secure token
               </button>
 
               <div id="integration-token-panel" class="integration-token-panel">
-                <p class="text-muted text-sm">Token yaratilgandan keyin shu yerda ko‘rinadi.</p>
+                <p class="text-muted text-sm">Generated token appears here once. Store it immediately.</p>
               </div>
             </div>
 
-            <div class="card integration-status-card">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
-                  <div class="card-title">Integration status</div>
-                  <div class="text-muted text-sm">Active systems, security, rate limit</div>
+                  <div class="card-title">System health</div>
+                  <div class="text-muted text-sm">Active systems, rate limits and revoke controls</div>
                 </div>
               </div>
 
               <div id="integration-status-panel">
                 <div class="integration-idle">
                   <i data-lucide="radar"></i>
-                  <h4>Integration status yuklanmagan</h4>
-                  <p>Status tugmasini bosing yoki token yarating.</p>
+                  <h4>No status loaded</h4>
+                  <p>Click refresh or create a token.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="integration-grid-main">
-            <div class="card">
+          <div class="integration-command-grid">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
-                  <div class="card-title">REST contract</div>
-                  <div class="text-muted text-sm">Tashqi LMS/HEMIS yuboradigan minimal payload</div>
+                  <div class="card-title">Schema mapper</div>
+                  <div class="text-muted text-sm">Preview how external payload becomes inputToSystem</div>
                 </div>
+                <button class="btn btn-secondary btn-sm" onclick="previewIntegrationMapping()">
+                  <i data-lucide="scan-search"></i> Preview
+                </button>
               </div>
 
-              <pre class="json-viewer integration-code">POST /integrations/ingest-feedback
-      Header: X-Integration-Token: lmsint_xxx
+              <textarea class="textarea integration-json-input" id="integration-sample-payload"></textarea>
 
-      {
-        "feedback": "Dars yaxshi, lekin baholash aniqroq bo‘lsin.",
-        "rating": 4,
-        "course_id": "CS-101",
-        "course_name": "Algorithms",
-        "teacher_id": "T-01",
-        "teacher_name": "Aziz Karimov",
-        "department": "Computer Science"
-      }</pre>
+              <div id="integration-mapper-panel" class="integration-mapper-panel">
+                <p class="text-muted text-sm">Select preset and click Preview.</p>
+              </div>
             </div>
 
-            <div class="card">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
                   <div class="card-title">Live ingest test</div>
-                  <div class="text-muted text-sm">Jury uchun real-time integration demo</div>
+                  <div class="text-muted text-sm">Simulate external LMS/HEMIS sending feedback</div>
                 </div>
               </div>
 
@@ -1071,54 +1069,40 @@
               </div>
 
               <button class="btn btn-secondary full-width" onclick="runIntegrationTest()">
-                <i data-lucide="send"></i> Simulate LMS sending feedback
+                <i data-lucide="send"></i> Simulate secure ingest
               </button>
+
+              <div id="integration-result-panel" class="integration-result-panel">
+                <p class="text-muted text-sm">Result will show validation, mapping and AI output.</p>
+              </div>
             </div>
           </div>
 
-          <div class="integration-grid-main">
-            <div class="card">
+          <div class="integration-command-grid">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
-                  <div class="card-title">Security controls</div>
-                  <div class="text-muted text-sm">Production-like protection layer</div>
+                  <div class="card-title">Sample cURL</div>
+                  <div class="text-muted text-sm">Copy-paste integration request for external systems</div>
                 </div>
+                <button class="btn btn-secondary btn-sm" onclick="copyIntegrationCurl()">
+                  <i data-lucide="copy"></i> Copy
+                </button>
               </div>
 
-              <div class="integration-security-grid">
-                <div class="integration-security-card positive">
-                  <i data-lucide="fingerprint"></i>
-                  <b>Hashed tokens</b>
-                  <span>Token plaintext saqlanmaydi</span>
-                </div>
-                <div class="integration-security-card warning">
-                  <i data-lucide="timer-reset"></i>
-                  <b>Rate limiting</b>
-                  <span>30 req/min/token</span>
-                </div>
-                <div class="integration-security-card positive">
-                  <i data-lucide="scan-search"></i>
-                  <b>Schema validation</b>
-                  <span>inputToSystem/flat mapping</span>
-                </div>
-                <div class="integration-security-card positive">
-                  <i data-lucide="file-check-2"></i>
-                  <b>Audit logging</b>
-                  <span>Every ingest is logged</span>
-                </div>
-              </div>
+              <pre class="json-viewer integration-code" id="integration-curl-box"></pre>
             </div>
 
-            <div class="card">
+            <div class="card integration-panel">
               <div class="card-header">
                 <div>
-                  <div class="card-title">Ingest result</div>
-                  <div class="text-muted text-sm">Test ingest natijasi</div>
+                  <div class="card-title">Request logs</div>
+                  <div class="text-muted text-sm">Accepted, rejected, rate-limited and revoked activity</div>
                 </div>
               </div>
 
-              <div id="integration-result-panel">
-                <p class="text-muted text-sm">Test ingest ishga tushirilsa, input/output natijasi ko‘rinadi.</p>
+              <div id="integration-logs-panel" class="integration-logs-panel">
+                <p class="text-muted text-sm">No logs loaded yet.</p>
               </div>
             </div>
           </div>
@@ -1345,7 +1329,7 @@
 
             <aside class="notifier-side">
               <div class="card notifier-panel">
-                <div class="card-title">Coming Soon Channels</div>
+                <div class="card-title">All Channels</div>
 
                 <div class="notifier-channel-list">
                   <div class="notifier-channel active"><i data-lucide="send"></i><span>Telegram Bot</span><b>Live</b></div>

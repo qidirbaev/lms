@@ -189,6 +189,12 @@ def integrations_status(authorization: str = Header(default=None)):
     require_auth(authorization)
 
     integrations = integration_service.list_integrations()
+    requests = integration_service.list_request_logs(limit=60)
+    presets = integration_service.list_presets()
+
+    accepted_total = sum(int(x.get("accepted_count", 0) or 0) for x in integrations)
+    rejected_total = sum(int(x.get("rejected_count", 0) or 0) for x in integrations)
+    active_total = len([x for x in integrations if x.get("active")])
 
     return {
         "mode": "secure_rest",
@@ -198,13 +204,23 @@ def integrations_status(authorization: str = Header(default=None)):
         "rate_limit": "30 requests/minute per token",
         "schema": "inputToSystem or flat feedback object",
         "active_integrations": integrations,
+        "request_logs": requests,
+        "presets": presets,
+        "metrics": {
+            "systems_total": len(integrations),
+            "systems_active": active_total,
+            "accepted_total": accepted_total,
+            "rejected_total": rejected_total,
+            "requests_total": len(requests),
+        },
         "security_features": [
             "hashed token storage",
             "per-token rate limiting",
             "schema validation",
             "mapping to inputToSystem",
-            "structured logging",
+            "structured request logging",
             "AI validation before persistence",
+            "token revocation",
         ],
     }
 
@@ -226,7 +242,54 @@ def create_integration_token(payload: dict, authorization: str = Header(default=
         "message": "Copy this token now. It is shown only once.",
         "token": result["token"],
         "integration": result["record"],
+        "field_map": integration_service.get_field_map(system_type),
     }
+
+
+@app.post("/integrations/revoke/{token_id}")
+def revoke_integration_token(token_id: str, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    revoked = integration_service.revoke_token(token_id)
+
+    if not revoked:
+        raise HTTPException(status_code=404, detail="Integration token not found")
+
+    return {
+        "success": True,
+        "message": "Integration token revoked",
+        "integration": revoked,
+    }
+
+
+@app.post("/integrations/mapper/preview")
+def integration_mapper_preview(payload: dict, authorization: str = Header(default=None)):
+    require_auth(authorization)
+
+    system_type = payload.get("system_type", "custom")
+    sample = payload.get("payload") or integration_service.list_presets().get(system_type, {}).get("sample_payload", {})
+
+    try:
+        mapped, warnings = data_service.normalize_uploaded_feedback(sample, 0)
+        mapped["metadata"]["source_system"] = payload.get("system_name", "Preview System")
+        mapped["feedback_context"]["feedback_channel"] = f"integration:{system_type}"
+
+        return {
+            "success": True,
+            "system_type": system_type,
+            "field_map": integration_service.get_field_map(system_type),
+            "input": sample,
+            "mapped": mapped,
+            "warnings": warnings,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "system_type": system_type,
+            "field_map": integration_service.get_field_map(system_type),
+            "input": sample,
+            "error": str(e),
+        }
 
 
 @app.post("/integrations/ingest-feedback")
@@ -238,6 +301,14 @@ def ingest_feedback_from_external_system(
 
     if not token_record:
         logger.warn("integration_ingest_rejected", {"reason": "invalid_token"})
+        integration_service.log_ingest_request(
+            None,
+            status="rejected_invalid_token",
+            accepted=0,
+            rejected=1,
+            errors=[{"error": "Invalid integration token"}],
+            preview={"payload_type": type(payload).__name__},
+        )
         raise HTTPException(status_code=401, detail="Invalid integration token")
 
     ok, rate = integration_service.check_rate_limit(token_record)
@@ -247,6 +318,14 @@ def ingest_feedback_from_external_system(
             "system": token_record.get("system_name"),
             "rate": rate,
         })
+        integration_service.log_ingest_request(
+            token_record,
+            status="rate_limited",
+            accepted=0,
+            rejected=1,
+            errors=[{"error": "Rate limit exceeded"}],
+            preview={"rate": rate},
+        )
         raise HTTPException(status_code=429, detail={
             "message": "Rate limit exceeded",
             "rate": rate,
@@ -304,18 +383,36 @@ def ingest_feedback_from_external_system(
                 "error": str(e),
             })
 
-    integration_service.touch_token(token_record)
+    accepted = len(valid_items)
+    rejected = len(errors)
+    status = "accepted" if accepted and not rejected else "partial" if accepted else "rejected"
+
+    integration_service.touch_token(token_record, accepted=accepted, rejected=rejected, status=status)
+
+    request_log = integration_service.log_ingest_request(
+        token_record,
+        status=status,
+        accepted=accepted,
+        rejected=rejected,
+        errors=errors,
+        warnings=warnings,
+        preview={
+            "received": len(raw_items),
+            "first_item_keys": list(raw_items[0].keys()) if raw_items and isinstance(raw_items[0], dict) else [],
+        },
+    )
 
     logger.info("integration_ingest_completed", {
         "system": token_record.get("system_name"),
         "received": len(raw_items),
-        "accepted": len(valid_items),
-        "errors": len(errors),
+        "accepted": accepted,
+        "errors": rejected,
         "processed": len(results),
     })
 
     return {
         "success": True,
+        "request_log": request_log,
         "report": integration_service.build_ingest_report(
             raw_items, valid_items, errors, warnings, token_record
         ),
@@ -326,23 +423,11 @@ def ingest_feedback_from_external_system(
 
 @app.post("/integrations/test-ingest")
 def integration_test_ingest(payload: dict, authorization: str = Header(default=None)):
-    """
-    Admin-side test endpoint for frontend demo.
-    It simulates external LMS/HEMIS sending feedback through secure REST.
-    """
     require_auth(authorization)
 
     system_name = payload.get("system_name", "Demo LMS")
     system_type = payload.get("system_type", "lms")
-    feedback = payload.get("feedback") or {
-        "feedback": "Dars yaxshi, lekin baholash mezonlari aniqroq bo‘lsa yaxshi bo‘lardi.",
-        "rating": 4,
-        "course_id": "CS-101",
-        "course_name": "Algorithms",
-        "teacher_id": "T-01",
-        "teacher_name": "Aziz Karimov",
-        "department": "Computer Science",
-    }
+    feedback = payload.get("feedback") or integration_service.list_presets().get(system_type, {}).get("sample_payload")
 
     token_pack = integration_service.create_integration_token(system_name, system_type)
     fake_token_record = integration_service.verify_integration_token(token_pack["token"])
@@ -351,10 +436,23 @@ def integration_test_ingest(payload: dict, authorization: str = Header(default=N
     mapped["metadata"]["source_system"] = system_name
     mapped["feedback_context"]["feedback_channel"] = f"integration:{system_type}"
 
-    fid = mapped.get("feedback_id", f"int-{uuid.uuid4().hex[:8]}")
+    fid = mapped.get("feedback_id", f"test-int-{uuid.uuid4().hex[:8]}")
     analysis = analyze_feedback(mapped)
     data_service.upsert_result(fid, mapped, analysis)
-    integration_service.touch_token(fake_token_record)
+
+    integration_service.touch_token(fake_token_record, accepted=1, rejected=0, status="test_accepted")
+
+    request_log = integration_service.log_ingest_request(
+        fake_token_record,
+        status="test_accepted",
+        accepted=1,
+        rejected=0,
+        warnings=warnings,
+        preview={
+            "demo": True,
+            "first_item_keys": list(feedback.keys()) if isinstance(feedback, dict) else [],
+        },
+    )
 
     logger.info("integration_test_ingest_success", {
         "system": system_name,
@@ -363,15 +461,16 @@ def integration_test_ingest(payload: dict, authorization: str = Header(default=N
 
     return {
         "success": True,
-        "token_preview": token_pack["token"][:18] + "...",
         "feedback_id": fid,
+        "token_preview": token_pack["token"][:14] + "..." + token_pack["token"][-6:],
+        "request_log": request_log,
+        "field_map": integration_service.get_field_map(system_type),
         "inputToSystem": mapped,
-        "inputToAI": analysis["input_to_ai"],
         "outputFromAI": analysis["output"],
-        "warnings": warnings,
         "dashboard": dashboard_service.get_full_dashboard(),
+        "integration_status": integrations_status(authorization),
     }
-    
+
 
 # ─── Feedbacks ───────────────────────────────────────────────────────────────
 

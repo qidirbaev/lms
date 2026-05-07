@@ -4153,11 +4153,102 @@ async function analyzeSim() {
 // Integration Command Center
 // ─────────────────────────────────────────────────────────────
 
+let integrationLastToken = 'lmsint_xxx';
+let integrationStatusCache = null;
+
+function getIntegrationPresetPayload() {
+  const type = $('integration-system-type')?.value || 'lms';
+  const presets = integrationStatusCache?.presets || {};
+  return presets[type]?.sample_payload || {
+    feedback: 'Dars yaxshi, lekin baholash mezonlari aniqroq bo‘lsa yaxshi bo‘lardi.',
+    rating: 4,
+    course_id: 'CS-101',
+    course_name: 'Algorithms',
+    teacher_id: 'T-01',
+    teacher_name: 'Aziz Karimov',
+    department: 'Computer Science'
+  };
+}
+
+function applyIntegrationPreset() {
+  const type = $('integration-system-type')?.value || 'lms';
+  const presets = integrationStatusCache?.presets || {};
+  const preset = presets[type];
+
+  const names = {
+    lms: 'TUIT LMS',
+    hemis: 'TUIT HEMIS',
+    moodle: 'Moodle Feedback Module',
+    sis: 'Student Portal SIS',
+    custom: 'External REST Client'
+  };
+
+  if ($('integration-system-name')) {
+    $('integration-system-name').value = names[type] || 'External REST Client';
+  }
+
+  const payload = preset?.sample_payload || getIntegrationPresetPayload();
+
+  if ($('integration-sample-payload')) {
+    $('integration-sample-payload').value = JSON.stringify(payload, null, 2);
+  }
+
+  if ($('integration-preset-card')) {
+    $('integration-preset-card').innerHTML = `
+      <div class="integration-preset-title">
+        <i data-lucide="blocks"></i>
+        <b>${esc(preset?.label || 'Custom REST Client')}</b>
+      </div>
+      <p>${esc(preset?.description || 'Flexible JSON payload mapped into inputToSystem.')}</p>
+    `;
+  }
+
+  renderIntegrationCurl();
+  renderIcons();
+}
+
+function renderIntegrationCurl() {
+  const base = (window.API_BASE || '').replace(/\/$/, '') || 'https://YOUR-BACKEND.hf.space';
+  const payloadText = $('integration-sample-payload')?.value || JSON.stringify(getIntegrationPresetPayload(), null, 2);
+
+  const curl = `curl -X POST "${base}/integrations/ingest-feedback" \\
+  -H "Content-Type: application/json" \\
+  -H "X-Integration-Token: ${integrationLastToken}" \\
+  -d '${payloadText.replaceAll("'", "\\'")}'`;
+
+  if ($('integration-curl-box')) {
+    $('integration-curl-box').textContent = curl;
+  }
+}
+
+function renderIntegrationMetrics(d) {
+  const m = d.metrics || {};
+  if (!$('integration-metrics-row')) return;
+
+  $('integration-metrics-row').innerHTML = `
+    ${kpi('Systems', m.systems_total || 0, `${m.systems_active || 0} active`)}
+    ${kpi('Accepted', m.accepted_total || 0, 'records ingested')}
+    ${kpi('Rejected', m.rejected_total || 0, 'schema/token/rate failures')}
+    ${kpi('Requests', m.requests_total || 0, 'latest audit events')}
+  `;
+}
+
+function healthClass(status) {
+  if (status === 'healthy') return 'positive';
+  if (status === 'degraded') return 'warning';
+  if (status === 'revoked') return 'danger';
+  return 'neutral';
+}
+
 async function loadIntegrationStatus() {
   try {
     const d = await api('/integrations/status');
+    integrationStatusCache = d;
 
     const items = d.active_integrations || [];
+    const logs = d.request_logs || [];
+
+    renderIntegrationMetrics(d);
 
     $('integration-status-panel').innerHTML = `
       <div class="integration-status-score positive">
@@ -4169,26 +4260,52 @@ async function loadIntegrationStatus() {
         <i data-lucide="plug-zap"></i>
       </div>
 
-      <div class="integration-kpi-grid mt-3">
-        ${kpi('Active systems', items.length, 'registered integrations')}
-        ${kpi('Endpoint', d.ingest_endpoint, 'secure REST path')}
-        ${kpi('Schema', d.schema, 'accepted payload')}
-        ${kpi('Rate limit', d.rate_limit, 'per token')}
-      </div>
-
-      <div class="integration-list mt-3">
+      <div class="integration-system-list mt-3">
         ${items.map(x => `
-          <div class="integration-list-row">
-            <div>
-              <b>${esc(x.system_name)}</b>
-              <span>${esc(x.system_type)} · ${x.active ? 'active' : 'disabled'}</span>
+          <div class="integration-system-row ${x.active ? '' : 'disabled'}">
+            <div class="integration-system-main">
+              <div class="integration-health-dot ${healthClass(x.health?.status)}"></div>
+              <div>
+                <b>${esc(x.system_name)}</b>
+                <span>${esc(x.system_type)} · ${esc(x.health?.label || 'Ready')} · ${esc(x.token_fingerprint || '')}</span>
+              </div>
             </div>
-            <small>${esc(x.request_count || 0)} requests</small>
+
+            <div class="integration-system-side">
+              <small>${esc(x.request_count || 0)} req</small>
+              <small>${esc(x.accepted_count || 0)} ok / ${esc(x.rejected_count || 0)} rejected</small>
+              <div class="integration-ratebar">
+                <i style="width:${Math.min(100, ((x.rate_window?.used || 0) / Math.max(1, x.rate_window?.limit || 30)) * 100)}%"></i>
+              </div>
+              ${x.active ? `
+                <button class="btn btn-danger btn-xs" onclick="revokeIntegrationToken('${esc(x.id)}')">
+                  <i data-lucide="ban"></i> Revoke
+                </button>
+              ` : `<span class="badge badge-outline">Revoked</span>`}
+            </div>
           </div>
         `).join('') || `<p class="text-muted text-sm">No integrations yet.</p>`}
       </div>
     `;
 
+    $('integration-logs-panel').innerHTML = `
+      <div class="integration-log-list">
+        ${logs.map(l => `
+          <div class="integration-log-row ${esc(l.status)}">
+            <div>
+              <b>${esc(l.system_name)}</b>
+              <span>${esc(l.timestamp)} · ${esc(l.system_type)} · ${esc(l.status)}</span>
+            </div>
+            <div>
+              <small>${esc(l.accepted || 0)} accepted</small>
+              <small>${esc(l.rejected || 0)} rejected</small>
+            </div>
+          </div>
+        `).join('') || `<p class="text-muted text-sm">No request logs yet.</p>`}
+      </div>
+    `;
+
+    applyIntegrationPreset();
     renderIcons();
   } catch (e) {
     $('integration-status-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
@@ -4206,12 +4323,15 @@ async function createIntegrationToken() {
       body: JSON.stringify({ system_name, system_type })
     });
 
+    integrationLastToken = d.token;
+    renderIntegrationCurl();
+
     $('integration-token-panel').innerHTML = `
       <div class="integration-token-box">
         <div>
           <div class="eyebrow">COPY TOKEN NOW</div>
           <code>${esc(d.token)}</code>
-          <p>Bu token faqat bir marta ko‘rsatiladi. LMS/HEMIS shu tokenni X-Integration-Token headerida yuboradi.</p>
+          <p>This plaintext token is shown once. External systems must send it in the X-Integration-Token header.</p>
         </div>
         <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('${esc(d.token)}'); toast('Token copied', 'success')">
           <i data-lucide="copy"></i> Copy
@@ -4220,12 +4340,70 @@ async function createIntegrationToken() {
     `;
 
     await loadIntegrationStatus();
-    toast('Integration token yaratildi', 'success');
+    toast('Integration token created', 'success');
   } catch (e) {
     $('integration-token-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
     renderIcons();
+  }
+}
+
+async function revokeIntegrationToken(tokenId) {
+  try {
+    await api(`/integrations/revoke/${tokenId}`, {
+      method: 'POST',
+      body: JSON.stringify({})
+    });
+
+    await loadIntegrationStatus();
+    toast('Integration revoked', 'success');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function previewIntegrationMapping() {
+  try {
+    const system_name = $('integration-system-name')?.value || 'Preview System';
+    const system_type = $('integration-system-type')?.value || 'custom';
+
+    let payload = {};
+    try {
+      payload = JSON.parse($('integration-sample-payload')?.value || '{}');
+    } catch {
+      throw new Error('Sample payload is not valid JSON');
+    }
+
+    const d = await api('/integrations/mapper/preview', {
+      method: 'POST',
+      body: JSON.stringify({ system_name, system_type, payload })
+    });
+
+    if (!d.success) {
+      $('integration-mapper-panel').innerHTML = `<div class="alert alert-err">${esc(d.error)}</div>`;
+      return;
+    }
+
+    $('integration-mapper-panel').innerHTML = `
+      <div class="integration-map-grid">
+        <div>
+          <div class="eyebrow">FIELD MAP</div>
+          <pre class="json-viewer">${esc(JSON.stringify(d.field_map, null, 2))}</pre>
+        </div>
+        <div>
+          <div class="eyebrow">MAPPED inputToSystem</div>
+          <pre class="json-viewer">${esc(JSON.stringify(d.mapped, null, 2))}</pre>
+        </div>
+      </div>
+    `;
+
+    renderIntegrationCurl();
+    renderIcons();
+    toast('Mapping preview completed', 'success');
+  } catch (e) {
+    $('integration-mapper-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+    toast(e.message, 'error');
   }
 }
 
@@ -4235,13 +4413,17 @@ async function runIntegrationTest() {
     const system_type = $('integration-system-type')?.value || 'lms';
     const text = $('integration-test-text')?.value || 'Dars yaxshi, lekin baholash aniqroq bo‘lsin.';
 
+    const payload = getIntegrationPresetPayload();
+    payload.feedback = payload.feedback || payload.text || payload.comment || payload.message || text;
+    payload.text = payload.text || text;
+
     $('integration-result-panel').innerHTML = `
       <div class="integration-processing">
         <div class="processing-orb"></div>
         <div>
           <div class="eyebrow">SECURE INGEST RUNNING</div>
-          <h4>LMS feedback yuborilmoqda</h4>
-          <p>Token, schema mapping, AI analysis va dashboard update bajarilmoqda...</p>
+          <h4>External system request is being processed</h4>
+          <p>Token creation, schema mapping, AI analysis and dashboard update are running.</p>
         </div>
       </div>
     `;
@@ -4251,16 +4433,7 @@ async function runIntegrationTest() {
       body: JSON.stringify({
         system_name,
         system_type,
-        feedback: {
-          feedback: text,
-          rating: 4,
-          course_id: 'CS-101',
-          course_name: 'Algorithms',
-          teacher_id: 'T-01',
-          teacher_name: 'Aziz Karimov',
-          department: 'Computer Science',
-          feedback_channel: 'external_lms_rest'
-        }
+        feedback: payload
       })
     });
 
@@ -4271,8 +4444,9 @@ async function runIntegrationTest() {
       <div class="integration-result-success">
         <i data-lucide="badge-check"></i>
         <div>
-          <h4>Ingest successful</h4>
+          <h4>Ingest accepted</h4>
           <p>Feedback ID: <b>${esc(d.feedback_id)}</b></p>
+          <p>Request status: <b>${esc(d.request_log?.status || 'accepted')}</b></p>
           <p>Token preview: <code>${esc(d.token_preview)}</code></p>
         </div>
       </div>
@@ -4289,13 +4463,20 @@ async function runIntegrationTest() {
     `;
 
     await loadIntegrationStatus();
-    toast('Integration test ingest completed', 'success');
+    toast('Live integration test completed', 'success');
   } catch (e) {
     $('integration-result-panel').innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
     toast(e.message, 'error');
   } finally {
     renderIcons();
   }
+}
+
+function copyIntegrationCurl() {
+  renderIntegrationCurl();
+  const text = $('integration-curl-box')?.textContent || '';
+  navigator.clipboard.writeText(text);
+  toast('cURL copied', 'success');
 }
 
 
