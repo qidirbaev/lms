@@ -4208,7 +4208,7 @@ function applyIntegrationPreset() {
 }
 
 function renderIntegrationCurl() {
-  const base = (window.API_BASE || '').replace(/\/$/, '') || 'https://YOUR-BACKEND.hf.space';
+  const base = API_BASE.replace(/\/$/, '');
   const payloadText = $('integration-sample-payload')?.value || JSON.stringify(getIntegrationPresetPayload(), null, 2);
 
   const curl = `curl -X POST "${base}/integrations/ingest-feedback" \\
@@ -4389,11 +4389,11 @@ async function previewIntegrationMapping() {
       <div class="integration-map-grid">
         <div>
           <div class="eyebrow">FIELD MAP</div>
-          <pre class="json-viewer">${esc(JSON.stringify(d.field_map, null, 2))}</pre>
+          <pre class="json-viewer compact-json">${esc(JSON.stringify(d.field_map, null, 2))}</pre>
         </div>
         <div>
           <div class="eyebrow">MAPPED inputToSystem</div>
-          <pre class="json-viewer">${esc(JSON.stringify(d.mapped, null, 2))}</pre>
+          <pre class="json-viewer compact-json">${esc(JSON.stringify(d.mapped, null, 2))}</pre>
         </div>
       </div>
     `;
@@ -4451,14 +4451,14 @@ async function runIntegrationTest() {
         </div>
       </div>
 
-      <details class="test-json-details mt-3" open>
+      <details class="test-json-details mt-3">
         <summary><span>outputFromAI</span><i data-lucide="chevron-down"></i></summary>
-        <pre class="json-viewer">${esc(JSON.stringify(d.outputFromAI, null, 2))}</pre>
+        <pre class="json-viewer compact-json">${esc(JSON.stringify(d.outputFromAI, null, 2))}</pre>
       </details>
 
       <details class="test-json-details mt-3">
         <summary><span>inputToSystem</span><i data-lucide="chevron-down"></i></summary>
-        <pre class="json-viewer">${esc(JSON.stringify(d.inputToSystem, null, 2))}</pre>
+        <pre class="json-viewer compact-json">${esc(JSON.stringify(d.inputToSystem, null, 2))}</pre>
       </details>
     `;
 
