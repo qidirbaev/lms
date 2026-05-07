@@ -4,7 +4,7 @@ import re
 import time
 import random
 import asyncio
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 
 from google import genai
 from google.genai import types as genai_types
@@ -200,6 +200,78 @@ Return this exact JSON structure:
   "requires_admin_attention": false,
   "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
 }
+"""
+
+BATCH_SYSTEM_PROMPT = """
+You are an institutional LMS feedback intelligence engine.
+
+Analyze MULTIPLE student feedback records in one request.
+
+Return ONLY valid JSON.
+Do not use markdown.
+Do not add explanations outside JSON.
+Do not omit any input feedback_id.
+Do not add fields outside the required schema.
+
+Return this exact structure:
+
+{
+  "results": [
+    {
+      "feedback_id": "string",
+      "output": {
+        "schema_version": "1.0.0",
+        "feedback_id": "string",
+        "language": "uz|ru|en|mixed",
+        "feedback_credibility": {
+          "score": 0.0
+        },
+        "feedback_fairness": {
+          "score": 0.0,
+          "is_one_sided": false,
+          "has_constructive_tone": false
+        },
+        "sentiment": "positive|neutral|negative",
+        "sentiment_score": 0.0,
+        "emotion": "frustration|confusion|anxiety|anger|boredom|gratitude|curiosity|confidence|inspiration|relief|indifference|disappointment",
+        "emotion_intensity": 0.0,
+        "subtopics": ["string"],
+        "keywords": ["string"],
+        "topics": ["string"],
+        "issue_category": "none|teaching_style|content_quality|assessment|materials|communication|technical_issue|classroom_management|fairness_concern|other",
+        "risk": {
+          "types": ["corruption_allegation|harassment_claim|grading_bias|academic_integrity_issue|discrimination_claim|policy_violation|system_abuse|coordinated_spam"],
+          "probability": 0.0,
+          "impact_scope": "none|course|teacher|department|system"
+        },
+        "satisfaction_dimensions": {
+          "teaching_quality": 0.0,
+          "clarity": 0.0,
+          "engagement": 0.0,
+          "fairness": 0.0,
+          "materials": 0.0
+        },
+        "severity": "low|medium|high|critical",
+        "confidence": 0.0,
+        "summary_uz": "string",
+        "representative_label": "complaint|praise|suggestion|incident|other",
+        "requires_admin_attention": false,
+        "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
+      }
+    }
+  ]
+}
+
+Rules:
+- Treat each feedback independently.
+- raw_text is primary evidence.
+- Never infer corruption, harassment, discrimination, abuse, or policy violation unless raw_text explicitly suggests it.
+- Positive feedback should normally have low severity, no risk, and no admin attention.
+- If a field is missing, analyze conservatively.
+- summary_uz must always be Uzbek.
+- topics max 3.
+- subtopics max 5.
+- keywords max 4.
 """
 
 # SYSTEM_PROMPT = """
@@ -802,6 +874,172 @@ def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, 
         guarded["requires_admin_attention"] = False
 
     return guarded, corrections
+
+
+async def call_vertex_genai_batch_once(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    client = get_genai_client()
+
+    model = os.getenv("VERTEX_MODEL") or config.VERTEX_MODEL or "gemini-3.1-flash-lite-preview"
+    temperature = float(os.getenv("MODEL_TEMPERATURE", str(config.MODEL_TEMPERATURE)))
+    max_tokens = int(os.getenv("AI_BATCH_MAX_TOKENS", str(getattr(config, "AI_BATCH_MAX_TOKENS", 8192))))
+
+    input_items = [build_input_to_ai(item) for item in items]
+
+    prompt = json.dumps(
+        {
+            "task": "Analyze this array of LMS feedback records. Return one output object per feedback_id.",
+            "count": len(input_items),
+            "inputToAIItems": input_items,
+        },
+        ensure_ascii=False,
+    )
+
+    response = await client.aio.models.generate_content(
+        model=model,
+        contents=prompt,
+        config=genai_types.GenerateContentConfig(
+            system_instruction=BATCH_SYSTEM_PROMPT,
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            thinking_config=genai_types.ThinkingConfig(thinking_budget=0),
+        ),
+    )
+
+    raw = (response.text or "").strip()
+
+    return {
+        "input_to_ai_items": input_items,
+        "raw_output": raw,
+        "parsed_raw": extract_json(raw),
+    }
+
+
+def call_vertex_genai_batch_sync(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    loop = get_reusable_loop()
+    return loop.run_until_complete(call_vertex_genai_batch_once(items))
+
+
+def _mock_analyze_batch(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    rows = []
+    for item in items:
+        feedback_id = item.get("feedback_id", "unknown")
+        result = mock_analyze(item)
+        output, corrections = validate_output(result["parsed_raw"], feedback_id)
+        output, guardrail_corrections = apply_context_guardrails(output, item)
+        corrections.extend(guardrail_corrections)
+
+        rows.append({
+            "feedback_id": feedback_id,
+            "input_to_ai": result["input_to_ai"],
+            "output": output,
+            "raw_output": result["raw_output"],
+            "provider": "mock",
+            "used_fallback": False,
+            "corrections": corrections,
+        })
+    return rows
+
+
+def analyze_feedback_batch(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Analyze multiple feedbacks in one Vertex request.
+
+    Returns list of analysis objects compatible with data_service.upsert_result().
+    If batch Vertex fails, falls back to individual analyze_feedback().
+    """
+    clean_items = [x for x in items if isinstance(x, dict)]
+    if not clean_items:
+        return []
+
+    provider = config.AI_PROVIDER
+
+    if provider == "mock":
+        return _mock_analyze_batch(clean_items)
+
+    max_size = max(1, int(getattr(config, "AI_BATCH_MAX_SIZE", 10)))
+    if len(clean_items) > max_size:
+        raise ValueError(f"AI batch too large: {len(clean_items)} > {max_size}")
+
+    last_error = None
+    max_retries = max(1, int(config.MAX_RETRIES) + 1)
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            feedback_ids = [x.get("feedback_id", "unknown") for x in clean_items]
+            logger.info("gemma_batch_call_start", {
+                "count": len(clean_items),
+                "feedback_ids": feedback_ids,
+                "attempt": attempt,
+            })
+
+            result = call_vertex_genai_batch_sync(clean_items)
+            parsed = result.get("parsed_raw", {}) or {}
+            rows = parsed.get("results", [])
+
+            if not isinstance(rows, list):
+                raise ValueError("Batch model response missing results[]")
+
+            by_id = {}
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                fid = row.get("feedback_id")
+                output = row.get("output") or row
+                if fid:
+                    by_id[str(fid)] = output
+
+            outputs = []
+
+            for item in clean_items:
+                fid = str(item.get("feedback_id", "unknown"))
+                raw_output_obj = by_id.get(fid)
+
+                if not raw_output_obj:
+                    raise ValueError(f"Batch response missing feedback_id={fid}")
+
+                output, corrections = validate_output(raw_output_obj, fid)
+                output, guardrail_corrections = apply_context_guardrails(output, item)
+                corrections.extend(guardrail_corrections)
+
+                outputs.append({
+                    "feedback_id": fid,
+                    "input_to_ai": build_input_to_ai(item),
+                    "output": output,
+                    "raw_output": json.dumps(raw_output_obj, ensure_ascii=False),
+                    "provider": "vertex_genai_batch",
+                    "used_fallback": False,
+                    "corrections": corrections,
+                })
+
+            logger.info("gemma_batch_call_success", {
+                "count": len(outputs),
+                "attempt": attempt,
+            })
+
+            return outputs
+
+        except Exception as e:
+            last_error = e
+            logger.warn("gemma_batch_call_failed", {
+                "count": len(clean_items),
+                "attempt": attempt,
+                "error": str(e),
+            })
+
+            if attempt < max_retries:
+                time.sleep((1.5 ** attempt) + random.uniform(0.1, 0.7))
+
+    logger.warn("gemma_batch_fallback_to_single", {
+        "count": len(clean_items),
+        "reason": str(last_error),
+    })
+
+    # Safe fallback: split failed batch into normal single-feedback analysis.
+    outputs = []
+    for item in clean_items:
+        outputs.append(analyze_feedback(item))
+
+    return outputs
 
 
 def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:

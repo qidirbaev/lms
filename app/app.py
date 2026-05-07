@@ -19,7 +19,7 @@ from . import auth_service
 from . import dashboard_service
 from . import simulation_service
 from . import integration_service
-from .ai_service import analyze_feedback
+from .ai_service import analyze_feedback, analyze_feedback_batch
 from .models import (
     LoginRequest, AnalyzeFileItemRequest, ProcessBatchRequest,
     AnalyzeCustomRequest, SimulateRequest, RecordsFilterRequest,
@@ -644,37 +644,121 @@ async def process_batch(req: ProcessBatchRequest, authorization: str = Header(de
 
     items = data[:req.limit]
     total = len(items)
-    logger.info("batch_started", {"source": req.source, "total": total})
+
+    batch_size = int(req.batch_size or getattr(config, "AI_BATCH_SIZE", 8))
+    batch_size = max(1, min(batch_size, int(getattr(config, "AI_BATCH_MAX_SIZE", 10))))
+
+    logger.info("batch_started", {
+        "source": req.source,
+        "total": total,
+        "batch_size": batch_size,
+        "use_batch_ai": req.use_batch_ai,
+    })
 
     start_time = time.time()
     success_count = 0
     failed_count = 0
     fallback_count = 0
-    semaphore = asyncio.Semaphore(config.BATCH_CONCURRENCY)
+    chunks_total = 0
+    vertex_calls_estimated = 0
+    failed_items = []
 
-    async def process_one(item: dict, idx: int):
-        nonlocal success_count, failed_count, fallback_count
-        async with semaphore:
-            feedback_id = item.get("feedback_id", f"fb-{idx:05d}")
-            try:
-                loop = asyncio.get_event_loop()
-                analysis = await loop.run_in_executor(None, analyze_feedback, item)
-                data_service.upsert_result(feedback_id, item, analysis)
-                if analysis.get("used_fallback"):
-                    fallback_count += 1
-                success_count += 1
-            except Exception as e:
-                failed_count += 1
-                logger.error("batch_item_failed", {"feedback_id": feedback_id, "error": str(e)})
+    def chunks(arr, size):
+        for i in range(0, len(arr), size):
+            yield i, arr[i:i + size]
 
-    tasks = [process_one(item, i) for i, item in enumerate(items)]
-    await asyncio.gather(*tasks)
+    for start_idx, chunk in chunks(items, batch_size):
+        chunks_total += 1
+
+        try:
+            if req.use_batch_ai and len(chunk) > 1:
+                vertex_calls_estimated += 1
+                analyses = await asyncio.to_thread(analyze_feedback_batch, chunk)
+
+                if len(analyses) != len(chunk):
+                    raise RuntimeError(
+                        f"Batch output count mismatch: expected {len(chunk)}, got {len(analyses)}"
+                    )
+
+                for offset, analysis in enumerate(analyses):
+                    item = chunk[offset]
+                    feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
+                    data_service.upsert_result(feedback_id, item, analysis)
+
+                    if analysis.get("used_fallback"):
+                        fallback_count += 1
+
+                    success_count += 1
+
+            else:
+                for offset, item in enumerate(chunk):
+                    feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
+
+                    try:
+                        analysis = await asyncio.to_thread(analyze_feedback, item)
+                        data_service.upsert_result(feedback_id, item, analysis)
+
+                        if analysis.get("used_fallback"):
+                            fallback_count += 1
+
+                        success_count += 1
+                    except Exception as item_error:
+                        failed_count += 1
+                        failed_items.append({
+                            "feedback_id": feedback_id,
+                            "index": start_idx + offset,
+                            "error": str(item_error),
+                        })
+                        logger.error("batch_item_failed", {
+                            "feedback_id": feedback_id,
+                            "error": str(item_error),
+                        })
+
+        except Exception as chunk_error:
+            logger.warn("batch_chunk_failed_split_to_single", {
+                "start_index": start_idx,
+                "chunk_size": len(chunk),
+                "error": str(chunk_error),
+            })
+
+            # Important fallback: if one batch response is malformed,
+            # split the chunk into single item calls instead of losing all 8.
+            for offset, item in enumerate(chunk):
+                feedback_id = item.get("feedback_id", f"fb-{start_idx + offset:05d}")
+
+                try:
+                    analysis = await asyncio.to_thread(analyze_feedback, item)
+                    data_service.upsert_result(feedback_id, item, analysis)
+
+                    if analysis.get("used_fallback"):
+                        fallback_count += 1
+
+                    success_count += 1
+                except Exception as item_error:
+                    failed_count += 1
+                    failed_items.append({
+                        "feedback_id": feedback_id,
+                        "index": start_idx + offset,
+                        "error": str(item_error),
+                    })
+                    logger.error("batch_item_failed_after_split", {
+                        "feedback_id": feedback_id,
+                        "error": str(item_error),
+                    })
 
     duration = round(time.time() - start_time, 2)
+    throughput = round(success_count / duration, 2) if duration else success_count
+
     logger.info("batch_completed", {
-        "source": req.source, "total": total,
-        "success": success_count, "failed": failed_count,
-        "fallback": fallback_count, "duration_s": duration,
+        "source": req.source,
+        "total": total,
+        "success": success_count,
+        "failed": failed_count,
+        "fallback": fallback_count,
+        "duration_s": duration,
+        "batch_size": batch_size,
+        "chunks_total": chunks_total,
+        "vertex_calls_estimated": vertex_calls_estimated,
     })
 
     return {
@@ -684,9 +768,15 @@ async def process_batch(req: ProcessBatchRequest, authorization: str = Header(de
         "failed": failed_count,
         "fallback_used": fallback_count,
         "duration_seconds": duration,
+        "throughput_items_per_second": throughput,
+        "batch_size": batch_size,
+        "chunks_total": chunks_total,
+        "vertex_calls_estimated": vertex_calls_estimated,
+        "old_vertex_calls_estimated": total,
+        "vertex_call_reduction": max(0, total - vertex_calls_estimated),
+        "failed_items": failed_items[:30],
         "dashboard": dashboard_service.get_full_dashboard(),
     }
-
 
 @app.post("/analyze-custom")
 def analyze_custom(req: AnalyzeCustomRequest, authorization: str = Header(default=None)):

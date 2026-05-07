@@ -3075,6 +3075,11 @@ function renderBatchIntelPanel(d) {
   const successRate = total ? Math.round((success / total) * 100) : 0;
   const throughput = duration ? (success / duration).toFixed(2) : '—';
 
+  const chunks = Number(d.chunks_total || 0);
+  const vertexCalls = Number(d.vertex_calls_estimated || 0);
+  const oldCalls = Number(d.old_vertex_calls_estimated || total);
+  const savedCalls = Math.max(0, oldCalls - vertexCalls);
+
   const cls = failed ? 'critical' : fallback ? 'warning' : 'positive';
 
   $('batch-intel-panel').innerHTML = `
@@ -3089,8 +3094,8 @@ function renderBatchIntelPanel(d) {
 
     <div class="batch-schema-grid mt-3">
       ${kpi(t('success'), success, 'AI outputs')}
-      ${kpi(t('failed'), failed, 'processing errors')}
-      ${kpi(t('fallback'), fallback, 'mock fallback')}
+      ${kpi('Chunks', chunks, `size ${d.batch_size || 8}`)}
+      ${kpi('Vertex calls', vertexCalls, `${savedCalls} calls saved`)}
       ${kpi('Throughput', throughput, 'items/sec')}
     </div>
 
@@ -3267,7 +3272,12 @@ async function processBatch() {
 
     const d = await api('/process-batch', {
       method: 'POST',
-      body: JSON.stringify({ source, limit })
+      body: JSON.stringify({
+        source,
+        limit,
+        batch_size: 8,
+        use_batch_ai: true
+      })
     });
 
     state.dashboard = d.dashboard;
@@ -3281,7 +3291,11 @@ async function processBatch() {
         <div>
           <div class="eyebrow">BATCH COMPLETE</div>
           <h4>${batchSourceLabel(source)} tahlil qilindi</h4>
-          <p>${d.success} success · ${d.failed} failed · ${d.fallback_used} fallback · ${d.duration_seconds}s</p>
+          <p>
+            ${d.success} success · ${d.failed} failed · ${d.fallback_used} fallback ·
+            ${d.duration_seconds}s · ${d.chunks_total || 0} chunks ·
+            ~${d.vertex_calls_estimated || 0} Vertex calls
+          </p>
         </div>
       </div>
       <div class="progress-wrap mt-3"><div class="progress-bar" style="width:100%"></div></div>

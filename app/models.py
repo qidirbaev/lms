@@ -15,6 +15,8 @@ class AnalyzeFileItemRequest(BaseModel):
 class ProcessBatchRequest(BaseModel):
     source: str = "batch"
     limit: int = 30
+    batch_size: int = 8
+    use_batch_ai: bool = True
 
 
 class AnalyzeCustomRequest(BaseModel):

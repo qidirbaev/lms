@@ -16,6 +16,10 @@ GOOGLE_SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 
 # Processing config
 BATCH_CONCURRENCY = int(os.getenv("BATCH_CONCURRENCY", "3"))
+AI_BATCH_SIZE = int(os.getenv("AI_BATCH_SIZE", "8"))
+AI_BATCH_MAX_SIZE = int(os.getenv("AI_BATCH_MAX_SIZE", "10"))
+AI_BATCH_MAX_TOKENS = int(os.getenv("AI_BATCH_MAX_TOKENS", "8192"))
+AI_BATCH_SPLIT_ON_FAILURE = os.getenv("AI_BATCH_SPLIT_ON_FAILURE", "true").lower() == "true"
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "2"))
 REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "90"))
 FALLBACK_TO_MOCK = os.getenv("FALLBACK_TO_MOCK", "true").lower() == "true"
