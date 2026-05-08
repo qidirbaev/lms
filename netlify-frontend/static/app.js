@@ -617,6 +617,8 @@ function renderEmotionRadarChart() {
       displayModeBar: false,
       responsive: true
     });
+  } else {
+    chartFallbackBars('emotion-radar-chart', labels, values);
   }
 }
 
@@ -661,6 +663,8 @@ function renderSatisfactionRadarChart() {
       displayModeBar: false,
       responsive: true
     });
+  } else {
+    chartFallbackBars('satisfaction-radar-chart', labels, values, '%');
   }
 }
 
@@ -705,6 +709,10 @@ function renderEmotionSankeyChart() {
       displayModeBar: false,
       responsive: true
     });
+  } else {
+    $('emotion-sankey-chart').innerHTML = `
+      <div class="text-muted">Plotly is required for Sankey diagram.</div>
+    `;
   }
 }
 
@@ -1414,6 +1422,21 @@ function showPage(page) {
     if (el) el.classList.toggle('active', p === page);
   });
 
+  if (page === 'trends') {
+    setTimeout(() => {
+      renderSentimentTrendChart();
+      renderEmotionTrendChart();
+    }, 50);
+  }
+
+  if (page === 'overview') {
+    setTimeout(() => {
+      renderEmotionRadarChart();
+      renderSatisfactionRadarChart();
+      renderEmotionSankeyChart();
+    }, 50);
+  }
+
   renderIcons();
 
   if (page === 'records') loadRecords();
@@ -1826,6 +1849,38 @@ function renderOverview() {
           </button>
         </div>
 
+        <div class="charts-grid-2 mt-3">
+          <div class="card chart-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Student emotions web chart</div>
+                <div class="text-muted text-sm">Dominant student feelings across processed feedback</div>
+              </div>
+            </div>
+            <div id="emotion-radar-chart" class="chart-host"></div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Satisfaction dimensions web chart</div>
+                <div class="text-muted text-sm">Average scores across academic experience dimensions</div>
+              </div>
+            </div>
+            <div id="satisfaction-radar-chart" class="chart-host"></div>
+          </div>
+        </div>
+
+        <div class="card chart-card mt-3">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Sentiment → Emotion Sankey</div>
+              <div class="text-muted text-sm">How university sentiment flows into emotional states</div>
+            </div>
+          </div>
+          <div id="emotion-sankey-chart" class="chart-host chart-host-wide"></div>
+        </div>
+
         <div class="overview-live-list">
           ${renderOverviewLatestCards(o.latest || [])}
         </div>
@@ -1843,6 +1898,9 @@ function renderOverview() {
   `;
 
   drawCharts();
+  renderEmotionRadarChart();
+  renderSatisfactionRadarChart();
+  renderEmotionSankeyChart();
   renderIcons();
 }
 
@@ -3602,7 +3660,9 @@ async function openRecord(feedbackId) {
       </div>
     `;
 
-    $('record-modal').classList.add('show');
+    const modal = $('record-modal');
+    modal.style.display = 'flex';
+    modal.classList.add('show');
     renderIcons();
   } catch (e) {
     toast(e.message, 'error');
@@ -3610,7 +3670,11 @@ async function openRecord(feedbackId) {
 }
 
 function closeModal() {
-  $('record-modal').style.display = 'none';
+  const modal = $('record-modal');
+  if (!modal) return;
+
+  modal.classList.remove('show');
+  modal.style.display = 'none';
 }
 
 // ─────────────────────────────────────────────────────────────
