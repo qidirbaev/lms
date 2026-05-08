@@ -34,6 +34,11 @@ SATISFACTION_KEYS = [
     "overall_satisfaction",
 ]
 
+
+def _all_records():
+    return data_service.get_all_results()
+
+
 def _records():
     # Dashboard compatibility adapter: old stored outputs and new canonical outputs are both readable.
     records = data_service.get_all_results()
@@ -509,8 +514,7 @@ def build_emotion_trend(records: list) -> dict:
 
 
 def get_full_dashboard() -> dict:
-    results = data_service.list_results()
-    records = data_service.list_results()
+    results = _all_records()
     
     return {
         "overview": aggregate_overview(),
@@ -521,6 +525,7 @@ def get_full_dashboard() -> dict:
         "issues": aggregate_issues(),
         "risks": aggregate_risks(),
         "keywords": aggregate_keywords(),
+        
         "emotion_distribution": build_emotion_distribution(results),
         "satisfaction_dimensions_chart": build_satisfaction_dimensions(results),
         "sentiment_trend": build_sentiment_trend(results),
