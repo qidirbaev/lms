@@ -11,6 +11,18 @@ const pages = [
   'integration', 'notifier', 'logs', 'settings'
 ];
 
+const recordsState = {
+  q: '',
+  sentiment: '',
+  severity: '',
+  topic: '',
+  course_id: '',
+  teacher_id: '',
+  limit: 50,
+  offset: 0,
+  total: 0
+};
+
 let activeBatchJobId = null;
 let activeBatchPoller = null;
 
@@ -571,6 +583,111 @@ function t(key) {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
+const radarState = {
+  emotion: {
+    mode: localStorage.getItem('radar_emotion_mode') || 'percent',
+    pinned: new Set(JSON.parse(localStorage.getItem('radar_emotion_pinned') || '[]'))
+  },
+  satisfaction: {
+    mode: localStorage.getItem('radar_satisfaction_mode') || 'percent',
+    pinned: new Set(JSON.parse(localStorage.getItem('radar_satisfaction_pinned') || '[]'))
+  }
+};
+
+function saveRadarState(type) {
+  localStorage.setItem(`radar_${type}_mode`, radarState[type].mode);
+  localStorage.setItem(`radar_${type}_pinned`, JSON.stringify([...radarState[type].pinned]));
+}
+
+function transformRadarValues(values, mode) {
+  const nums = values.map(v => Number(v || 0));
+  const max = Math.max(1, ...nums);
+  const sum = nums.reduce((a, b) => a + b, 0);
+
+  if (mode === 'percent') {
+    return nums.map(v => sum ? Math.round((v / sum) * 1000) / 10 : 0);
+  }
+
+  if (mode === 'log') {
+    const logs = nums.map(v => Math.log10(v + 1));
+    const logMax = Math.max(1, ...logs);
+    return logs.map(v => Math.round((v / logMax) * 1000) / 10);
+  }
+
+  return nums;
+}
+
+function radarUnit(mode) {
+  if (mode === 'percent') return '%';
+  if (mode === 'log') return 'log%';
+  return '';
+}
+
+function filteredRadarData(type, labels, values) {
+  const pinned = radarState[type].pinned;
+
+  if (!pinned.size) {
+    return { labels, values };
+  }
+
+  const rows = labels.map((label, i) => ({ label, value: values[i] || 0 }));
+  const filtered = rows.filter(x => pinned.has(x.label));
+
+  return {
+    labels: filtered.map(x => x.label),
+    values: filtered.map(x => x.value)
+  };
+}
+
+function renderRadarControls(type, containerId, labels, rerenderFn) {
+  const el = $(containerId);
+  if (!el) return;
+
+  const state = radarState[type];
+
+  el.innerHTML = `
+    <div class="radar-control-bar">
+      <div class="radar-mode-group">
+        ${['raw', 'percent', 'log'].map(mode => `
+          <button
+            class="radar-mode-btn ${state.mode === mode ? 'active' : ''}"
+            onclick="radarState.${type}.mode='${mode}'; saveRadarState('${type}'); ${rerenderFn}();"
+          >
+            ${mode.toUpperCase()}
+          </button>
+        `).join('')}
+      </div>
+
+      <button
+        class="radar-mode-btn"
+        onclick="radarState.${type}.pinned.clear(); saveRadarState('${type}'); ${rerenderFn}();"
+      >
+        Show all
+      </button>
+    </div>
+
+    <div class="radar-chip-zone">
+      ${labels.map(label => {
+        const active = state.pinned.has(label);
+        return `
+          <button
+            class="radar-chip ${active ? 'active' : ''}"
+            onclick="
+              radarState.${type}.pinned.has('${label}')
+                ? radarState.${type}.pinned.delete('${label}')
+                : radarState.${type}.pinned.add('${label}');
+              saveRadarState('${type}');
+              ${rerenderFn}();
+            "
+          >
+            ${esc(humanLabel(label))}
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function humanLabel(s) {
   return String(s || '')
     .replaceAll('_', ' ')
@@ -579,39 +696,45 @@ function humanLabel(s) {
 
 function renderEmotionRadarChart() {
   const d = state.dashboard?.emotion_distribution || {};
-  const labels = d.labels || [];
-  const values = d.values || [];
+  const rawLabels = d.labels || [];
+  const rawValues = d.values || [];
 
   const el = $('emotion-radar-chart');
   if (!el) return;
 
+  renderRadarControls(
+    'emotion',
+    'emotion-radar-controls',
+    rawLabels,
+    'renderEmotionRadarChart'
+  );
+
+  const filtered = filteredRadarData('emotion', rawLabels, rawValues);
+  const labels = filtered.labels;
+  const values = transformRadarValues(filtered.values, radarState.emotion.mode);
+
   if (!labels.length || !values.length) {
-    el.innerHTML = `<div class="empty-chart">No emotion data</div>`;
+    el.innerHTML = `<div class="empty-chart">No selected emotion data</div>`;
     return;
   }
 
   const c = themeColors();
   const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
   const r = [...values, values[0]];
+  const unit = radarUnit(radarState.emotion.mode);
 
   Plotly.react(el, [{
     type: 'scatterpolar',
     r,
     theta,
     fill: 'toself',
-    name: 'Emotion count',
-    line: {
-      width: 3,
-      color: c.info
-    },
-    marker: {
-      size: 6,
-      color: c.info
-    },
+    name: `Emotion ${radarState.emotion.mode}`,
+    line: { width: 3, color: c.info },
+    marker: { size: 7, color: c.info },
     fillcolor: 'rgba(59,130,246,.22)',
-    hovertemplate: '<b>%{theta}</b><br>%{r} students<extra></extra>'
+    hovertemplate: `<b>%{theta}</b><br>%{r}${unit}<extra></extra>`
   }], basePlotLayout({
-    margin: { l: 70, r: 70, t: 15, b: 30 },
+    margin: { l: 85, r: 85, t: 20, b: 35 },
     polar: {
       bgcolor: 'rgba(0,0,0,0)',
       radialaxis: {
@@ -629,48 +752,70 @@ function renderEmotionRadarChart() {
     },
     showlegend: false
   }), basePlotConfig());
+
+  el.on('plotly_click', ev => {
+    const label = ev?.points?.[0]?.theta;
+    if (!label) return;
+
+    const raw = rawLabels.find(x => humanLabel(x) === label);
+    if (!raw) return;
+
+    radarState.emotion.pinned.has(raw)
+      ? radarState.emotion.pinned.delete(raw)
+      : radarState.emotion.pinned.add(raw);
+
+    saveRadarState('emotion');
+    renderEmotionRadarChart();
+  });
 }
 
 function renderSatisfactionRadarChart() {
   const d = state.dashboard?.satisfaction_dimensions_chart || {};
-  const labels = d.labels || [];
-  const values = (d.values || []).map(v => Math.round(Number(v || 0) * 100));
+  const rawLabels = d.labels || [];
+  const rawValues = (d.values || []).map(v => Math.round(Number(v || 0) * 100));
 
   const el = $('satisfaction-radar-chart');
   if (!el) return;
 
+  renderRadarControls(
+    'satisfaction',
+    'satisfaction-radar-controls',
+    rawLabels,
+    'renderSatisfactionRadarChart'
+  );
+
+  const filtered = filteredRadarData('satisfaction', rawLabels, rawValues);
+  const labels = filtered.labels;
+  const values = transformRadarValues(filtered.values, radarState.satisfaction.mode);
+
   if (!labels.length || !values.length) {
-    el.innerHTML = `<div class="empty-chart">No satisfaction data</div>`;
+    el.innerHTML = `<div class="empty-chart">No selected satisfaction data</div>`;
     return;
   }
 
   const c = themeColors();
   const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
   const r = [...values, values[0]];
+  const unit = radarUnit(radarState.satisfaction.mode);
 
   Plotly.react(el, [{
     type: 'scatterpolar',
     r,
     theta,
     fill: 'toself',
-    name: 'Satisfaction',
-    line: {
-      width: 3,
-      color: c.pos
-    },
-    marker: {
-      size: 6,
-      color: c.pos
-    },
+    name: `Satisfaction ${radarState.satisfaction.mode}`,
+    line: { width: 3, color: c.pos },
+    marker: { size: 7, color: c.pos },
     fillcolor: 'rgba(34,197,94,.22)',
-    hovertemplate: '<b>%{theta}</b><br>%{r}%<extra></extra>'
+    hovertemplate: `<b>%{theta}</b><br>%{r}${unit}<extra></extra>`
   }], basePlotLayout({
-    margin: { l: 80, r: 80, t: 15, b: 30 },
+    margin: { l: 90, r: 90, t: 20, b: 35 },
     polar: {
       bgcolor: 'rgba(0,0,0,0)',
       radialaxis: {
         visible: true,
-        range: [0, 100],
+        range: radarState.satisfaction.mode === 'raw' ? [0, 100] : undefined,
+        rangemode: 'tozero',
         gridcolor: c.grid,
         linecolor: c.grid,
         tickfont: { color: c.muted, size: 10 }
@@ -683,6 +828,21 @@ function renderSatisfactionRadarChart() {
     },
     showlegend: false
   }), basePlotConfig());
+
+  el.on('plotly_click', ev => {
+    const label = ev?.points?.[0]?.theta;
+    if (!label) return;
+
+    const raw = rawLabels.find(x => humanLabel(x) === label);
+    if (!raw) return;
+
+    radarState.satisfaction.pinned.has(raw)
+      ? radarState.satisfaction.pinned.delete(raw)
+      : radarState.satisfaction.pinned.add(raw);
+
+    saveRadarState('satisfaction');
+    renderSatisfactionRadarChart();
+  });
 }
 
 function renderEmotionSankeyChart() {
@@ -789,6 +949,43 @@ function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
   `;
 }
 
+function renderDominantEmotionTimeline(items, limit = 12) {
+  const el = $('dominant-emotion-timeline');
+  if (!el) return;
+
+  const rows = (items || []).filter(x => x && x.date).slice(-limit).reverse();
+
+  el.innerHTML = `
+    <div class="timeline-toolbar">
+      <span>Showing latest ${rows.length} periods</span>
+
+      <div class="action-row">
+        <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 12)">
+          Show 12
+        </button>
+
+        <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 30)">
+          Show 30
+        </button>
+
+        <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 100)">
+          Show 100
+        </button>
+      </div>
+    </div>
+
+    <div class="dominant-emotion-list compact">
+      ${rows.length ? rows.map(item => `
+        <div class="dominant-emotion-row">
+          <span>${esc(item.date)}</span>
+          <b>${esc(item.emotion ? humanLabel(item.emotion) : 'No emotion')}</b>
+          <small>${esc(item.count || 0)} records</small>
+        </div>
+      `).join('') : `<div class="empty-chart">No dominant emotion timeline</div>`}
+    </div>
+  `;
+}
+
 function renderEmotionDistributionChart() {
   const d = state.dashboard?.emotion_distribution || {};
   const labels = d.labels || [];
@@ -849,60 +1046,125 @@ function renderSatisfactionDimensionsChart() {
   }
 }
 
-function renderSentimentTrendChart() {
-  const d = state.dashboard?.sentiment_trend || {};
+function periodKey(dateLike) {
+  const s = String(dateLike || '');
+  if (/^\d{4}-\d{2}/.test(s)) return s.slice(0, 7);
+  return s || 'unknown';
+}
+
+function aggregateSentimentTrendMonthly(d) {
   const labels = d.labels || [];
+  const bucket = {};
+
+  labels.forEach((label, i) => {
+    const key = periodKey(label);
+
+    if (!bucket[key]) {
+      bucket[key] = {
+        positive: 0,
+        neutral: 0,
+        negative: 0
+      };
+    }
+
+    bucket[key].positive += Number(d.positive?.[i] || 0);
+    bucket[key].neutral += Number(d.neutral?.[i] || 0);
+    bucket[key].negative += Number(d.negative?.[i] || 0);
+  });
+
+  const periods = Object.keys(bucket).sort();
+
+  return {
+    labels: periods,
+    positive: periods.map(p => bucket[p].positive),
+    neutral: periods.map(p => bucket[p].neutral),
+    negative: periods.map(p => bucket[p].negative),
+    totals: periods.map(p => bucket[p].positive + bucket[p].neutral + bucket[p].negative),
+    net: periods.map(p => {
+      const total = bucket[p].positive + bucket[p].neutral + bucket[p].negative;
+      if (!total) return 0;
+      return Math.round(((bucket[p].positive - bucket[p].negative) / total) * 100);
+    })
+  };
+}
+
+function renderSentimentTrendChart() {
+  const raw = state.dashboard?.sentiment_trend || {};
+  const d = aggregateSentimentTrendMonthly(raw);
 
   const el = $('sentiment-trend-chart');
   if (!el) return;
 
   const c = themeColors();
 
-  if (!labels.length) {
+  if (!d.labels.length) {
     el.innerHTML = `<div class="empty-chart">No sentiment trend data</div>`;
     return;
   }
 
   Plotly.react(el, [
     {
-      type: 'scatter',
-      mode: 'lines+markers',
+      type: 'bar',
       name: 'Positive',
-      x: labels,
-      y: d.positive || [],
-      line: { color: c.pos, width: 3, shape: 'spline' },
-      marker: { size: 6 }
+      x: d.labels,
+      y: d.positive,
+      marker: { color: c.pos },
+      hovertemplate: '<b>%{x}</b><br>Positive: %{y}<extra></extra>'
     },
     {
-      type: 'scatter',
-      mode: 'lines+markers',
+      type: 'bar',
       name: 'Neutral',
-      x: labels,
-      y: d.neutral || [],
-      line: { color: c.warn, width: 3, shape: 'spline' },
-      marker: { size: 6 }
+      x: d.labels,
+      y: d.neutral,
+      marker: { color: c.warn },
+      hovertemplate: '<b>%{x}</b><br>Neutral: %{y}<extra></extra>'
+    },
+    {
+      type: 'bar',
+      name: 'Negative',
+      x: d.labels,
+      y: d.negative,
+      marker: { color: c.neg },
+      hovertemplate: '<b>%{x}</b><br>Negative: %{y}<extra></extra>'
     },
     {
       type: 'scatter',
       mode: 'lines+markers',
-      name: 'Negative',
-      x: labels,
-      y: d.negative || [],
-      line: { color: c.neg, width: 3, shape: 'spline' },
-      marker: { size: 6 }
+      name: 'Net sentiment',
+      x: d.labels,
+      y: d.net,
+      yaxis: 'y2',
+      line: {
+        color: c.accent,
+        width: 3
+      },
+      marker: {
+        size: 7
+      },
+      hovertemplate: '<b>%{x}</b><br>Net sentiment: %{y}%<extra></extra>'
     }
   ], basePlotLayout({
-    margin: { l: 45, r: 20, t: 10, b: 70 },
+    barmode: 'stack',
+    margin: { l: 45, r: 55, t: 10, b: 70 },
     xaxis: {
       title: '',
       gridcolor: c.grid,
-      tickangle: -35,
+      tickangle: -25,
       automargin: true
     },
     yaxis: {
       title: 'Feedback count',
       gridcolor: c.grid,
       rangemode: 'tozero'
+    },
+    yaxis2: {
+      title: 'Net sentiment %',
+      overlaying: 'y',
+      side: 'right',
+      range: [-100, 100],
+      zeroline: true,
+      zerolinecolor: c.grid,
+      gridcolor: 'rgba(0,0,0,0)'
     },
     legend: {
       orientation: 'h',
@@ -911,70 +1173,119 @@ function renderSentimentTrendChart() {
   }), basePlotConfig());
 }
 
+function aggregateEmotionTrendMonthly(raw) {
+  const labels = raw.labels || [];
+  const series = raw.series || {};
+  const bucket = {};
+
+  labels.forEach((label, i) => {
+    const key = periodKey(label);
+
+    if (!bucket[key]) bucket[key] = {};
+
+    Object.keys(series).forEach(emotion => {
+      bucket[key][emotion] = (bucket[key][emotion] || 0) + Number(series[emotion]?.[i] || 0);
+    });
+  });
+
+  const periods = Object.keys(bucket).sort();
+
+  const emotions = [
+    'frustration',
+    'confusion',
+    'anxiety',
+    'anger',
+    'boredom',
+    'disappointment',
+    'shame',
+    'helplessness',
+    'isolated',
+    'gratitude',
+    'confidence',
+    'inspiration',
+    'relief',
+    'satisfaction',
+    'surprise'
+  ].filter(emotion => periods.some(p => Number(bucket[p][emotion] || 0) > 0));
+
+  const z = emotions.map(emotion =>
+    periods.map(period => Number(bucket[period][emotion] || 0))
+  );
+
+  const dominant = periods.map(period => {
+    let bestEmotion = null;
+    let bestCount = 0;
+
+    emotions.forEach(emotion => {
+      const count = Number(bucket[period][emotion] || 0);
+      if (count > bestCount) {
+        bestEmotion = emotion;
+        bestCount = count;
+      }
+    });
+
+    return {
+      date: period,
+      emotion: bestEmotion,
+      count: bestCount
+    };
+  });
+
+  return {
+    periods,
+    emotions,
+    z,
+    dominant
+  };
+}
+
 function renderEmotionTrendChart() {
-  const d = state.dashboard?.emotion_trend || {};
-  const labels = d.labels || [];
-  const series = d.series || {};
-  const dominant = d.dominant || [];
+  const raw = state.dashboard?.emotion_trend || {};
+  const d = aggregateEmotionTrendMonthly(raw);
 
   const el = $('emotion-trend-chart');
   if (!el) return;
 
   const c = themeColors();
 
-  if (!labels.length || !Object.keys(series).length) {
+  if (!d.periods.length || !d.emotions.length) {
     el.innerHTML = `<div class="empty-chart">No emotion trend data</div>`;
   } else {
-    const allowed = [
-      'frustration', 'confusion', 'anxiety', 'anger', 'boredom',
-      'disappointment', 'shame', 'helplessness', 'isolated',
-      'gratitude', 'confidence', 'inspiration', 'relief',
-      'satisfaction', 'surprise'
-    ];
-
-    const active = allowed.filter(k => (series[k] || []).some(v => Number(v || 0) > 0));
-
-    const traces = active.map(emotion => ({
-      type: 'scatter',
-      mode: 'lines',
-      stackgroup: 'one',
-      name: humanLabel(emotion),
-      x: labels,
-      y: series[emotion] || [],
-      line: { width: 1.5 }
-    }));
-
-    Plotly.react(el, traces, basePlotLayout({
-      margin: { l: 45, r: 20, t: 10, b: 80 },
+    Plotly.react(el, [
+      {
+        type: 'heatmap',
+        x: d.periods,
+        y: d.emotions.map(humanLabel),
+        z: d.z,
+        colorscale: [
+          [0, 'rgba(255,255,255,0.04)'],
+          [0.25, c.info],
+          [0.6, c.warn],
+          [1, c.neg]
+        ],
+        hovertemplate: '<b>%{y}</b><br>%{x}: %{z} records<extra></extra>',
+        showscale: true,
+        colorbar: {
+          title: 'Count',
+          thickness: 10
+        }
+      }
+    ], basePlotLayout({
+      margin: { l: 145, r: 40, t: 10, b: 65 },
       xaxis: {
         title: '',
-        gridcolor: c.grid,
-        tickangle: -35,
-        automargin: true
+        tickangle: -25,
+        gridcolor: c.grid
       },
       yaxis: {
-        title: 'Emotion count',
-        gridcolor: c.grid,
-        rangemode: 'tozero'
-      },
-      legend: {
-        orientation: 'h',
-        y: -0.30
+        title: '',
+        automargin: true
       }
     }), basePlotConfig());
   }
 
-  if ($('dominant-emotion-timeline')) {
-    $('dominant-emotion-timeline').innerHTML = dominant.length
-      ? dominant.map(item => `
-          <div class="dominant-emotion-row">
-            <span>${esc(item.date)}</span>
-            <b>${esc(item.emotion ? humanLabel(item.emotion) : 'No emotion')}</b>
-            <small>${esc(item.count || 0)} records</small>
-          </div>
-        `).join('')
-      : `<div class="empty-chart">No dominant emotion timeline</div>`;
-  }
+  window.__dominantEmotionRows = d.dominant || [];
+  renderDominantEmotionTimeline(window.__dominantEmotionRows, 12);
 }
 
 function valueOrNull(id) {
@@ -1925,6 +2236,8 @@ function renderOverview() {
                 <div class="text-muted text-sm">Dominant student feelings across processed feedback</div>
               </div>
             </div>
+
+            <div id="emotion-radar-controls"></div>
             <div id="emotion-radar-chart" class="chart-host"></div>
           </div>
 
@@ -1935,6 +2248,8 @@ function renderOverview() {
                 <div class="text-muted text-sm">Average scores across academic experience dimensions</div>
               </div>
             </div>
+
+            <div id="satisfaction-radar-controls"></div>
             <div id="satisfaction-radar-chart" class="chart-host"></div>
           </div>
         </div>
@@ -2418,8 +2733,8 @@ function renderTrends() {
         <div class="card chart-card chart-card-v12">
           <div class="card-header">
             <div>
-              <div class="card-title">Dominant emotions over time</div>
-              <div class="text-muted text-sm">Emotion activity timeline across the institution</div>
+              <div class="card-title">Emotion heatmap over time</div>
+              <div class="text-muted text-sm">Monthly intensity of dominant student emotions</div>
             </div>
           </div>
           <div id="emotion-trend-chart" class="chart-host"></div>
@@ -3588,31 +3903,93 @@ function renderRecordsPanel() {
   renderIcons();
 }
 
-async function loadRecords() {
-  try {
-    const q = new URLSearchParams();
+function renderRecordsPage(items, meta) {
+  const body = $('records-body');
+  if (!body) return;
 
-    const map = {
-      sentiment: 'filter-sentiment',
-      severity: 'filter-severity',
-      issue_category: 'filter-issue',
-      requires_admin_attention: 'filter-admin'
-    };
+  body.innerHTML = `
+    <div class="records-toolbar card">
+      <input
+        class="input"
+        placeholder="Search feedback, course, teacher, summary..."
+        value="${esc(recordsState.q)}"
+        oninput="recordsState.q=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
+      />
 
-    Object.entries(map).forEach(([k, id]) => {
-      const v = $(id)?.value;
-      if (v) q.set(k, v);
-    });
+      <select class="select" onchange="recordsState.sentiment=this.value; loadRecords(true);">
+        <option value="">All sentiment</option>
+        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>Positive</option>
+        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>Neutral</option>
+        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>Negative</option>
+      </select>
 
-    $('records-list').innerHTML = skeletonCards(4);
+      <select class="select" onchange="recordsState.severity=this.value; loadRecords(true);">
+        <option value="">All severity</option>
+        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>None</option>
+        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>Low</option>
+        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>Medium</option>
+        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>High</option>
+        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>Critical</option>
+      </select>
 
-    const d = await api(`/records?${q.toString()}`);
-    recordsCache = d.items || [];
+      <input
+        class="input"
+        placeholder="Course ID"
+        value="${esc(recordsState.course_id)}"
+        oninput="recordsState.course_id=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
+      />
 
-    renderRecordsPanel();
-  } catch (e) {
-    toast(e.message, 'error');
-  }
+      <input
+        class="input"
+        placeholder="Teacher ID"
+        value="${esc(recordsState.teacher_id)}"
+        oninput="recordsState.teacher_id=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
+      />
+    </div>
+
+    <div class="records-count-row">
+      <b>${meta.total || 0}</b>
+      <span>matching records</span>
+      <small>showing ${meta.offset + 1}-${Math.min(meta.offset + meta.limit, meta.total)}</small>
+    </div>
+
+    <div id="records-list" class="records-list">
+      ${items.length ? items.map(renderRecordCard).join('') : `<div class="empty-state">No records found</div>`}
+    </div>
+
+    <div class="records-pagination">
+      <button class="btn btn-secondary" ${recordsState.offset <= 0 ? 'disabled' : ''} onclick="recordsState.offset=Math.max(0,recordsState.offset-recordsState.limit); loadRecords();">
+        Previous
+      </button>
+
+      <button class="btn btn-secondary" ${!meta.has_more ? 'disabled' : ''} onclick="recordsState.offset+=recordsState.limit; loadRecords();">
+        Next
+      </button>
+    </div>
+  `;
+
+  renderIcons();
+}
+
+async function loadRecords(reset = false) {
+  if (reset) recordsState.offset = 0;
+
+  const params = new URLSearchParams({
+    q: recordsState.q,
+    sentiment: recordsState.sentiment,
+    severity: recordsState.severity,
+    topic: recordsState.topic,
+    course_id: recordsState.course_id,
+    teacher_id: recordsState.teacher_id,
+    limit: recordsState.limit,
+    offset: recordsState.offset
+  });
+
+  const d = await api(`/records?${params.toString()}`);
+
+  recordsState.total = d.total || 0;
+
+  renderRecordsPage(d.items || [], d);
 }
 
 function clearFilters() {

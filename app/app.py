@@ -844,65 +844,90 @@ async def analyze_simulated(payload: dict, authorization: str = Header(default=N
 
 @app.get("/records")
 def get_records(
-    sentiment: str = None,
-    severity: str = None,
-    issue_category: str = None,
-    course_id: str = None,
-    teacher_id: str = None,
-    requires_admin_attention: bool = None,
-    limit: int = 100,
-    offset: int = 0,
     authorization: str = Header(default=None),
+    limit: int = 50,
+    offset: int = 0,
+    q: str = "",
+    sentiment: str = "",
+    severity: str = "",
+    topic: str = "",
+    course_id: str = "",
+    teacher_id: str = "",
 ):
     require_auth(authorization)
 
-    records = data_service.get_all_results()
+    limit = max(1, min(limit, 200))
+    offset = max(0, offset)
 
-    if sentiment:
-        records = [r for r in records if r.get("output", {}).get("sentiment") == sentiment]
-    if severity:
-        records = [r for r in records if r.get("output", {}).get("severity") == severity]
-    if issue_category:
-        records = [r for r in records if schema_service.output_compat(r.get("output", {})).get("issue_category") == issue_category]
-    if course_id:
-        records = [r for r in records if r.get("course_id") == course_id]
-    if teacher_id:
-        records = [r for r in records if r.get("teacher_id") == teacher_id]
-    if requires_admin_attention is not None:
-        records = [r for r in records if schema_service.output_compat(r.get("output", {})).get("requires_admin_attention") == requires_admin_attention]
+    rows = data_service.get_all_results()
+    filtered = []
 
-    total = len(records)
-    paginated = records[offset: offset + limit]
+    q_low = (q or "").lower().strip()
 
-    # Return lightweight list items
-    items = []
-    for r in paginated:
+    for r in rows:
         out = schema_service.output_compat(r.get("output", {}))
-        items.append({
-            "feedback_id": r["feedback_id"],
-            "raw_text": r.get("raw_text", "")[:300],
-            "rating": r.get("rating"),
-            "course_id": r.get("course_id"),
-            "course_name": r.get("course_name"),
-            "teacher_id": r.get("teacher_id"),
-            "teacher_fullname": r.get("teacher_fullname"),
+        inp = r.get("input_to_system", {}) or {}
+        meta = inp.get("metadata", {}) or {}
+        content = inp.get("content", {}) or {}
+
+        topics = out.get("topics", []) or []
+
+        if sentiment and out.get("sentiment") != sentiment:
+            continue
+
+        if severity and out.get("severity") != severity:
+            continue
+
+        if topic and topic not in topics:
+            continue
+
+        if course_id and meta.get("course_id") != course_id:
+            continue
+
+        if teacher_id and meta.get("teacher_id") != teacher_id:
+            continue
+
+        if q_low:
+            haystack = " ".join([
+                str(r.get("feedback_id", "")),
+                str(content.get("raw_text", "")),
+                str(meta.get("course_id", "")),
+                str(meta.get("teacher_id", "")),
+                str(meta.get("teacher_fullname", "")),
+                str(out.get("summary_uz", "")),
+                " ".join(topics),
+            ]).lower()
+
+            if q_low not in haystack:
+                continue
+
+        filtered.append({
+            "feedback_id": r.get("feedback_id"),
+            "raw_text": content.get("raw_text"),
+            "course_id": meta.get("course_id"),
+            "teacher_id": meta.get("teacher_id"),
+            "teacher_fullname": meta.get("teacher_fullname"),
             "sentiment": out.get("sentiment"),
             "severity": out.get("severity"),
-            "issue_category": out.get("issue_category"),
-            "summary_uz": out.get("summary_uz", ""),
-            "recommended_action": out.get("recommended_action"),
-            "requires_admin_attention": out.get("requires_admin_attention", False),
+            "topics": topics,
+            "emotion": out.get("emotion"),
+            "summary_uz": out.get("summary_uz"),
+            "confidence": out.get("confidence"),
+            "requires_attention_from": out.get("requires_attention_from", []),
             "risk_types": out.get("risk", {}).get("types", []),
             "risk_impact_scopes": out.get("risk", {}).get("impact_scopes", []),
-            "topics": out.get("topics", []),
-            "requires_attention_from": out.get("requires_attention_from", []),
-            "emotion": out.get("emotion"),
-            "representative_label": out.get("representative_label"),
-            "processed_at": r.get("processed_at"),
+            "recommended_action": out.get("recommended_action"),
         })
 
-    return {"total": total, "offset": offset, "limit": limit, "items": items}
+    total = len(filtered)
 
+    return {
+        "items": filtered[offset:offset + limit],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "has_more": offset + limit < total,
+    }
 
 @app.get("/records/{feedback_id}")
 def get_record_detail(feedback_id: str, authorization: str = Header(default=None)):
