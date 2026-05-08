@@ -81,12 +81,11 @@ def index():
 
     if index_file.exists():
         return FileResponse(index_file)
-
+    
     return {
         "status": "backend_running",
-        "message": "Frontend is served from Netlify. Use API endpoints here."
+        "message": "The backend is running, the frontend has moved to a separate deployment. Please access the frontend to use the application.",
     }
-
 
 @app.get("/worm")
 def index():

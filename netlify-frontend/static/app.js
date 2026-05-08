@@ -579,93 +579,110 @@ function humanLabel(s) {
 
 function renderEmotionRadarChart() {
   const d = state.dashboard?.emotion_distribution || {};
-  const labels = (d.labels || []).map(humanLabel);
+  const labels = d.labels || [];
   const values = d.values || [];
 
-  if (!$('emotion-radar-chart')) return;
+  const el = $('emotion-radar-chart');
+  if (!el) return;
 
   if (!labels.length || !values.length) {
-    $('emotion-radar-chart').innerHTML = `<div class="text-muted">No emotion data</div>`;
+    el.innerHTML = `<div class="empty-chart">No emotion data</div>`;
     return;
   }
 
-  const theta = [...labels, labels[0]];
+  const c = themeColors();
+  const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
   const r = [...values, values[0]];
 
-  if (window.Plotly) {
-    Plotly.react('emotion-radar-chart', [
-      {
-        type: 'scatterpolar',
-        r,
-        theta,
-        fill: 'toself',
-        name: 'Emotion count',
-        hovertemplate: '%{theta}: %{r}<extra></extra>'
-      }
-    ], {
-      margin: { l: 40, r: 40, t: 20, b: 20 },
-      polar: {
-        radialaxis: {
-          visible: true,
-          rangemode: 'tozero'
-        }
+  Plotly.react(el, [{
+    type: 'scatterpolar',
+    r,
+    theta,
+    fill: 'toself',
+    name: 'Emotion count',
+    line: {
+      width: 3,
+      color: c.info
+    },
+    marker: {
+      size: 6,
+      color: c.info
+    },
+    fillcolor: 'rgba(59,130,246,.22)',
+    hovertemplate: '<b>%{theta}</b><br>%{r} students<extra></extra>'
+  }], basePlotLayout({
+    margin: { l: 70, r: 70, t: 15, b: 30 },
+    polar: {
+      bgcolor: 'rgba(0,0,0,0)',
+      radialaxis: {
+        visible: true,
+        rangemode: 'tozero',
+        gridcolor: c.grid,
+        linecolor: c.grid,
+        tickfont: { color: c.muted, size: 10 }
       },
-      showlegend: false,
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent'
-    }, {
-      displayModeBar: false,
-      responsive: true
-    });
-  } else {
-    chartFallbackBars('emotion-radar-chart', labels, values);
-  }
+      angularaxis: {
+        gridcolor: c.grid,
+        linecolor: c.grid,
+        tickfont: { color: c.text, size: 11 }
+      }
+    },
+    showlegend: false
+  }), basePlotConfig());
 }
 
 function renderSatisfactionRadarChart() {
   const d = state.dashboard?.satisfaction_dimensions_chart || {};
-  const labels = (d.labels || []).map(humanLabel);
-  const rawValues = d.values || [];
-  const values = rawValues.map(v => Math.round(Number(v || 0) * 100));
+  const labels = d.labels || [];
+  const values = (d.values || []).map(v => Math.round(Number(v || 0) * 100));
 
-  if (!$('satisfaction-radar-chart')) return;
+  const el = $('satisfaction-radar-chart');
+  if (!el) return;
 
   if (!labels.length || !values.length) {
-    $('satisfaction-radar-chart').innerHTML = `<div class="text-muted">No satisfaction data</div>`;
+    el.innerHTML = `<div class="empty-chart">No satisfaction data</div>`;
     return;
   }
 
-  const theta = [...labels, labels[0]];
+  const c = themeColors();
+  const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
   const r = [...values, values[0]];
 
-  if (window.Plotly) {
-    Plotly.react('satisfaction-radar-chart', [
-      {
-        type: 'scatterpolar',
-        r,
-        theta,
-        fill: 'toself',
-        name: 'Average satisfaction',
-        hovertemplate: '%{theta}: %{r}%<extra></extra>'
-      }
-    ], {
-      margin: { l: 40, r: 40, t: 20, b: 20 },
-      polar: {
-        radialaxis: {
-          visible: true,
-          range: [0, 100]
-        }
+  Plotly.react(el, [{
+    type: 'scatterpolar',
+    r,
+    theta,
+    fill: 'toself',
+    name: 'Satisfaction',
+    line: {
+      width: 3,
+      color: c.pos
+    },
+    marker: {
+      size: 6,
+      color: c.pos
+    },
+    fillcolor: 'rgba(34,197,94,.22)',
+    hovertemplate: '<b>%{theta}</b><br>%{r}%<extra></extra>'
+  }], basePlotLayout({
+    margin: { l: 80, r: 80, t: 15, b: 30 },
+    polar: {
+      bgcolor: 'rgba(0,0,0,0)',
+      radialaxis: {
+        visible: true,
+        range: [0, 100],
+        gridcolor: c.grid,
+        linecolor: c.grid,
+        tickfont: { color: c.muted, size: 10 }
       },
-      showlegend: false,
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent'
-    }, {
-      displayModeBar: false,
-      responsive: true
-    });
-  } else {
-    chartFallbackBars('satisfaction-radar-chart', labels, values, '%');
-  }
+      angularaxis: {
+        gridcolor: c.grid,
+        linecolor: c.grid,
+        tickfont: { color: c.text, size: 11 }
+      }
+    },
+    showlegend: false
+  }), basePlotConfig());
 }
 
 function renderEmotionSankeyChart() {
@@ -675,45 +692,76 @@ function renderEmotionSankeyChart() {
   const target = d.target || [];
   const value = d.value || [];
 
-  if (!$('emotion-sankey-chart')) return;
+  const el = $('emotion-sankey-chart');
+  if (!el) return;
 
   if (!nodes.length || !value.length) {
-    $('emotion-sankey-chart').innerHTML = `<div class="text-muted">No Sankey data</div>`;
+    el.innerHTML = `<div class="empty-chart">No Sankey data</div>`;
     return;
   }
 
-  if (window.Plotly) {
-    Plotly.react('emotion-sankey-chart', [
-      {
-        type: 'sankey',
-        arrangement: 'snap',
-        node: {
-          pad: 18,
-          thickness: 18,
-          line: {
-            width: 1
-          },
-          label: nodes.map(humanLabel)
-        },
-        link: {
-          source,
-          target,
-          value
-        }
+  const c = themeColors();
+
+  const nodeColors = nodes.map(n => {
+    const x = String(n).toLowerCase();
+    if (x === 'positive') return c.pos;
+    if (x === 'negative') return c.neg;
+    if (x === 'neutral') return c.warn;
+    return c.info;
+  });
+
+  const linkColors = source.map(i => {
+    const s = String(nodes[i] || '').toLowerCase();
+    if (s === 'positive') return 'rgba(34,197,94,.30)';
+    if (s === 'negative') return 'rgba(239,68,68,.30)';
+    if (s === 'neutral') return 'rgba(245,158,11,.28)';
+    return 'rgba(59,130,246,.25)';
+  });
+
+  const sentimentCount = ['positive', 'neutral', 'negative'].filter(x => nodes.includes(x)).length;
+  const emotionCount = nodes.length - sentimentCount;
+
+  const nodeX = nodes.map((_, i) => i < sentimentCount ? 0.04 : 0.82);
+  const nodeY = nodes.map((_, i) => {
+    if (i < sentimentCount) {
+      return [0.15, 0.45, 0.75][i] ?? 0.5;
+    }
+
+    const j = i - sentimentCount;
+    return emotionCount <= 1 ? 0.5 : 0.05 + (j / Math.max(1, emotionCount - 1)) * 0.9;
+  });
+
+  Plotly.react(el, [{
+    type: 'sankey',
+    arrangement: 'fixed',
+    node: {
+      pad: 16,
+      thickness: 18,
+      label: nodes.map(humanLabel),
+      color: nodeColors,
+      x: nodeX,
+      y: nodeY,
+      line: {
+        color: c.grid,
+        width: 1
       }
-    ], {
-      margin: { l: 20, r: 20, t: 20, b: 20 },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent'
-    }, {
-      displayModeBar: false,
-      responsive: true
-    });
-  } else {
-    $('emotion-sankey-chart').innerHTML = `
-      <div class="text-muted">Plotly is required for Sankey diagram.</div>
-    `;
-  }
+    },
+    link: {
+      source,
+      target,
+      value,
+      color: linkColors,
+      hovertemplate: '%{source.label} → %{target.label}<br>%{value} records<extra></extra>'
+    }
+  }], basePlotLayout({
+    height: 430,
+    margin: { l: 20, r: 20, t: 10, b: 10 },
+    font: {
+      family: 'Inter, system-ui, sans-serif',
+      color: c.text,
+      size: 12
+    }
+  }), basePlotConfig());
 }
 
 function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
@@ -804,60 +852,63 @@ function renderSatisfactionDimensionsChart() {
 function renderSentimentTrendChart() {
   const d = state.dashboard?.sentiment_trend || {};
   const labels = d.labels || [];
-  const positive = d.positive || [];
-  const neutral = d.neutral || [];
-  const negative = d.negative || [];
 
-  if (!$('sentiment-trend-chart')) return;
+  const el = $('sentiment-trend-chart');
+  if (!el) return;
 
-  if (window.Plotly) {
-    Plotly.react('sentiment-trend-chart', [
-      {
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Positive',
-        x: labels,
-        y: positive
-      },
-      {
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Neutral',
-        x: labels,
-        y: neutral
-      },
-      {
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Negative',
-        x: labels,
-        y: negative
-      }
-    ], {
-      margin: { l: 40, r: 20, t: 20, b: 60 },
-      xaxis: { title: 'Date' },
-      yaxis: { title: 'Feedback count' },
-      legend: { orientation: 'h' },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent'
-    }, {
-      displayModeBar: false,
-      responsive: true
-    });
-  } else {
-    $('sentiment-trend-chart').innerHTML = `
-      <div class="trend-fallback-grid">
-        <div>${labels.map((d, i) => `
-          <div class="trend-fallback-row">
-            <b>${esc(d)}</b>
-            <span>P: ${positive[i] || 0}</span>
-            <span>N: ${neutral[i] || 0}</span>
-            <span>Neg: ${negative[i] || 0}</span>
-          </div>
-        `).join('')}</div>
-      </div>
-    `;
+  const c = themeColors();
+
+  if (!labels.length) {
+    el.innerHTML = `<div class="empty-chart">No sentiment trend data</div>`;
+    return;
   }
+
+  Plotly.react(el, [
+    {
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: 'Positive',
+      x: labels,
+      y: d.positive || [],
+      line: { color: c.pos, width: 3, shape: 'spline' },
+      marker: { size: 6 }
+    },
+    {
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: 'Neutral',
+      x: labels,
+      y: d.neutral || [],
+      line: { color: c.warn, width: 3, shape: 'spline' },
+      marker: { size: 6 }
+    },
+    {
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: 'Negative',
+      x: labels,
+      y: d.negative || [],
+      line: { color: c.neg, width: 3, shape: 'spline' },
+      marker: { size: 6 }
+    }
+  ], basePlotLayout({
+    margin: { l: 45, r: 20, t: 10, b: 70 },
+    xaxis: {
+      title: '',
+      gridcolor: c.grid,
+      tickangle: -35,
+      automargin: true
+    },
+    yaxis: {
+      title: 'Feedback count',
+      gridcolor: c.grid,
+      rangemode: 'tozero'
+    },
+    legend: {
+      orientation: 'h',
+      y: -0.25
+    }
+  }), basePlotConfig());
 }
 
 function renderEmotionTrendChart() {
@@ -866,34 +917,51 @@ function renderEmotionTrendChart() {
   const series = d.series || {};
   const dominant = d.dominant || [];
 
-  if (!$('emotion-trend-chart')) return;
+  const el = $('emotion-trend-chart');
+  if (!el) return;
 
-  const traces = Object.keys(series).map(emotion => ({
-    type: 'scatter',
-    mode: 'lines',
-    stackgroup: 'one',
-    name: humanLabel(emotion),
-    x: labels,
-    y: series[emotion]
-  }));
+  const c = themeColors();
 
-  if (window.Plotly) {
-    Plotly.react('emotion-trend-chart', traces, {
-      margin: { l: 40, r: 20, t: 20, b: 60 },
-      xaxis: { title: 'Date' },
-      yaxis: { title: 'Emotion count' },
-      legend: { orientation: 'h' },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent'
-    }, {
-      displayModeBar: false,
-      responsive: true
-    });
+  if (!labels.length || !Object.keys(series).length) {
+    el.innerHTML = `<div class="empty-chart">No emotion trend data</div>`;
   } else {
-    const totals = labels.map((_, idx) =>
-      Object.keys(series).reduce((acc, key) => acc + Number(series[key][idx] || 0), 0)
-    );
-    chartFallbackBars('emotion-trend-chart', labels, totals);
+    const allowed = [
+      'frustration', 'confusion', 'anxiety', 'anger', 'boredom',
+      'disappointment', 'shame', 'helplessness', 'isolated',
+      'gratitude', 'confidence', 'inspiration', 'relief',
+      'satisfaction', 'surprise'
+    ];
+
+    const active = allowed.filter(k => (series[k] || []).some(v => Number(v || 0) > 0));
+
+    const traces = active.map(emotion => ({
+      type: 'scatter',
+      mode: 'lines',
+      stackgroup: 'one',
+      name: humanLabel(emotion),
+      x: labels,
+      y: series[emotion] || [],
+      line: { width: 1.5 }
+    }));
+
+    Plotly.react(el, traces, basePlotLayout({
+      margin: { l: 45, r: 20, t: 10, b: 80 },
+      xaxis: {
+        title: '',
+        gridcolor: c.grid,
+        tickangle: -35,
+        automargin: true
+      },
+      yaxis: {
+        title: 'Emotion count',
+        gridcolor: c.grid,
+        rangemode: 'tozero'
+      },
+      legend: {
+        orientation: 'h',
+        y: -0.30
+      }
+    }), basePlotConfig());
   }
 
   if ($('dominant-emotion-timeline')) {
@@ -905,7 +973,7 @@ function renderEmotionTrendChart() {
             <small>${esc(item.count || 0)} records</small>
           </div>
         `).join('')
-      : `<div class="text-muted">No emotion trend data</div>`;
+      : `<div class="empty-chart">No dominant emotion timeline</div>`;
   }
 }
 
@@ -1422,19 +1490,19 @@ function showPage(page) {
     if (el) el.classList.toggle('active', p === page);
   });
 
-  if (page === 'trends') {
-    setTimeout(() => {
-      renderSentimentTrendChart();
-      renderEmotionTrendChart();
-    }, 50);
-  }
-
   if (page === 'overview') {
     setTimeout(() => {
       renderEmotionRadarChart();
       renderSatisfactionRadarChart();
       renderEmotionSankeyChart();
-    }, 50);
+    }, 80);
+  }
+
+  if (page === 'trends') {
+    setTimeout(() => {
+      renderSentimentTrendChart();
+      renderEmotionTrendChart();
+    }, 80);
   }
 
   renderIcons();
@@ -1898,9 +1966,13 @@ function renderOverview() {
   `;
 
   drawCharts();
-  renderEmotionRadarChart();
-  renderSatisfactionRadarChart();
-  renderEmotionSankeyChart();
+
+  setTimeout(() => {
+    renderEmotionRadarChart();
+    renderSatisfactionRadarChart();
+    renderEmotionSankeyChart();
+  }, 80);
+
   renderIcons();
 }
 
@@ -2276,75 +2348,102 @@ function renderTrendSignals(series) {
 }
 
 function renderTrends() {
-  const tr = state.dashboard.trends || {};
-  const series = tr.sentiment_over_time || tr.daily || tr.monthly || [];
-  const delta = trendDeltaLabel(series);
+  const st = state.dashboard?.sentiment_trend || {};
+  const et = state.dashboard?.emotion_trend || {};
 
-  const latest = series[series.length - 1] || {};
-  const latestScore = Number(latest.avg_sentiment ?? 0);
-  const totalVolume = series.reduce((s, x) => s + Number(x.total || 0), 0);
-  const peak = [...series].sort((a, b) => Number(b.total || 0) - Number(a.total || 0))[0] || {};
+  const labels = st.labels || [];
+  const totalVolume = labels.reduce((sum, _, i) => {
+    return sum
+      + Number(st.positive?.[i] || 0)
+      + Number(st.neutral?.[i] || 0)
+      + Number(st.negative?.[i] || 0);
+  }, 0);
+
+  const latestPeriod = labels[labels.length - 1] || '—';
+
+  const peakIndex = labels.reduce((best, _, i) => {
+    const current =
+      Number(st.positive?.[i] || 0) +
+      Number(st.neutral?.[i] || 0) +
+      Number(st.negative?.[i] || 0);
+
+    const bestValue =
+      Number(st.positive?.[best] || 0) +
+      Number(st.neutral?.[best] || 0) +
+      Number(st.negative?.[best] || 0);
+
+    return current > bestValue ? i : best;
+  }, 0);
+
+  const peakPeriod = labels[peakIndex] || '—';
+  const dominantLatest = et.dominant?.[et.dominant.length - 1]?.emotion || '—';
 
   $('trends-body').innerHTML = `
-    <div class="trend-lab">
-      <div class="trend-hero card ${delta.cls}">
+    <div class="trend-v12">
+
+      <div class="trend-v12-hero card">
         <div>
-          <div class="eyebrow">TEMPORAL INTELLIGENCE</div>
-          <h3>Feedback oqimi va kayfiyat dinamikasi</h3>
+          <div class="eyebrow">TEMPORAL INTELLIGENCE v1.2</div>
+          <h3>University sentiment and emotion dynamics</h3>
           <p>
-            Tizim vaqt bo‘yicha sentiment, salbiy oqim, feedback hajmi va risk bosimini kuzatadi.
-            Bu panel universitet rahbariyatiga muammo qachon kuchayganini ko‘rsatadi.
+            This panel tracks sentiment volume and dominant emotions over time using the new outputFromAI schema.
           </p>
         </div>
 
-        <div class="trend-hero-status ${delta.cls}">
-          <span>${esc(delta.text)}</span>
-          <b>${Math.round(latestScore * 100)}%</b>
-          <small>latest sentiment</small>
+        <div class="trend-v12-status">
+          <span>Latest dominant emotion</span>
+          <b>${esc(humanLabel(dominantLatest))}</b>
+          <small>${esc(latestPeriod)}</small>
         </div>
       </div>
 
       <div class="kpi-grid">
-        ${kpi('Umumiy hajm', totalVolume, 'feedback volume')}
-        ${kpi('Peak period', peak.period || '—', `${peak.total || 0} feedback`)}
-        ${kpi('Latest period', latest.period || '—', `${latest.total || 0} feedback`)}
-        ${kpi('Trend status', delta.text, 'AI temporal signal')}
+        ${kpi('Total volume', totalVolume, 'feedback records')}
+        ${kpi('Peak period', peakPeriod, 'highest activity')}
+        ${kpi('Latest period', latestPeriod, 'last observed date')}
+        ${kpi('Dominant emotion', humanLabel(dominantLatest), 'latest emotional signal')}
       </div>
 
-      <div class="trend-dashboard-grid">
-        <div class="card trend-main-chart">
+      <div class="charts-grid-2">
+        <div class="card chart-card chart-card-v12">
           <div class="card-header">
             <div>
-              <div class="card-title">Sentiment over time</div>
-              <div class="text-muted text-sm">Vaqt kesimida umumiy kayfiyat harakati</div>
+              <div class="card-title">University sentiment over time</div>
+              <div class="text-muted text-sm">Positive, neutral and negative feedback volume</div>
             </div>
-            <span class="badge badge-outline">Live dashboard</span>
           </div>
-          <div class="chart-box trend-chart-box"><canvas id="chart-trend"></canvas></div>
+          <div id="sentiment-trend-chart" class="chart-host"></div>
         </div>
 
-        <div class="card trend-side-panel">
-          <div class="card-title mb-3">Signal panel</div>
-          ${renderTrendSignals(series)}
+        <div class="card chart-card chart-card-v12">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Dominant emotions over time</div>
+              <div class="text-muted text-sm">Emotion activity timeline across the institution</div>
+            </div>
+          </div>
+          <div id="emotion-trend-chart" class="chart-host"></div>
         </div>
       </div>
 
-      <div class="grid-2 responsive-grid">
-        <div class="card">
-          <div class="card-title mb-3">Timeline diagnostics</div>
-          <div class="trend-timeline">${renderTrendTimeline(series)}</div>
+      <div class="card chart-card chart-card-v12 mt-3">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Dominant emotion by date</div>
+            <div class="text-muted text-sm">Most common emotion per observed day</div>
+          </div>
         </div>
-
-        <div class="card">
-          <div class="card-title mb-3">Raw temporal data</div>
-          <div class="json-viewer">${esc(JSON.stringify(series, null, 2))}</div>
-        </div>
+        <div id="dominant-emotion-timeline" class="dominant-emotion-list"></div>
       </div>
+
     </div>
   `;
 
-  drawCharts();
-  renderIcons();
+  setTimeout(() => {
+    renderSentimentTrendChart();
+    renderEmotionTrendChart();
+    renderIcons();
+  }, 80);
 }
 
 function issueImpactClass(item) {
@@ -2897,6 +2996,45 @@ function statList(obj) {
 // ─────────────────────────────────────────────────────────────
 // Charts
 // ─────────────────────────────────────────────────────────────
+
+function themeColors() {
+  const css = getComputedStyle(document.documentElement);
+
+  return {
+    bg: 'rgba(0,0,0,0)',
+    text: css.getPropertyValue('--text').trim() || '#fafafa',
+    muted: css.getPropertyValue('--text-3').trim() || '#71717a',
+    grid: css.getPropertyValue('--border').trim() || 'rgba(255,255,255,.1)',
+    pos: css.getPropertyValue('--pos').trim() || '#22c55e',
+    neg: css.getPropertyValue('--neg').trim() || '#ef4444',
+    warn: css.getPropertyValue('--warn').trim() || '#f59e0b',
+    info: css.getPropertyValue('--info').trim() || '#3b82f6',
+    accent: css.getPropertyValue('--accent').trim() || '#ffffff'
+  };
+}
+
+function basePlotLayout(extra = {}) {
+  const c = themeColors();
+
+  return {
+    paper_bgcolor: c.bg,
+    plot_bgcolor: c.bg,
+    font: {
+      family: 'Inter, system-ui, sans-serif',
+      color: c.text,
+      size: 11
+    },
+    margin: { l: 40, r: 40, t: 20, b: 40 },
+    ...extra
+  };
+}
+
+function basePlotConfig() {
+  return {
+    displayModeBar: false,
+    responsive: true
+  };
+}
 
 function chart(id, type, labels, data, label = '') {
   const el = $(id);
