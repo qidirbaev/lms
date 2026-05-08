@@ -15,3 +15,27 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "https://app.sentiment.uz/*"
+  to = "https://begzatkidirbaev-lms.hf.space/app/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://worm.sentiment.uz/*"
+  to = "https://begzatkidirbaev-lms.hf.space/worm/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://data.sentiment.uz/*"
+  to = "https://begzatkidirbaev-lms.hf.space/app/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://api.sentiment.uz/*"
+  to = "https://begzatkidirbaev-lms.hf.space/worm/:splat"
+  status = 200
+  force = true

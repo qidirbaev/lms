@@ -6383,7 +6383,7 @@ async function health() {
     };
 
     safeEl('ai-badge', el => {
-      el.innerHTML = `<span class="pulse-dot"></span> SentoPro online`;
+      el.innerHTML = `<span class="pulse-dot"></span> SentoPro`;
       el.className = `ai-badge ai-badge-online sentpro-badge`;
     });
 
@@ -6464,7 +6464,7 @@ function openSPilot() {
     spilotState.initialized = true;
     addSPilotMessage(
       'assistant',
-      'S-Pilot online.\n\nI am your AI admin copilot for the SentoPro Intelligence Platform. Ask me about mood, trends, risks, records, logs, integrations, settings, or executive reporting.'
+      'S-Pilot.\n\nI am your AI admin copilot for the SentoPro Intelligence Platform. Ask me about mood, trends, risks, records, logs, integrations, settings, or executive reporting.'
     );
   }
 
