@@ -222,16 +222,37 @@
         </div>
 
         <div class="page-body" id="overview-body">
+          <div class="charts-grid-2">
+            <div class="card chart-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Student emotions distribution</div>
+                  <div class="text-muted text-sm">How many students emotionally feel by dominant emotion</div>
+                </div>
+              </div>
+              <div id="emotion-distribution-chart" class="chart-host"></div>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Satisfaction dimensions</div>
+                  <div class="text-muted text-sm">Average aspect-based satisfaction scores</div>
+                </div>
+              </div>
+              <div id="satisfaction-dimensions-chart" class="chart-host"></div>
+            </div>
+          </div>
           <div class="loading-panel">
-  <div class="loading-panel-inner">
-    <div class="processing-orb"></div>
-    <div>
-      <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
-      <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
-    </div>
-    <div class="ai-loading-dots"><span></span><span></span><span></span></div>
-  </div>
-</div>
+            <div class="loading-panel-inner">
+              <div class="processing-orb"></div>
+              <div>
+                <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
+                <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
+              </div>
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -245,15 +266,15 @@
         </div>
         <div class="page-body" id="mood-body">
           <div class="loading-panel">
-  <div class="loading-panel-inner">
-    <div class="processing-orb"></div>
-    <div>
-      <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
-      <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
-    </div>
-    <div class="ai-loading-dots"><span></span><span></span><span></span></div>
-  </div>
-</div>
+            <div class="loading-panel-inner">
+              <div class="processing-orb"></div>
+              <div>
+                <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
+                <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
+              </div>
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -311,14 +332,45 @@
         </div>
         <div class="page-body" id="trends-body">
           <div class="loading-panel">
-  <div class="loading-panel-inner">
-    <div class="processing-orb"></div>
-    <div>
-      <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
-      <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
+            <div class="loading-panel-inner">
+              <div class="processing-orb"></div>
+              <div>
+                <div class="loading-title">Ma’lumotlar yuklanmoqda</div>
+                <div class="loading-subtitle">AI analytics modullari dashboard uchun signal va metrikalarni tayyorlamoqda.</div>
+              </div>
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+          <div class="charts-grid-2">
+  <div class="card chart-card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">University sentiment over time</div>
+        <div class="text-muted text-sm">Positive, neutral and negative feedback trend</div>
+      </div>
     </div>
-    <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+    <div id="sentiment-trend-chart" class="chart-host"></div>
   </div>
+
+  <div class="card chart-card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Dominant emotions over time</div>
+        <div class="text-muted text-sm">Emotion activity timeline across the institution</div>
+      </div>
+    </div>
+    <div id="emotion-trend-chart" class="chart-host"></div>
+  </div>
+</div>
+
+<div class="card chart-card mt-3">
+  <div class="card-header">
+    <div>
+      <div class="card-title">Dominant emotion by date</div>
+      <div class="text-muted text-sm">Most common emotion for each observed day</div>
+    </div>
+  </div>
+  <div id="dominant-emotion-timeline" class="dominant-emotion-list"></div>
 </div>
         </div>
       </section>

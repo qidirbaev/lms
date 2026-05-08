@@ -571,6 +571,205 @@ function t(key) {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
+function humanLabel(s) {
+  return String(s || '')
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, ch => ch.toUpperCase());
+}
+
+function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
+  const el = $(elId);
+  if (!el) return;
+
+  const max = Math.max(1, ...values);
+
+  el.innerHTML = `
+    <div class="fallback-bars">
+      ${labels.map((label, i) => {
+        const value = Number(values[i] || 0);
+        const pct = Math.round((value / max) * 100);
+        return `
+          <div class="fallback-bar-row">
+            <span>${esc(humanLabel(label))}</span>
+            <div class="fallback-bar-track">
+              <i style="width:${pct}%"></i>
+            </div>
+            <b>${esc(value)}${suffix}</b>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderEmotionDistributionChart() {
+  const d = state.dashboard?.emotion_distribution || {};
+  const labels = d.labels || [];
+  const values = d.values || [];
+
+  if (!$('emotion-distribution-chart')) return;
+
+  if (window.Plotly) {
+    Plotly.react('emotion-distribution-chart', [
+      {
+        type: 'bar',
+        x: labels.map(humanLabel),
+        y: values,
+        hovertemplate: '%{x}: %{y}<extra></extra>'
+      }
+    ], {
+      margin: { l: 40, r: 20, t: 20, b: 120 },
+      xaxis: { tickangle: -35, automargin: true },
+      yaxis: { title: 'Students' },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  } else {
+    chartFallbackBars('emotion-distribution-chart', labels, values);
+  }
+}
+
+function renderSatisfactionDimensionsChart() {
+  const d = state.dashboard?.satisfaction_dimensions_chart || {};
+  const labels = d.labels || [];
+  const values = (d.values || []).map(v => Math.round(Number(v || 0) * 100));
+
+  if (!$('satisfaction-dimensions-chart')) return;
+
+  if (window.Plotly) {
+    Plotly.react('satisfaction-dimensions-chart', [
+      {
+        type: 'bar',
+        orientation: 'h',
+        x: values,
+        y: labels.map(humanLabel),
+        hovertemplate: '%{y}: %{x}%<extra></extra>'
+      }
+    ], {
+      margin: { l: 180, r: 20, t: 20, b: 40 },
+      xaxis: { title: 'Average %', range: [0, 100] },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  } else {
+    chartFallbackBars('satisfaction-dimensions-chart', labels.map(humanLabel), values, '%');
+  }
+}
+
+function renderSentimentTrendChart() {
+  const d = state.dashboard?.sentiment_trend || {};
+  const labels = d.labels || [];
+  const positive = d.positive || [];
+  const neutral = d.neutral || [];
+  const negative = d.negative || [];
+
+  if (!$('sentiment-trend-chart')) return;
+
+  if (window.Plotly) {
+    Plotly.react('sentiment-trend-chart', [
+      {
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Positive',
+        x: labels,
+        y: positive
+      },
+      {
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Neutral',
+        x: labels,
+        y: neutral
+      },
+      {
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Negative',
+        x: labels,
+        y: negative
+      }
+    ], {
+      margin: { l: 40, r: 20, t: 20, b: 60 },
+      xaxis: { title: 'Date' },
+      yaxis: { title: 'Feedback count' },
+      legend: { orientation: 'h' },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  } else {
+    $('sentiment-trend-chart').innerHTML = `
+      <div class="trend-fallback-grid">
+        <div>${labels.map((d, i) => `
+          <div class="trend-fallback-row">
+            <b>${esc(d)}</b>
+            <span>P: ${positive[i] || 0}</span>
+            <span>N: ${neutral[i] || 0}</span>
+            <span>Neg: ${negative[i] || 0}</span>
+          </div>
+        `).join('')}</div>
+      </div>
+    `;
+  }
+}
+
+function renderEmotionTrendChart() {
+  const d = state.dashboard?.emotion_trend || {};
+  const labels = d.labels || [];
+  const series = d.series || {};
+  const dominant = d.dominant || [];
+
+  if (!$('emotion-trend-chart')) return;
+
+  const traces = Object.keys(series).map(emotion => ({
+    type: 'scatter',
+    mode: 'lines',
+    stackgroup: 'one',
+    name: humanLabel(emotion),
+    x: labels,
+    y: series[emotion]
+  }));
+
+  if (window.Plotly) {
+    Plotly.react('emotion-trend-chart', traces, {
+      margin: { l: 40, r: 20, t: 20, b: 60 },
+      xaxis: { title: 'Date' },
+      yaxis: { title: 'Emotion count' },
+      legend: { orientation: 'h' },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  } else {
+    const totals = labels.map((_, idx) =>
+      Object.keys(series).reduce((acc, key) => acc + Number(series[key][idx] || 0), 0)
+    );
+    chartFallbackBars('emotion-trend-chart', labels, totals);
+  }
+
+  if ($('dominant-emotion-timeline')) {
+    $('dominant-emotion-timeline').innerHTML = dominant.length
+      ? dominant.map(item => `
+          <div class="dominant-emotion-row">
+            <span>${esc(item.date)}</span>
+            <b>${esc(item.emotion ? humanLabel(item.emotion) : 'No emotion')}</b>
+            <small>${esc(item.count || 0)} records</small>
+          </div>
+        `).join('')
+      : `<div class="text-muted">No emotion trend data</div>`;
+  }
+}
+
 function valueOrNull(id) {
   const el = $(id);
   if (!el) return null;
@@ -1166,6 +1365,10 @@ function renderDashboard() {
   renderIssues();
   renderRisks();
   renderKeywords();
+  renderEmotionDistributionChart();
+  renderSatisfactionDimensionsChart();
+  renderSentimentTrendChart();
+  renderEmotionTrendChart();
 }
 
 function overviewHealthClass(score, criticalCount) {

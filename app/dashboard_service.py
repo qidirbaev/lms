@@ -2,6 +2,37 @@ from collections import Counter, defaultdict
 from . import data_service
 from . import schema_service
 
+EMOTION_KEYS = [
+    "frustration",
+    "confusion",
+    "anxiety",
+    "anger",
+    "boredom",
+    "disappointment",
+    "shame",
+    "helplessness",
+    "isolated",
+    "gratitude",
+    "confidence",
+    "inspiration",
+    "relief",
+    "satisfaction",
+    "surprise",
+]
+
+SATISFACTION_KEYS = [
+    "teaching_quality",
+    "clarity",
+    "engagement",
+    "course_content_relevance",
+    "assessment_fairness",
+    "grading_transparency",
+    "materials_quality",
+    "support_availability",
+    "admin_responsiveness",
+    "workload_balance",
+    "overall_satisfaction",
+]
 
 def _records():
     # Dashboard compatibility adapter: old stored outputs and new canonical outputs are both readable.
@@ -364,7 +395,123 @@ def aggregate_keywords() -> dict:
     }
 
 
+def _out(record: dict) -> dict:
+    return schema_service.output_compat(record.get("output", {}))
+
+
+def _record_timestamp(record: dict) -> str:
+    input_to_system = record.get("input_to_system", {}) or {}
+    metadata = input_to_system.get("metadata", {}) or {}
+    ts = metadata.get("timestamp") or record.get("timestamp") or record.get("created_at")
+
+    if isinstance(ts, str) and len(ts) >= 10:
+        return ts[:10]
+
+    return "unknown"
+
+
+def build_emotion_distribution(records: list) -> dict:
+    counts = {k: 0 for k in EMOTION_KEYS}
+
+    for record in records:
+        out = _out(record)
+        emotion = out.get("emotion")
+        if emotion in counts:
+            counts[emotion] += 1
+
+    return {
+        "labels": EMOTION_KEYS,
+        "values": [counts[k] for k in EMOTION_KEYS],
+        "total": sum(counts.values()),
+    }
+
+
+def build_satisfaction_dimensions(records: list) -> dict:
+    sums = {k: 0.0 for k in SATISFACTION_KEYS}
+    counts = {k: 0 for k in SATISFACTION_KEYS}
+
+    for record in records:
+        out = _out(record)
+        dims = out.get("satisfaction_dimensions", {}) or {}
+
+        for key in SATISFACTION_KEYS:
+            value = dims.get(key)
+            if isinstance(value, (int, float)):
+                sums[key] += float(value)
+                counts[key] += 1
+
+    averages = []
+    for key in SATISFACTION_KEYS:
+        avg = (sums[key] / counts[key]) if counts[key] else 0.0
+        averages.append(round(avg, 4))
+
+    return {
+        "labels": SATISFACTION_KEYS,
+        "values": averages,
+    }
+
+
+def build_sentiment_trend(records: list) -> dict:
+    bucket = defaultdict(lambda: {"positive": 0, "neutral": 0, "negative": 0})
+
+    for record in records:
+        out = _out(record)
+        day = _record_timestamp(record)
+        sentiment = out.get("sentiment")
+
+        if sentiment in ("positive", "neutral", "negative"):
+            bucket[day][sentiment] += 1
+
+    labels = sorted(bucket.keys())
+
+    return {
+        "labels": labels,
+        "positive": [bucket[d]["positive"] for d in labels],
+        "neutral": [bucket[d]["neutral"] for d in labels],
+        "negative": [bucket[d]["negative"] for d in labels],
+    }
+
+
+def build_emotion_trend(records: list) -> dict:
+    bucket = defaultdict(lambda: {k: 0 for k in EMOTION_KEYS})
+
+    for record in records:
+        out = _out(record)
+        day = _record_timestamp(record)
+        emotion = out.get("emotion")
+
+        if emotion in EMOTION_KEYS:
+            bucket[day][emotion] += 1
+
+    labels = sorted(bucket.keys())
+
+    series = {
+        emotion: [bucket[d][emotion] for d in labels]
+        for emotion in EMOTION_KEYS
+    }
+
+    dominant = []
+    for day in labels:
+        row = bucket[day]
+        best_emotion = max(row, key=row.get)
+        best_count = row[best_emotion]
+        dominant.append({
+            "date": day,
+            "emotion": best_emotion if best_count > 0 else None,
+            "count": best_count,
+        })
+
+    return {
+        "labels": labels,
+        "series": series,
+        "dominant": dominant,
+    }
+
+
 def get_full_dashboard() -> dict:
+    results = data_service.list_results()
+    records = data_service.list_results()
+    
     return {
         "overview": aggregate_overview(),
         "university_mood": aggregate_university_mood(),
@@ -374,4 +521,8 @@ def get_full_dashboard() -> dict:
         "issues": aggregate_issues(),
         "risks": aggregate_risks(),
         "keywords": aggregate_keywords(),
+        "emotion_distribution": build_emotion_distribution(results),
+        "satisfaction_dimensions_chart": build_satisfaction_dimensions(results),
+        "sentiment_trend": build_sentiment_trend(results),
+        "emotion_trend": build_emotion_trend(results),
     }
