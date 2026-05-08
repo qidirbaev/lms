@@ -1,0 +1,61 @@
+[
+{
+    "schema_version": "1.2.0",
+    "feedback_id": "fb-01308",
+    "content": {
+      "raw_text": "Praktikalar super, raxmat!",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2025-09-13T08:43:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "IT-202",
+      "teacher_id": "T-10",
+      "teacher_fullname": "Salimov Doniyor",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "IT-25-01",
+        "department_name": "Information Technologies",
+        "course_points": 82,
+        "gpa": 4.1,
+        "course_attendance_rate": 0.88
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Linux Systems",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "hybrid"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-IT"
+      }
+    }
+  },
+  {
+    "schema_version": "1.0.0",
+    "feedback_id": "batch-00001",
+    "content": {
+        "raw_text": "Domla darsni yaxshi tushuntiradi, lekin baholashda ba'zida tushunarsiz holatlar bo'lyapti. Shuni aniqlashtirib olsak yaxshi bo'lardi.",
+        "rating": 3
+    },
+    "context": {
+        "rating": 4,
+        "year": 1,
+        "gender": "male",
+        "is_anonymous": true,
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online",
+        "teacher_role": "assistant",
+        "student_year": 2,
+        "gpa": 4.9,
+        "attendance_rate": 0.83,
+        "course_points": 96
+    }
+  }
+]
