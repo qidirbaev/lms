@@ -2720,6 +2720,118 @@ function recordOutput(r) {
   return r.output || r.outputFromAI || r.analysis || r;
 }
 
+// ─────────────────────────────────────────────────────────────
+// Schema v1.2 / outputFromAI v1 compatibility helpers
+// Prefer canonical new schema, fallback to backend compatibility.
+// ─────────────────────────────────────────────────────────────
+
+function outputOf(x) {
+  return x?.output_compat || x?.output || x?.outputFromAI || x?.analysis || x || {};
+}
+
+function topicsOf(x) {
+  const out = outputOf(x);
+  return Array.isArray(out.topics) ? out.topics : [];
+}
+
+function issueOf(x) {
+  const out = outputOf(x);
+  const topics = topicsOf(x);
+
+  if (topics.length) return topics[0];
+
+  return out.issue_category || 'none';
+}
+
+function attentionFromOf(x) {
+  const out = outputOf(x);
+
+  if (Array.isArray(out.requires_attention_from)) {
+    return out.requires_attention_from.filter(Boolean);
+  }
+
+  return out.requires_admin_attention ? ['admin'] : [];
+}
+
+function requiresAttentionOf(x) {
+  return attentionFromOf(x).length > 0;
+}
+
+function riskScopesOf(x) {
+  const out = outputOf(x);
+  const risk = out.risk || {};
+
+  if (Array.isArray(out.risk_impact_scopes)) return out.risk_impact_scopes;
+  if (Array.isArray(risk.impact_scopes)) return risk.impact_scopes;
+  if (risk.impact_scope && risk.impact_scope !== 'none') return [risk.impact_scope];
+
+  return [];
+}
+
+function riskTypesOf(x) {
+  const out = outputOf(x);
+  const risk = out.risk || {};
+
+  if (Array.isArray(out.risk_types)) return out.risk_types;
+  if (Array.isArray(risk.types)) return risk.types;
+
+  return [];
+}
+
+function credibilityOf(x) {
+  const out = outputOf(x);
+  return Number(out.feedback_credibility?.score ?? out.credibility ?? 0.5);
+}
+
+function confidenceOf(x) {
+  const out = outputOf(x);
+  return Number(out.confidence ?? out.confidence_score ?? 0.5);
+}
+
+function satisfactionOf(x) {
+  const out = outputOf(x);
+  const sd = out.satisfaction_dimensions || {};
+
+  return {
+    teaching_quality: Number(sd.teaching_quality ?? 0.5),
+    clarity: Number(sd.clarity ?? 0.5),
+    engagement: Number(sd.engagement ?? 0.5),
+    course_content_relevance: Number(sd.course_content_relevance ?? 0.5),
+    assessment_fairness: Number(sd.assessment_fairness ?? sd.fairness ?? 0.5),
+    grading_transparency: Number(sd.grading_transparency ?? 0.5),
+    materials_quality: Number(sd.materials_quality ?? sd.materials ?? 0.5),
+    support_availability: Number(sd.support_availability ?? 0.5),
+    admin_responsiveness: Number(sd.admin_responsiveness ?? 0.5),
+    workload_balance: Number(sd.workload_balance ?? 0.5),
+    overall_satisfaction: Number(sd.overall_satisfaction ?? out.sentiment_score ?? 0.5)
+  };
+}
+
+function schemaBadge(label, value) {
+  return `
+    <div class="schema-pill">
+      <span>${esc(label)}</span>
+      <b>${esc(value ?? '—')}</b>
+    </div>
+  `;
+}
+
+function chips(items, limit = 8) {
+  const arr = Array.isArray(items) ? items.slice(0, limit) : [];
+  return arr.length
+    ? arr.map(x => `<span class="keyword-chip">${esc(humanize(x))}</span>`).join('')
+    : `<span class="text-muted">—</span>`;
+}
+
+function humanAction(action) {
+  return humanize(action || 'no_action_needed');
+}
+
+function humanTopic(topic) {
+  return humanize(topic || 'none');
+}
+
+
 function num01(v, fallback = 0) {
   const n = Number(v);
   if (!Number.isFinite(n)) return fallback;
@@ -2795,73 +2907,106 @@ function renderRecordsMetrics(items) {
 }
 
 function renderRecordCard(r) {
-  const out = recordOutput(r);
+  const out = outputOf(r);
 
-  const confidence = num01(out.confidence ?? out.confidence_score ?? out.sentiment_score ?? 0);
-  const fairness = num01(out.feedback_fairness?.score ?? out.fairness_score ?? 0);
-  const credibility = num01(out.feedback_credibility?.score ?? out.credibility_score ?? 0);
+  const sentiment = out.sentiment || r.sentiment || 'neutral';
+  const severity = out.severity || r.severity || 'none';
+  const topics = topicsOf(r);
+  const primaryTopic = issueOf(r);
+  const summary = out.summary_uz || r.summary_uz || 'Xulosa mavjud emas';
+  const confidence = confidenceOf(r);
+  const credibility = credibilityOf(r);
+  const attentionFrom = attentionFromOf(r);
+  const riskTypes = riskTypesOf(r);
+  const riskScopes = riskScopesOf(r);
 
-  const id = r.feedback_id || out.feedback_id || 'unknown';
   const course = r.course_name || r.course_id || '—';
   const teacher = r.teacher_fullname || r.teacher_id || '—';
-  const issue = out.issue_category || 'none';
-  const summary = out.summary_uz || out.summary || r.text || r.raw_text || 'Xulosa mavjud emas';
+
+  const signal =
+    severity === 'critical' || severity === 'high' || riskTypes.length ? 'critical' :
+    severity === 'medium' ? 'warning' :
+    sentiment === 'positive' ? 'positive' :
+    sentiment === 'negative' ? 'warning' :
+    'neutral';
 
   return `
-    <article class="record-card ${recordClass(out)}" onclick="openRecord('${esc(id)}')">
-      <div class="record-card-main">
-        <div>
-          <div class="record-title-row">
-            <span class="record-id">${esc(id)}</span>
-            ${badge(out.sentiment)}
-            ${badge(out.severity || 'low')}
-            ${out.requires_admin_attention ? badge('admin attention') : ''}
+    <article class="record-card-v12 ${signal}" onclick="openRecord('${esc(r.feedback_id)}')">
+      <div class="record-main">
+        <div class="record-topline">
+          <div>
+            <div class="record-id-row">
+              <b>${esc(r.feedback_id)}</b>
+              <span class="schema-version-tag">outputFromAI v1.0</span>
+            </div>
+
+            <div class="record-badges">
+              ${badge(sentiment)}
+              ${badge(severity)}
+              ${badge(out.representative_label || 'other')}
+              ${attentionFrom.length ? badge('attention routing') : ''}
+              ${riskTypes.length ? badge('risk signal') : ''}
+            </div>
           </div>
 
-          <p class="record-summary">${esc(summary)}</p>
-
-          <div class="record-meta-grid">
-            <div class="record-meta">
-              <span>Fan</span>
-              <b title="${esc(course)}">${esc(course)}</b>
-            </div>
-            <div class="record-meta">
-              <span>O‘qituvchi</span>
-              <b title="${esc(teacher)}">${esc(teacher)}</b>
-            </div>
-            <div class="record-meta">
-              <span>Issue</span>
-              <b title="${esc(issue)}">${esc(issue)}</b>
-            </div>
-            <div class="record-meta">
-              <span>Til</span>
-              <b>${esc(out.language || r.lang || '—')}</b>
-            </div>
+          <div class="record-confidence-ring">
+            <b>${Math.round(confidence * 100)}%</b>
+            <span>confidence</span>
           </div>
         </div>
 
-        <aside class="record-side">
-          <div class="record-score">
-            <div class="record-score-top">
-              <span>Confidence</span>
-              <b>${percent(confidence)}</b>
-            </div>
-            <div class="record-score-bar"><span style="width:${Math.round(confidence * 100)}%"></span></div>
+        <p class="record-summary">${esc(summary)}</p>
+
+        <div class="record-topic-strip">
+          ${topics.length ? chips(topics, 5) : `<span class="keyword-chip muted">No topic</span>`}
+        </div>
+
+        <div class="record-meta-grid">
+          <div class="record-meta">
+            <span>Fan</span>
+            <b title="${esc(course)}">${esc(course)}</b>
           </div>
 
-          <div class="record-score">
-            <div class="record-score-top">
-              <span>Fair / Credible</span>
-              <b>${percent((fairness + credibility) / 2)}</b>
-            </div>
-            <div class="record-score-bar"><span style="width:${Math.round(((fairness + credibility) / 2) * 100)}%"></span></div>
+          <div class="record-meta">
+            <span>O‘qituvchi</span>
+            <b title="${esc(teacher)}">${esc(teacher)}</b>
           </div>
 
-          <span class="record-open-hint">
-            <i data-lucide="mouse-pointer-click"></i> Batafsil ko‘rish
-          </span>
-        </aside>
+          <div class="record-meta">
+            <span>Primary topic</span>
+            <b title="${esc(primaryTopic)}">${esc(humanTopic(primaryTopic))}</b>
+          </div>
+
+          <div class="record-meta">
+            <span>Attention from</span>
+            <b>${attentionFrom.length ? esc(attentionFrom.map(humanize).join(', ')) : 'None'}</b>
+          </div>
+        </div>
       </div>
+
+      <aside class="record-side">
+        <div class="record-score">
+          <div class="record-score-top">
+            <span>Credibility</span>
+            <b>${Math.round(credibility * 100)}%</b>
+          </div>
+          <div class="record-score-bar"><span style="width:${Math.round(credibility * 100)}%"></span></div>
+        </div>
+
+        <div class="record-score">
+          <div class="record-score-top">
+            <span>Risk scopes</span>
+            <b>${riskScopes.length || 0}</b>
+          </div>
+          <div class="record-mini-tags">
+            ${riskScopes.length ? chips(riskScopes, 3) : `<span class="text-muted">none</span>`}
+          </div>
+        </div>
+
+        <span class="record-open-hint">
+          <i data-lucide="mouse-pointer-click"></i> Schema detail
+        </span>
+      </aside>
     </article>
   `;
 }
@@ -2935,24 +3080,33 @@ function exportRecordsCSV() {
     'teacher',
     'sentiment',
     'severity',
-    'issue_category',
+    'topics',
     'confidence',
-    'requires_admin_attention',
-    'summary'
+    'credibility',
+    'requires_attention_from',
+    'risk_types',
+    'risk_impact_scopes',
+    'recommended_action',
+    'summary_uz'
   ];
 
   const rows = items.map(r => {
-    const out = recordOutput(r);
+    const out = outputOf(r);
+
     return [
       r.feedback_id || out.feedback_id || '',
       r.course_name || r.course_id || '',
       r.teacher_fullname || r.teacher_id || '',
       out.sentiment || '',
       out.severity || '',
-      out.issue_category || '',
-      out.confidence ?? out.confidence_score ?? '',
-      out.requires_admin_attention ?? '',
-      out.summary_uz || out.summary || ''
+      topicsOf(r).join('|'),
+      confidenceOf(r),
+      credibilityOf(r),
+      attentionFromOf(r).join('|'),
+      riskTypesOf(r).join('|'),
+      riskScopesOf(r).join('|'),
+      out.recommended_action || '',
+      out.summary_uz || ''
     ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
   });
 
@@ -2962,7 +3116,7 @@ function exportRecordsCSV() {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = `records-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `records-schema-v12-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 
   URL.revokeObjectURL(url);
@@ -2973,27 +3127,123 @@ async function openRecord(feedbackId) {
   try {
     const r = await api(`/records/${encodeURIComponent(feedbackId)}`);
 
+    const out = outputOf(r);
+    const canonicalOut = r.output || r.outputFromAI || {};
+    const compatOut = r.output_compat || out;
+    const inputToSystem = r.input_to_system || r.inputToSystem || {};
+    const inputToAI = r.input_to_ai || r.inputToAI || {};
+    const sd = satisfactionOf(out);
+
+    const topics = topicsOf(out);
+    const attentionFrom = attentionFromOf(out);
+    const riskTypes = riskTypesOf(out);
+    const riskScopes = riskScopesOf(out);
+
     $('modal-title').textContent = feedbackId;
+
     $('modal-body').innerHTML = `
-      <div class="grid-2">
-        <div>
-          <h4>InputToSystem</h4>
-          <pre class="json-viewer">${esc(JSON.stringify(r.input_to_system, null, 2))}</pre>
+      <div class="schema-detail-layout">
+
+        <div class="schema-hero-card">
+          <div>
+            <div class="eyebrow">CANONICAL SCHEMA VIEW</div>
+            <h3>${esc(out.summary_uz || 'Xulosa mavjud emas')}</h3>
+
+            <div class="record-badges mt-3">
+              ${badge(out.sentiment || 'neutral')}
+              ${badge(out.severity || 'none')}
+              ${badge(out.representative_label || 'other')}
+              ${attentionFrom.length ? badge('requires routing') : badge('no routing')}
+            </div>
+          </div>
+
+          <div class="schema-score-stack">
+            ${schemaBadge('Confidence', `${Math.round(confidenceOf(out) * 100)}%`)}
+            ${schemaBadge('Credibility', `${Math.round(credibilityOf(out) * 100)}%`)}
+            ${schemaBadge('Language', out.language || '—')}
+          </div>
         </div>
-        <div>
-          <h4>InputToAI</h4>
-          <pre class="json-viewer">${esc(JSON.stringify(r.input_to_ai, null, 2))}</pre>
+
+        <div class="schema-grid-3 mt-3">
+          <div class="card schema-panel">
+            <div class="card-title mb-3">Topics</div>
+            <div class="keyword-chip-zone">${chips(topics, 8)}</div>
+          </div>
+
+          <div class="card schema-panel">
+            <div class="card-title mb-3">Risk</div>
+            <div class="schema-list">
+              <div><span>Types</span><b>${riskTypes.length ? esc(riskTypes.map(humanize).join(', ')) : 'None'}</b></div>
+              <div><span>Probability</span><b>${Math.round(Number(out.risk?.probability || 0) * 100)}%</b></div>
+              <div><span>Impact scopes</span><b>${riskScopes.length ? esc(riskScopes.map(humanize).join(', ')) : 'None'}</b></div>
+            </div>
+          </div>
+
+          <div class="card schema-panel">
+            <div class="card-title mb-3">Routing</div>
+            <div class="schema-list">
+              <div><span>Requires attention from</span><b>${attentionFrom.length ? esc(attentionFrom.map(humanize).join(', ')) : 'None'}</b></div>
+              <div><span>Recommended action</span><b>${esc(humanAction(out.recommended_action))}</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card schema-panel mt-3">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Satisfaction dimensions v1.0</div>
+              <div class="text-muted text-sm">Expanded aspect-based scoring</div>
+            </div>
+          </div>
+
+          <div class="schema-dimension-grid">
+            ${Object.entries(sd).map(([k, v]) => `
+              <div class="schema-dimension">
+                <div>
+                  <span>${esc(humanize(k))}</span>
+                  <b>${Math.round(Number(v || 0) * 100)}%</b>
+                </div>
+                <i style="width:${Math.round(Number(v || 0) * 100)}%"></i>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card schema-panel mt-3">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Schema objects</div>
+              <div class="text-muted text-sm">inputToSystem v1.2.0 → inputToAI v1.0.0 → outputFromAI v1.0.0</div>
+            </div>
+          </div>
+
+          <div class="schema-json-tabs">
+            <details open>
+              <summary>inputToSystem v1.2.0</summary>
+              <pre class="json-viewer compact-json">${esc(JSON.stringify(inputToSystem, null, 2))}</pre>
+            </details>
+
+            <details>
+              <summary>inputToAI v1.0.0</summary>
+              <pre class="json-viewer compact-json">${esc(JSON.stringify(inputToAI, null, 2))}</pre>
+            </details>
+
+            <details>
+              <summary>outputFromAI canonical</summary>
+              <pre class="json-viewer compact-json">${esc(JSON.stringify(canonicalOut, null, 2))}</pre>
+            </details>
+
+            <details>
+              <summary>output compatibility layer</summary>
+              <pre class="json-viewer compact-json">${esc(JSON.stringify(compatOut, null, 2))}</pre>
+            </details>
+          </div>
         </div>
       </div>
-
-      <h4>OutputFromAI</h4>
-      <pre class="json-viewer">${esc(JSON.stringify(r.output, null, 2))}</pre>
-
-      <h4>Raw Model Output</h4>
-      <pre class="json-viewer">${esc(r.raw_output || '')}</pre>
     `;
 
-    $('record-modal').style.display = 'flex';
+    $('record-modal').classList.add('show');
+    renderIcons();
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -3653,10 +3903,10 @@ function renderTestJsonBlock(title, data, initiallyOpen = false) {
 }
 
 function renderTestResult(d) {
-  const out = d.outputFromAI || {};
-  const inputToAI = d.inputToAI || {};
-  const inputToSystem = d.inputToSystem || {};
+  const out = outputOf(d.outputFromAI || d.output || {});
   const risk = out.risk || {};
+  const inputToSystem = d.inputToSystem || {};
+  const inputToAI = d.inputToAI || {};
   const riskTypes = risk.types || [];
   const dims = out.satisfaction_dimensions || {};
   const fairness = out.feedback_fairness || {};
@@ -3748,8 +3998,8 @@ function renderTestResult(d) {
           </div>
 
           <div class="test-field-block">
-            <span>Subtopics</span>
-            <div>${chips(out.subtopics)}</div>
+            <span>Topics</span>
+            <div>${chips(topicsOf(out), 5)}</div>
           </div>
 
           <div class="test-field-block">
@@ -3766,8 +4016,8 @@ function renderTestResult(d) {
             <div>
               <b>${esc(actionHuman(out.recommended_action))}</b>
               <p>
-                ${out.requires_admin_attention
-                  ? 'Bu feedback administrator yoki kafedra tomonidan ko‘rib chiqilishi kerak.'
+                ${attentionFromOf(out).length
+                  ? `Bu feedback quyidagi rollarga yo‘naltiriladi: ${attentionFromOf(out).map(humanize).join(', ')}.`
                   : 'Bu feedback hozircha monitoring yoki oddiy kuzatuv rejimida qolishi mumkin.'}
               </p>
             </div>
@@ -3779,8 +4029,8 @@ function renderTestResult(d) {
           </div>
 
           <div class="test-field-block">
-            <span>Risk scope</span>
-            ${badge(risk.impact_scope || 'none')}
+            <span>Risk impact scopes</span>
+            <div>${chips(riskScopesOf(out), 5)}</div>
           </div>
         </div>
       </div>
@@ -4093,10 +4343,12 @@ function renderSimAnalysisReport(d) {
   const issues = {};
 
   results.forEach(r => {
-    const out = r.output || {};
+    const out = outputOf(r.output || r);
+    const primaryTopic = issueOf(out);
+
     sentiments[out.sentiment || 'unknown'] = (sentiments[out.sentiment || 'unknown'] || 0) + 1;
     severities[out.severity || 'unknown'] = (severities[out.severity || 'unknown'] || 0) + 1;
-    issues[out.issue_category || 'unknown'] = (issues[out.issue_category || 'unknown'] || 0) + 1;
+    issues[primaryTopic || 'unknown'] = (issues[primaryTopic || 'unknown'] || 0) + 1;
   });
 
   const cls = failed ? 'critical' : successRate >= 90 ? 'positive' : 'warning';
@@ -4121,7 +4373,7 @@ function renderSimAnalysisReport(d) {
     <div class="grid-3 mt-3">
       <div class="card compact-card">${renderSimMiniBars(sentiments, 'Sentiment result')}</div>
       <div class="card compact-card">${renderSimMiniBars(severities, 'Severity result')}</div>
-      <div class="card compact-card">${renderSimMiniBars(issues, 'Issue result')}</div>
+      <div class="card compact-card">${renderSimMiniBars(issues, 'Topic result')}</div>
     </div>
   `;
 
