@@ -3,6 +3,7 @@ import threading
 from datetime import datetime, timezone
 from . import config
 from . import logger_service as logger
+from . import schema_service
 import uuid
 
 _lock = threading.Lock()
@@ -45,9 +46,9 @@ def _nested_context(input_to_system: dict):
     meta = input_to_system.get("metadata", {}) or {}
     return (
         meta,
-        input_to_system.get("feedback_context") or meta.get("feedback_context", {}) or {},
-        input_to_system.get("course_context") or meta.get("course_context", {}) or {},
-        input_to_system.get("teacher_context") or meta.get("teacher_context", {}) or {},
+        meta.get("feedback_context") or input_to_system.get("feedback_context") or {},
+        meta.get("course_context") or input_to_system.get("course_context") or {},
+        meta.get("teacher_context") or input_to_system.get("teacher_context") or {},
         meta.get("student_context", {}) or {},
     )
 
@@ -118,130 +119,8 @@ def reset_results():
 
 
 def normalize_uploaded_feedback(item: dict, idx: int) -> tuple[dict, list[str]]:
-    """
-    Converts different realistic uploaded structures into inputToSystem.
-    Supports:
-    1) Already-valid inputToSystem
-    2) Flat CSV/JSON-like object:
-       raw_text/text/feedback, rating, course_id, teacher_id, teacher_fullname, etc.
-    """
-    warnings = []
-
-    if not isinstance(item, dict):
-        raise ValueError(f"Item {idx} is not an object")
-
-    # Case 1: already inputToSystem-like
-    if "content" in item and isinstance(item.get("content"), dict):
-        raw_text = item.get("content", {}).get("raw_text")
-        if not raw_text:
-            raise ValueError(f"Item {idx} has content but missing content.raw_text")
-
-        item.setdefault("schema_version", "1.0.0")
-        item.setdefault("feedback_id", f"uploaded-{idx + 1:05d}")
-
-        meta = item.setdefault("metadata", {})
-        meta.setdefault("course_id", "UPLOADED-COURSE")
-        meta.setdefault("teacher_id", "UPLOADED-TEACHER")
-        meta.setdefault("teacher_fullname", "Uploaded Teacher")
-        meta.setdefault("timestamp", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
-
-        sc = meta.setdefault("student_context", {})
-        sc.setdefault("year", 2)
-        sc.setdefault("gender", "other")
-        sc.setdefault("group_id", "UPLOADED-GROUP")
-        sc.setdefault("department_name", "Uploaded Department")
-        sc.setdefault("course_points", 80)
-        sc.setdefault("gpa", 3.5)
-        sc.setdefault("course_attendance_rate", 0.85)
-
-        item.setdefault("feedback_context", {
-            "feedback_channel": "uploaded_file",
-            "is_anonymous": True,
-        })
-        item.setdefault("course_context", {
-            "course_name": meta.get("course_id", "Uploaded Course"),
-            "course_level": "undergraduate",
-            "course_delivery_mode": "offline",
-        })
-        item.setdefault("teacher_context", {
-            "teacher_role": "lecturer",
-            "teaching_experience_years": 5,
-            "teacher_department_id": "DEP-UPLOAD",
-        })
-
-        return item, warnings
-
-    # Case 2: flat object
-    raw_text = (
-        item.get("raw_text")
-        or item.get("text")
-        or item.get("feedback")
-        or item.get("comment")
-        or item.get("message")
-    )
-
-    if not raw_text:
-        raise ValueError(f"Item {idx} missing text field: raw_text/text/feedback/comment/message")
-
-    rating = item.get("rating", item.get("score", 3))
-
-    try:
-        rating = int(rating)
-    except Exception:
-        warnings.append("rating converted to default 3")
-        rating = 3
-
-    rating = max(1, min(5, rating))
-
-    feedback_id = item.get("feedback_id") or item.get("id") or f"fb-{uuid.uuid4().hex[:12]}"
-
-    course_id = item.get("course_id") or item.get("course") or "UPLOADED-COURSE"
-    teacher_id = item.get("teacher_id") or "UPLOADED-TEACHER"
-    teacher_fullname = item.get("teacher_fullname") or item.get("teacher_name") or "Uploaded Teacher"
-    course_name = item.get("course_name") or item.get("course_title") or str(course_id)
-    department = item.get("department_name") or item.get("department") or "Uploaded Department"
-
-    normalized = {
-        "schema_version": "1.0.0",
-        "feedback_id": str(feedback_id),
-        "content": {
-            "raw_text": str(raw_text),
-            "rating": rating,
-        },
-        "metadata": {
-            "course_id": str(course_id),
-            "teacher_id": str(teacher_id),
-            "teacher_fullname": str(teacher_fullname),
-            "student_context": {
-                "year": int(item.get("year", 2) or 2),
-                "gender": str(item.get("gender", "other") or "other"),
-                "group_id": str(item.get("group_id", "UPLOADED-GROUP") or "UPLOADED-GROUP"),
-                "department_name": str(department),
-                "course_points": int(item.get("course_points", 80) or 80),
-                "gpa": float(item.get("gpa", 3.5) or 3.5),
-                "course_attendance_rate": float(item.get("attendance_rate", item.get("course_attendance_rate", 0.85)) or 0.85),
-            },
-            "timestamp": item.get("timestamp") or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        },
-        "feedback_context": {
-            "feedback_channel": item.get("feedback_channel", "uploaded_file"),
-            "is_anonymous": bool(item.get("is_anonymous", True)),
-        },
-        "course_context": {
-            "course_name": str(course_name),
-            "course_level": item.get("course_level", "undergraduate"),
-            "course_delivery_mode": item.get("course_delivery_mode", "offline"),
-        },
-        "teacher_context": {
-            "teacher_role": item.get("teacher_role", "lecturer"),
-            "teaching_experience_years": int(item.get("teaching_experience_years", 5) or 5),
-            "teacher_department_id": item.get("teacher_department_id", "DEP-UPLOAD"),
-        },
-    }
-
-    warnings.append("flat object mapped to inputToSystem")
-    return normalized, warnings
-
+    """Normalize uploaded/integration/simulation payloads into canonical inputToSystem v1.2.0."""
+    return schema_service.normalize_input_to_system_v12(item, idx, source="uploaded_file")
 
 def save_uploaded_source(items: list, filename: str = "uploaded.json") -> dict:
     """

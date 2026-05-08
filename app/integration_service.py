@@ -88,7 +88,7 @@ FIELD_MAPS = {
         "comment": "content.raw_text",
         "score": "content.rating",
         "subject_code": "metadata.course_id",
-        "subject_name": "course_context.course_name",
+        "subject_name": "metadata.course_context.course_name",
         "employee_id": "metadata.teacher_id",
         "employee_name": "metadata.teacher_fullname",
         "faculty": "metadata.student_context.department_name",
@@ -98,7 +98,7 @@ FIELD_MAPS = {
         "text": "content.raw_text",
         "rating": "content.rating",
         "course": "metadata.course_id",
-        "course_title": "course_context.course_name",
+        "course_title": "metadata.course_context.course_name",
         "teacher_id": "metadata.teacher_id",
         "teacher_fullname": "metadata.teacher_fullname",
         "department_name": "metadata.student_context.department_name"
@@ -107,7 +107,7 @@ FIELD_MAPS = {
         "feedback": "content.raw_text",
         "rating": "content.rating",
         "course_id": "metadata.course_id",
-        "course_name": "course_context.course_name",
+        "course_name": "metadata.course_context.course_name",
         "teacher_id": "metadata.teacher_id",
         "teacher_name": "metadata.teacher_fullname",
         "department": "metadata.student_context.department_name"
@@ -116,7 +116,7 @@ FIELD_MAPS = {
         "message": "content.raw_text",
         "rating": "content.rating",
         "course_id": "metadata.course_id",
-        "course_name": "course_context.course_name",
+        "course_name": "metadata.course_context.course_name",
         "teacher_id": "metadata.teacher_id",
         "teacher_name": "metadata.teacher_fullname",
         "department": "metadata.student_context.department_name"
@@ -125,7 +125,7 @@ FIELD_MAPS = {
         "raw_text": "content.raw_text",
         "rating": "content.rating",
         "course_id": "metadata.course_id",
-        "course_name": "course_context.course_name",
+        "course_name": "metadata.course_context.course_name",
         "teacher_id": "metadata.teacher_id",
         "teacher_name": "metadata.teacher_fullname",
         "department": "metadata.student_context.department_name"

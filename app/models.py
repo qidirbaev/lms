@@ -27,7 +27,7 @@ class AnalyzeCustomRequest(BaseModel):
     teacher_id: Optional[str] = "T-01"
     teacher_fullname: Optional[str] = "Demo Teacher"
     course_name: Optional[str] = "Demo Course"
-    course_level: Optional[str] = "bachelor"
+    course_level: Optional[str] = "undergraduate"
     course_delivery_mode: Optional[str] = "offline"
     teacher_role: Optional[str] = "lecturer"
     department: Optional[str] = "Computer Science"

@@ -1323,7 +1323,7 @@ def generate_simulated_feedbacks(
         ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
         item = {
-            "schema_version": "1.0.0",
+            "schema_version": "1.2.0",
             "feedback_id": fid,
             "content": {
                 "raw_text": raw_text,
@@ -1337,26 +1337,27 @@ def generate_simulated_feedbacks(
                     "year": rng.randint(1, 4),
                     "gender": rng.choice(["male", "female"]),
                     "group_id": f"{rng.randint(100, 120)}-25",
-                    "department": rng.choice(["Computer Science", "Mathematics", "Engineering"]),
+                    "department_name": rng.choice(["Computer Science", "Mathematics", "Engineering"]),
                     "course_points": rng.randint(40, 100),
                     "gpa": round(rng.uniform(2.5, 5.0), 2),
-                    "attendance_rate": round(rng.uniform(0.5, 1.0), 2),
+                    "course_attendance_rate": round(rng.uniform(0.5, 1.0), 2),
                 },
                 "timestamp": ts,
-            },
-            "feedback_context": {
-                "feedback_channel": rng.choice(["weekly_checkin", "end_course_survey", "complaint_form"]),
-                "is_anonymous": rng.choice([True, False]),
-            },
-            "course_context": {
-                "course_name": course[1],
-                "course_level": "bachelor",
-                "course_delivery_mode": rng.choice(["offline", "online", "hybrid"]),
-            },
-            "teacher_context": {
-                "teacher_role": rng.choice(["lecturer", "senior_lecturer", "associate_professor"]),
-                "teaching_experience_years": rng.randint(1, 20),
-                "teacher_department_id": "DEP-CS",
+                "semester_id": "2025-FALL",
+                "feedback_context": {
+                    "feedback_channel": rng.choice(["weekly_checkin", "end_course_survey", "complaint_form"]),
+                    "is_anonymous": rng.choice([True, False]),
+                },
+                "course_context": {
+                    "course_name": course[1],
+                    "course_level": "undergraduate",
+                    "course_delivery_mode": rng.choice(["offline", "online", "hybrid"]),
+                },
+                "teacher_context": {
+                    "teacher_role": rng.choice(["lecturer", "senior_lecturer", "associate_professor"]),
+                    "teaching_experience_years": rng.randint(1, 20),
+                    "teacher_department_id": "DEP-CS",
+                },
             },
         }
         results.append(item)

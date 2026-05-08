@@ -20,6 +20,7 @@ from . import dashboard_service
 from . import simulation_service
 from . import integration_service
 from . import batch_job_service
+from . import schema_service
 from .ai_service import analyze_feedback, analyze_feedback_batch
 from .models import (
     LoginRequest, AnalyzeFileItemRequest, ProcessBatchRequest,
@@ -274,7 +275,7 @@ def integration_mapper_preview(payload: dict, authorization: str = Header(defaul
     try:
         mapped, warnings = data_service.normalize_uploaded_feedback(sample, 0)
         mapped["metadata"]["source_system"] = payload.get("system_name", "Preview System")
-        mapped["feedback_context"]["feedback_channel"] = f"integration:{system_type}"
+        mapped["metadata"].setdefault("feedback_context", {})["feedback_channel"] = f"integration:{system_type}"
 
         return {
             "success": True,
@@ -358,7 +359,7 @@ def ingest_feedback_from_external_system(
         try:
             mapped, item_warnings = data_service.normalize_uploaded_feedback(item, idx)
             mapped["metadata"]["source_system"] = token_record.get("system_name")
-            mapped["feedback_context"]["feedback_channel"] = f"integration:{token_record.get('system_type')}"
+            mapped["metadata"].setdefault("feedback_context", {})["feedback_channel"] = f"integration:{token_record.get('system_type')}"
             valid_items.append(mapped)
             warnings.extend([{"index": idx, "warning": w} for w in item_warnings])
         except Exception as e:
@@ -370,13 +371,16 @@ def ingest_feedback_from_external_system(
             analysis = analyze_feedback(item)
             data_service.upsert_result(fid, item, analysis)
 
+            out_compat = schema_service.output_compat(analysis["output"])
             results.append({
                 "feedback_id": fid,
                 "success": True,
-                "sentiment": analysis["output"].get("sentiment"),
-                "severity": analysis["output"].get("severity"),
-                "issue_category": analysis["output"].get("issue_category"),
-                "requires_admin_attention": analysis["output"].get("requires_admin_attention"),
+                "sentiment": out_compat.get("sentiment"),
+                "severity": out_compat.get("severity"),
+                "topics": out_compat.get("topics", []),
+                "issue_category": out_compat.get("issue_category"),
+                "requires_attention_from": out_compat.get("requires_attention_from", []),
+                "requires_admin_attention": out_compat.get("requires_admin_attention"),
             })
         except Exception as e:
             results.append({
@@ -476,7 +480,7 @@ def integration_test_ingest(payload: dict, authorization: str = Header(default=N
 
     mapped, warnings = data_service.normalize_uploaded_feedback(feedback, 0)
     mapped["metadata"]["source_system"] = system_name
-    mapped["feedback_context"]["feedback_channel"] = f"integration:{system_type}"
+    mapped["metadata"].setdefault("feedback_context", {})["feedback_channel"] = f"integration:{system_type}"
 
     fid = mapped.get("feedback_id", f"test-int-{uuid.uuid4().hex[:8]}")
     analysis = analyze_feedback(mapped)
@@ -716,10 +720,12 @@ def analyze_custom(req: AnalyzeCustomRequest, authorization: str = Header(defaul
     ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     input_to_system = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.2.0",
         "feedback_id": feedback_id,
         "content": {"raw_text": req.raw_text, "rating": req.rating},
         "metadata": {
+            "timestamp": ts,
+            "semester_id": None,
             "course_id": req.course_id,
             "teacher_id": req.teacher_id,
             "teacher_fullname": req.teacher_fullname,
@@ -727,26 +733,30 @@ def analyze_custom(req: AnalyzeCustomRequest, authorization: str = Header(defaul
                 "year": req.year,
                 "gender": "other",
                 "group_id": req.group_id,
-                "department": req.department,
-                "course_points": 80,
+                "department_name": req.department,
+                "course_points": None,
                 "gpa": req.gpa,
-                "attendance_rate": req.attendance_rate,
+                "course_attendance_rate": req.attendance_rate,
             },
-            "timestamp": ts,
+            "feedback_context": {
+                "feedback_channel": req.feedback_channel,
+                "is_anonymous": req.is_anonymous,
+            },
+            "course_context": {
+                "course_name": req.course_name,
+                "course_level": req.course_level,
+                "course_delivery_mode": req.course_delivery_mode,
+            },
+            "teacher_context": {
+                "teacher_role": req.teacher_role,
+                "teaching_experience_years": None,
+                "teacher_department_id": None,
+            },
         },
-        "feedback_context": {
-            "feedback_channel": req.feedback_channel,
-            "is_anonymous": req.is_anonymous,
-        },
-        "course_context": {
-            "course_name": req.course_name,
-            "course_level": req.course_level,
-            "course_delivery_mode": req.course_delivery_mode,
-        },
-        "teacher_context": {
-            "teacher_role": req.teacher_role,
-            "teaching_experience_years": 5,
-            "teacher_department_id": "DEP-CS",
+        "mapping_audit": {
+            "source": "custom_test",
+            "mapping_mode": "manual_form_to_inputToSystem_v1.2.0",
+            "missing_fields_policy": "null_not_invented",
         },
     }
 
@@ -837,13 +847,13 @@ def get_records(
     if severity:
         records = [r for r in records if r.get("output", {}).get("severity") == severity]
     if issue_category:
-        records = [r for r in records if r.get("output", {}).get("issue_category") == issue_category]
+        records = [r for r in records if schema_service.output_compat(r.get("output", {})).get("issue_category") == issue_category]
     if course_id:
         records = [r for r in records if r.get("course_id") == course_id]
     if teacher_id:
         records = [r for r in records if r.get("teacher_id") == teacher_id]
     if requires_admin_attention is not None:
-        records = [r for r in records if r.get("output", {}).get("requires_admin_attention") == requires_admin_attention]
+        records = [r for r in records if schema_service.output_compat(r.get("output", {})).get("requires_admin_attention") == requires_admin_attention]
 
     total = len(records)
     paginated = records[offset: offset + limit]
@@ -851,7 +861,7 @@ def get_records(
     # Return lightweight list items
     items = []
     for r in paginated:
-        out = r.get("output", {})
+        out = schema_service.output_compat(r.get("output", {}))
         items.append({
             "feedback_id": r["feedback_id"],
             "raw_text": r.get("raw_text", "")[:300],
@@ -867,6 +877,9 @@ def get_records(
             "recommended_action": out.get("recommended_action"),
             "requires_admin_attention": out.get("requires_admin_attention", False),
             "risk_types": out.get("risk", {}).get("types", []),
+            "risk_impact_scopes": out.get("risk", {}).get("impact_scopes", []),
+            "topics": out.get("topics", []),
+            "requires_attention_from": out.get("requires_attention_from", []),
             "emotion": out.get("emotion"),
             "representative_label": out.get("representative_label"),
             "processed_at": r.get("processed_at"),
@@ -878,9 +891,15 @@ def get_records(
 @app.get("/records/{feedback_id}")
 def get_record_detail(feedback_id: str, authorization: str = Header(default=None)):
     require_auth(authorization)
+
     record = data_service.get_result(feedback_id)
+
     if not record:
         raise HTTPException(status_code=404, detail="Record not found")
+
+    record = dict(record)
+    record["output_compat"] = schema_service.output_compat(record.get("output", {}))
+
     return record
 
 

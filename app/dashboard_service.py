@@ -1,9 +1,17 @@
 from collections import Counter, defaultdict
 from . import data_service
+from . import schema_service
 
 
 def _records():
-    return data_service.get_all_results()
+    # Dashboard compatibility adapter: old stored outputs and new canonical outputs are both readable.
+    records = data_service.get_all_results()
+    hydrated = []
+    for r in records:
+        x = dict(r)
+        x["output"] = schema_service.output_compat(x.get("output", {}))
+        hydrated.append(x)
+    return hydrated
 
 
 def _avg(vals: list) -> float:
