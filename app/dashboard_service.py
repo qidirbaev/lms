@@ -513,6 +513,50 @@ def build_emotion_trend(records: list) -> dict:
     }
 
 
+def build_sentiment_emotion_sankey(records: list) -> dict:
+    sentiments = ["positive", "neutral", "negative"]
+
+    matrix = {
+        sentiment: {emotion: 0 for emotion in EMOTION_KEYS}
+        for sentiment in sentiments
+    }
+
+    for record in records:
+        out = _out(record)
+        sentiment = out.get("sentiment")
+        emotion = out.get("emotion")
+
+        if sentiment in sentiments and emotion in EMOTION_KEYS:
+            matrix[sentiment][emotion] += 1
+
+    active_emotions = [
+        emotion for emotion in EMOTION_KEYS
+        if sum(matrix[s][emotion] for s in sentiments) > 0
+    ]
+
+    nodes = sentiments + active_emotions
+    node_index = {name: idx for idx, name in enumerate(nodes)}
+
+    source = []
+    target = []
+    value = []
+
+    for sentiment in sentiments:
+        for emotion in active_emotions:
+            count = matrix[sentiment][emotion]
+            if count > 0:
+                source.append(node_index[sentiment])
+                target.append(node_index[emotion])
+                value.append(count)
+
+    return {
+        "nodes": nodes,
+        "source": source,
+        "target": target,
+        "value": value,
+    }
+
+
 def get_full_dashboard() -> dict:
     results = _all_records()
     
@@ -530,4 +574,5 @@ def get_full_dashboard() -> dict:
         "satisfaction_dimensions_chart": build_satisfaction_dimensions(results),
         "sentiment_trend": build_sentiment_trend(results),
         "emotion_trend": build_emotion_trend(results),
+        "emotion_sankey": build_sentiment_emotion_sankey(results),
     }

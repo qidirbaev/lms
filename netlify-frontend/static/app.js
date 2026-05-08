@@ -577,6 +577,137 @@ function humanLabel(s) {
     .replace(/\b\w/g, ch => ch.toUpperCase());
 }
 
+function renderEmotionRadarChart() {
+  const d = state.dashboard?.emotion_distribution || {};
+  const labels = (d.labels || []).map(humanLabel);
+  const values = d.values || [];
+
+  if (!$('emotion-radar-chart')) return;
+
+  if (!labels.length || !values.length) {
+    $('emotion-radar-chart').innerHTML = `<div class="text-muted">No emotion data</div>`;
+    return;
+  }
+
+  const theta = [...labels, labels[0]];
+  const r = [...values, values[0]];
+
+  if (window.Plotly) {
+    Plotly.react('emotion-radar-chart', [
+      {
+        type: 'scatterpolar',
+        r,
+        theta,
+        fill: 'toself',
+        name: 'Emotion count',
+        hovertemplate: '%{theta}: %{r}<extra></extra>'
+      }
+    ], {
+      margin: { l: 40, r: 40, t: 20, b: 20 },
+      polar: {
+        radialaxis: {
+          visible: true,
+          rangemode: 'tozero'
+        }
+      },
+      showlegend: false,
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  }
+}
+
+function renderSatisfactionRadarChart() {
+  const d = state.dashboard?.satisfaction_dimensions_chart || {};
+  const labels = (d.labels || []).map(humanLabel);
+  const rawValues = d.values || [];
+  const values = rawValues.map(v => Math.round(Number(v || 0) * 100));
+
+  if (!$('satisfaction-radar-chart')) return;
+
+  if (!labels.length || !values.length) {
+    $('satisfaction-radar-chart').innerHTML = `<div class="text-muted">No satisfaction data</div>`;
+    return;
+  }
+
+  const theta = [...labels, labels[0]];
+  const r = [...values, values[0]];
+
+  if (window.Plotly) {
+    Plotly.react('satisfaction-radar-chart', [
+      {
+        type: 'scatterpolar',
+        r,
+        theta,
+        fill: 'toself',
+        name: 'Average satisfaction',
+        hovertemplate: '%{theta}: %{r}%<extra></extra>'
+      }
+    ], {
+      margin: { l: 40, r: 40, t: 20, b: 20 },
+      polar: {
+        radialaxis: {
+          visible: true,
+          range: [0, 100]
+        }
+      },
+      showlegend: false,
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  }
+}
+
+function renderEmotionSankeyChart() {
+  const d = state.dashboard?.emotion_sankey || {};
+  const nodes = d.nodes || [];
+  const source = d.source || [];
+  const target = d.target || [];
+  const value = d.value || [];
+
+  if (!$('emotion-sankey-chart')) return;
+
+  if (!nodes.length || !value.length) {
+    $('emotion-sankey-chart').innerHTML = `<div class="text-muted">No Sankey data</div>`;
+    return;
+  }
+
+  if (window.Plotly) {
+    Plotly.react('emotion-sankey-chart', [
+      {
+        type: 'sankey',
+        arrangement: 'snap',
+        node: {
+          pad: 18,
+          thickness: 18,
+          line: {
+            width: 1
+          },
+          label: nodes.map(humanLabel)
+        },
+        link: {
+          source,
+          target,
+          value
+        }
+      }
+    ], {
+      margin: { l: 20, r: 20, t: 20, b: 20 },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent'
+    }, {
+      displayModeBar: false,
+      responsive: true
+    });
+  }
+}
+
 function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
   const el = $(elId);
   if (!el) return;
@@ -1369,6 +1500,10 @@ function renderDashboard() {
   renderSatisfactionDimensionsChart();
   renderSentimentTrendChart();
   renderEmotionTrendChart();
+  renderEmotionRadarChart();
+  renderSatisfactionRadarChart();
+  renderEmotionSankeyChart();
+  renderSentimentTrendChart();
 }
 
 function overviewHealthClass(score, criticalCount) {

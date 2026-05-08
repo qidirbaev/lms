@@ -9205,3 +9205,55 @@ body:not(.authenticated) .spilot-drawer {
     grid-template-columns: 1fr;
   }
 }
+
+.charts-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.chart-card {
+  min-width: 0;
+}
+
+.chart-host {
+  min-height: 420px;
+}
+
+.dominant-emotion-list {
+  display: grid;
+  gap: .55rem;
+}
+
+.dominant-emotion-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  border-radius: var(--radius);
+  padding: .75rem;
+}
+
+.dominant-emotion-row span {
+  color: var(--text-2);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.dominant-emotion-row b {
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.dominant-emotion-row small {
+  color: var(--text-3);
+  font-size: .72rem;
+}
+
+@media (max-width: 1100px) {
+  .charts-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
