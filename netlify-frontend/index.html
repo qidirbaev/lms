@@ -710,12 +710,14 @@
               <div class="test-meta-grid">
                 <div class="field">
                   <label>Feedback ID</label>
-                  <input class="input" id="test-fid" type="text" placeholder="custom-001" />
+                  <!-- <input class="input" id="test-fid" type="text" placeholder="custom-001" /> -->
+                  <input class="input" id="test-fid" type="text" placeholder="Auto-generated if empty" />
+                  <small class="field-hint">Optional. Empty bo‘lsa tizim ID yaratadi.</small>
                 </div>
 
                 <div class="field">
                   <label>Baho</label>
-                  <input class="input" id="test-rating" type="number" min="1" max="5" value="3" />
+                  <input class="input" id="test-rating" type="number" min="1" max="5" value="3" placeholder="1–5" />
                 </div>
 
                 <div class="field">
@@ -745,22 +747,113 @@
 
                 <div class="field">
                   <label>GPA</label>
-                  <input class="input" id="test-gpa" type="number" step="0.1" value="3.5" />
+                  <input class="input" id="test-gpa" type="number" step="0.01" min="0" max="5" value="3" placeholder="3" />
                 </div>
 
                 <div class="field">
                   <label>Davomat</label>
-                  <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.85" />
+                  <input class="input" id="test-att" type="number" step="0.01" min="0" max="1" value="0.6" placeholder="0.6" />
                 </div>
 
                 <div class="field">
                   <label>Kanal</label>
                   <select class="select" id="test-channel">
+                    <option value="">None</option>
                     <option value="jury_test_form">Jury Test</option>
-                    <option value="end_course_survey">End Survey</option>
-                    <option value="complaint_form">Complaint</option>
+                    <option value="midterm_survey">Midterm Survey</option>
+                    <option value="final_survey">Final Survey</option>
+                    <option value="lms_feedback">LMS Feedback</option>
+                    <option value="teacher_review">Teacher Review</option>
                   </select>
                 </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Gender</label>
+                  <select class="select" id="test-gender">
+                    <option value="">Not provided</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Kurs yili</label>
+                  <input class="input" id="test-year" type="number" min="1" max="5" placeholder="1–5" />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Guruh</label>
+                  <input class="input" id="test-group" type="text" placeholder="IT-25-01" />
+                </div>
+
+                <div class="field">
+                  <label>Course points</label>
+                  <input class="input" id="test-course-points" type="number" min="0" max="100" placeholder="82" />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Course level</label>
+                  <select class="select" id="test-course-level">
+                    <option value="">Not provided</option>
+                    <option value="undergraduate">Undergraduate</option>
+                    <option value="graduate">Graduate</option>
+                    <option value="doctoral">Doctoral</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Delivery mode</label>
+                  <select class="select" id="test-delivery-mode">
+                    <option value="">Not provided</option>
+                    <option value="offline">Offline</option>
+                    <option value="online">Online</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Teacher role</label>
+                  <select class="select" id="test-teacher-role">
+                    <option value="">Not provided</option>
+                    <option value="lecturer">Lecturer</option>
+                    <option value="assistant">Assistant</option>
+                    <option value="professor">Professor</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Teacher experience years</label>
+                  <input class="input" id="test-teacher-exp" type="number" min="0" max="60" placeholder="5" />
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>Teacher department ID</label>
+                  <input class="input" id="test-teacher-dep" type="text" placeholder="DEP-IT" />
+                </div>
+
+                <div class="field">
+                  <label>Semester ID</label>
+                  <input class="input" id="test-semester" type="text" placeholder="2025-FALL" />
+                </div>
+              </div>
+
+              <div class="field">
+                <select class="select" id="test-anonymous">
+                  <option value="">Not provided</option>
+                  <option value="true">Anonymous</option>
+                  <option value="false">Not anonymous</option>
+                </select>
               </div>
 
               <button class="btn btn-primary full-width test-analyze-btn" id="analyze-btn" onclick="analyzeCustom()">
@@ -769,7 +862,7 @@
 
               <div class="test-note">
                 <i data-lucide="info"></i>
-                Natija nafaqat JSON ko‘rinishida, balki sentiment, xavf, jiddiylik, tavsiya va signal kartalari orqali ham ko‘rsatiladi.
+                Natija nafaqat JSON ko‘rinishida, sentiment, xavf, jiddiylik, tavsiya va signal kartalari orqali ko‘rsatiladi.
               </div>
             </div>
 

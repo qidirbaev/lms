@@ -722,19 +722,22 @@ def analyze_custom(req: AnalyzeCustomRequest, authorization: str = Header(defaul
     input_to_system = {
         "schema_version": "1.2.0",
         "feedback_id": feedback_id,
-        "content": {"raw_text": req.raw_text, "rating": req.rating},
+        "content": {
+            "raw_text": req.raw_text,
+            "rating": req.rating,
+        },
         "metadata": {
             "timestamp": ts,
-            "semester_id": None,
+            "semester_id": req.semester_id,
             "course_id": req.course_id,
             "teacher_id": req.teacher_id,
             "teacher_fullname": req.teacher_fullname,
             "student_context": {
                 "year": req.year,
-                "gender": "other",
+                "gender": req.gender,
                 "group_id": req.group_id,
                 "department_name": req.department,
-                "course_points": None,
+                "course_points": req.course_points,
                 "gpa": req.gpa,
                 "course_attendance_rate": req.attendance_rate,
             },
@@ -749,17 +752,31 @@ def analyze_custom(req: AnalyzeCustomRequest, authorization: str = Header(defaul
             },
             "teacher_context": {
                 "teacher_role": req.teacher_role,
-                "teaching_experience_years": None,
-                "teacher_department_id": None,
+                "teaching_experience_years": req.teaching_experience_years,
+                "teacher_department_id": req.teacher_department_id,
             },
         },
         "mapping_audit": {
             "source": "custom_test",
             "mapping_mode": "manual_form_to_inputToSystem_v1.2.0",
             "missing_fields_policy": "null_not_invented",
+            "system_generated_fields": [
+                "schema_version",
+                "feedback_id" if not req.feedback_id else None,
+                "metadata.timestamp",
+            ],
+            "provided_fields": [
+                k for k, v in req.model_dump().items()
+                if v is not None and v != ""
+            ],
         },
     }
-
+    
+    input_to_system["mapping_audit"]["system_generated_fields"] = [
+        x for x in input_to_system["mapping_audit"]["system_generated_fields"]
+        if x
+    ]
+    
     try:
         analysis = analyze_feedback(input_to_system)
         record = data_service.upsert_result(feedback_id, input_to_system, analysis)

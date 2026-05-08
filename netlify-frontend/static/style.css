@@ -9077,3 +9077,19 @@ body:not(.authenticated) .spilot-drawer {
     grid-template-columns: 1fr;
   }
 }
+
+.field-hint {
+  display: block;
+  margin-top: .25rem;
+  color: var(--text-3);
+  font-size: .68rem;
+  line-height: 1.35;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: .45rem;
+  color: var(--text-2);
+  font-size: .78rem;
+}

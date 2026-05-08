@@ -571,6 +571,28 @@ function t(key) {
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
+function valueOrNull(id) {
+  const el = $(id);
+  if (!el) return null;
+  const v = String(el.value ?? '').trim();
+  return v === '' ? null : v;
+}
+
+function numberOrNull(id) {
+  const v = valueOrNull(id);
+  if (v === null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function boolOrNullFromSelect(id) {
+  const v = valueOrNull(id);
+  if (v === null) return null;
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  return null;
+}
+
 function showAboutProjectModal() {
   const existing = document.getElementById('about-project-modal');
   if (existing) existing.remove();
@@ -4082,18 +4104,43 @@ async function analyzeCustom() {
 
   try {
     const body = {
-      raw_text: text,
-      feedback_id: $('test-fid').value || undefined,
-      rating: Number($('test-rating').value || 3),
-      course_id: $('test-course').value,
-      teacher_id: $('test-teacher').value,
-      teacher_fullname: $('test-tname').value,
-      course_name: $('test-cname').value,
-      department: $('test-dept').value,
-      gpa: Number($('test-gpa').value || 3.5),
-      attendance_rate: Number($('test-att').value || 0.85),
-      feedback_channel: $('test-channel').value
+      raw_text: valueOrNull('test-text'),
+      feedback_id: valueOrNull('test-fid'),
+
+      rating: numberOrNull('test-rating'),
+
+      course_id: valueOrNull('test-course'),
+      course_name: valueOrNull('test-cname'),
+
+      teacher_id: valueOrNull('test-teacher'),
+      teacher_fullname: valueOrNull('test-tname'),
+
+      department: valueOrNull('test-dept'),
+      group_id: valueOrNull('test-group'),
+      year: numberOrNull('test-year'),
+      gender: valueOrNull('test-gender'),
+
+      gpa: numberOrNull('test-gpa'),
+      attendance_rate: numberOrNull('test-att'),
+      course_points: numberOrNull('test-course-points'),
+
+      feedback_channel: valueOrNull('test-channel'),
+      is_anonymous: boolOrNullFromSelect('test-anonymous'),
+
+      course_level: valueOrNull('test-course-level'),
+      course_delivery_mode: valueOrNull('test-delivery-mode'),
+
+      teacher_role: valueOrNull('test-teacher-role'),
+      teaching_experience_years: numberOrNull('test-teacher-exp'),
+      teacher_department_id: valueOrNull('test-teacher-dep'),
+
+      semester_id: valueOrNull('test-semester')
     };
+
+    if (!body.raw_text) {
+      toast('Fikr matni majburiy', 'error');
+      return;
+    }
 
     const d = await api('/analyze-custom', {
       method: 'POST',

@@ -21,22 +21,35 @@ class ProcessBatchRequest(BaseModel):
 
 class AnalyzeCustomRequest(BaseModel):
     raw_text: str
+
+    # IDs may be optional. Backend can generate feedback_id.
     feedback_id: Optional[str] = None
-    rating: Optional[int] = 3
-    course_id: Optional[str] = "TEST-101"
-    teacher_id: Optional[str] = "T-01"
-    teacher_fullname: Optional[str] = "Demo Teacher"
-    course_name: Optional[str] = "Demo Course"
-    course_level: Optional[str] = "undergraduate"
-    course_delivery_mode: Optional[str] = "offline"
-    teacher_role: Optional[str] = "lecturer"
-    department: Optional[str] = "Computer Science"
-    group_id: Optional[str] = "101-25"
-    year: Optional[int] = 2
-    gpa: Optional[float] = 3.5
-    attendance_rate: Optional[float] = 0.85
-    feedback_channel: Optional[str] = "jury_test_form"
-    is_anonymous: Optional[bool] = False
+    course_id: Optional[str] = None
+    teacher_id: Optional[str] = None
+
+    # Human-readable metadata
+    rating: Optional[int] = None
+    teacher_fullname: Optional[str] = None
+    course_name: Optional[str] = None
+    department: Optional[str] = None
+    group_id: Optional[str] = None
+
+    # Student context
+    year: Optional[int] = None
+    gender: Optional[str] = None
+    gpa: Optional[float] = None
+    attendance_rate: Optional[float] = None
+    course_points: Optional[int] = None
+
+    # Feedback/course/teacher context
+    feedback_channel: Optional[str] = None
+    is_anonymous: Optional[bool] = None
+    course_level: Optional[str] = None
+    course_delivery_mode: Optional[str] = None
+    teacher_role: Optional[str] = None
+    teaching_experience_years: Optional[int] = None
+    teacher_department_id: Optional[str] = None
+    semester_id: Optional[str] = None
 
 
 class SimulateRequest(BaseModel):
