@@ -1872,19 +1872,53 @@ function applyStaticTranslations() {
 // Dashboard
 // ─────────────────────────────────────────────────────────────
 
+function getRiskSignalCount() {
+  const o = state.dashboard?.overview || {};
+
+  return Number(
+    o.high_critical_count ??
+    o.risk_signals_count ??
+    o.risk_count ??
+    o.critical_count ??
+    o.high_risk_count ??
+    0
+  );
+}
+
+function updateRiskBadge() {
+  const riskCount = getRiskSignalCount();
+  const riskBadge = $('risk-badge');
+
+  if (!riskBadge) return;
+
+  riskBadge.style.display = riskCount ? 'inline-flex' : 'none';
+  riskBadge.textContent = riskCount;
+}
+
 async function loadDashboard() {
   try {
-    state.dashboard = await api('/dashboard');
-    renderDashboard();
+    const d = await api('/dashboard');
 
-    const riskCount = state.dashboard?.overview?.high_critical_count || 0;
-    const riskBadge = $('risk-badge');
-    if (riskBadge) {
-      riskBadge.style.display = riskCount ? 'inline-flex' : 'none';
-      riskBadge.textContent = riskCount;
-    }
+    // Supports both response formats:
+    // 1) { overview: ..., trends: ... }
+    // 2) { ok: true, dashboard: { overview: ..., trends: ... } }
+    state.dashboard = d.dashboard || d;
+
+    renderDashboard();
+    updateRiskBadge();
+    renderIcons();
   } catch (e) {
     toast(e.message, 'error');
+  }
+}
+
+function updateRiskBadge() {
+  const riskCount = Number(state.dashboard?.overview?.high_critical_count || 0);
+  const riskBadge = $('risk-badge');
+
+  if (riskBadge) {
+    riskBadge.style.display = riskCount ? 'inline-flex' : 'none';
+    riskBadge.textContent = riskCount;
   }
 }
 
@@ -2111,7 +2145,7 @@ function renderOverview() {
   const total = o.total_processed ?? o.total ?? 0;
   const sentiment = Number(o.average_sentiment_score ?? o.avg_sentiment_score ?? 0);
   const confidence = Number(o.average_confidence ?? o.avg_confidence ?? 0);
-  const critical = o.high_critical_count || 0;
+  const critical = getRiskSignalCount();
   const cls = overviewHealthClass(sentiment, critical);
 
   $('overview-body').innerHTML = `
@@ -2381,22 +2415,53 @@ function renderMoodDimensionCard(label, value, iconName) {
 
 function renderMoodPulseTimeline() {
   const tr = state.dashboard?.trends || {};
-  const series = tr.sentiment_over_time || tr.daily || tr.monthly || [];
+
+  // Use real dashboard trend buckets.
+  // daily/monthly contains: total, positive, neutral, negative, high_severity.
+  const series = tr.daily?.length ? tr.daily : (tr.monthly || []);
 
   if (!series.length) {
     return `<p class="text-muted">${esc(t('no_data'))}</p>`;
   }
 
-  return series.slice(-10).map(x => {
-    const score = Number(x.avg_sentiment ?? 0.5);
-    const cls = moodHealthClass(score);
+  return series.slice(-12).map(x => {
+    const total = Math.max(1, Number(x.total || 0));
+
+    const positive = Number(x.positive || 0);
+    const neutral = Number(x.neutral || 0);
+    const negative = Number(x.negative || 0);
+    const high = Number(x.high_severity || 0);
+
+    const posPct = Math.round((positive / total) * 100);
+    const neuPct = Math.round((neutral / total) * 100);
+    const negPct = Math.max(0, 100 - posPct - neuPct);
+    const riskPct = Math.round((high / total) * 100);
+
+    // Net mood: positive share minus negative share.
+    const net = posPct - negPct;
+
+    const cls =
+      riskPct >= 20 || negPct >= 45
+        ? 'critical'
+        : riskPct >= 8 || negPct >= 25
+          ? 'warning'
+          : 'positive';
+
     return `
-      <div class="mood-pulse-item ${cls}">
+      <div
+        class="mood-pulse-item ${cls}"
+        title="${esc(x.period || '')}: ${positive} positive, ${neutral} neutral, ${negative} negative, ${high} high-risk"
+      >
         <div class="mood-pulse-period">${esc(x.period || '')}</div>
-        <div class="mood-pulse-track">
-          <div class="mood-pulse-fill" style="height:${Math.max(8, Math.round(score * 100))}%"></div>
+
+        <div class="mood-pulse-stack">
+          <div class="mood-pulse-seg pos" style="height:${posPct}%"></div>
+          <div class="mood-pulse-seg neu" style="height:${neuPct}%"></div>
+          <div class="mood-pulse-seg neg" style="height:${negPct}%"></div>
+          ${riskPct ? `<div class="mood-pulse-risk" style="height:${Math.max(4, riskPct)}%"></div>` : ''}
         </div>
-        <div class="mood-pulse-score">${Math.round(score * 100)}</div>
+
+        <div class="mood-pulse-score">${net > 0 ? '+' : ''}${net}</div>
       </div>
     `;
   }).join('');
@@ -2512,7 +2577,7 @@ function renderMood() {
           </div>
 
           <div class="mood-pulse mt-3">
-            <div class="card-title mb-3">Mood pulse timeline</div>
+            <div class="card-title mb-3">Sentiment mix timeline</div>
             <div class="mood-pulse-bars">
               ${renderMoodPulseTimeline()}
             </div>
@@ -3975,21 +4040,28 @@ async function loadRecords(reset = false) {
   if (reset) recordsState.offset = 0;
 
   const params = new URLSearchParams({
-    q: recordsState.q,
-    sentiment: recordsState.sentiment,
-    severity: recordsState.severity,
-    topic: recordsState.topic,
-    course_id: recordsState.course_id,
-    teacher_id: recordsState.teacher_id,
-    limit: recordsState.limit,
-    offset: recordsState.offset
+    q: recordsState.q || '',
+    sentiment: recordsState.sentiment || '',
+    severity: recordsState.severity || '',
+    topic: recordsState.topic || '',
+    course_id: recordsState.course_id || '',
+    teacher_id: recordsState.teacher_id || '',
+    limit: recordsState.limit || 25,
+    offset: recordsState.offset || 0
   });
 
   const d = await api(`/records?${params.toString()}`);
 
-  recordsState.total = d.total || 0;
+  recordsState.total = Number(d.total || 0);
 
-  renderRecordsPage(d.items || [], d);
+  // CRITICAL FIX:
+  // renderRecordsPage only receives the current page,
+  // but export/filter logic often reads from recordsCache.
+  // Without this, recordsCache can stay empty, causing:
+  // "Export uchun yozuv topilmadi"
+  recordsCache = Array.isArray(d.items) ? d.items : [];
+
+  renderRecordsPage(recordsCache, d);
 }
 
 function clearFilters() {
@@ -3999,8 +4071,52 @@ function clearFilters() {
   loadRecords();
 }
 
-function exportRecordsCSV() {
-  const items = filteredRecords();
+async function fetchAllMatchingRecordsForExport() {
+  const pageSize = 200;
+  let offset = 0;
+  let all = [];
+
+  while (true) {
+    const params = new URLSearchParams({
+      q: recordsState.q || '',
+      sentiment: recordsState.sentiment || '',
+      severity: recordsState.severity || '',
+      topic: recordsState.topic || '',
+      course_id: recordsState.course_id || '',
+      teacher_id: recordsState.teacher_id || '',
+      limit: pageSize,
+      offset
+    });
+
+    const d = await api(`/records?${params.toString()}`);
+    const items = Array.isArray(d.items) ? d.items : [];
+
+    all = all.concat(items);
+
+    const hasMore =
+      Boolean(d.has_more) ||
+      all.length < Number(d.total || 0);
+
+    if (!hasMore || !items.length) break;
+
+    offset += pageSize;
+
+    // Safety cap for browser memory.
+    if (all.length >= 50000) break;
+  }
+
+  return all;
+}
+
+async function exportRecordsCSV() {
+  let items = [];
+
+  try {
+    items = await fetchAllMatchingRecordsForExport();
+  } catch (e) {
+    toast(`Export xatoligi: ${e.message}`, 'error');
+    return;
+  }
 
   if (!items.length) {
     toast('Export uchun yozuv topilmadi', 'warn');
@@ -4009,18 +4125,16 @@ function exportRecordsCSV() {
 
   const headers = [
     'feedback_id',
-    'course',
-    'teacher',
+    'course_id',
+    'course_name',
+    'teacher_id',
+    'teacher_fullname',
     'sentiment',
+    'sentiment_score',
     'severity',
     'topics',
-    'confidence',
-    'credibility',
-    'requires_attention_from',
-    'risk_types',
-    'risk_impact_scopes',
-    'recommended_action',
-    'summary_uz'
+    'summary_uz',
+    'created_at'
   ];
 
   const rows = items.map(r => {
@@ -4028,32 +4142,37 @@ function exportRecordsCSV() {
 
     return [
       r.feedback_id || out.feedback_id || '',
-      r.course_name || r.course_id || '',
-      r.teacher_fullname || r.teacher_id || '',
+      r.course_id || '',
+      r.course_name || '',
+      r.teacher_id || '',
+      r.teacher_fullname || '',
       out.sentiment || '',
+      out.sentiment_score ?? '',
       out.severity || '',
       topicsOf(r).join('|'),
-      confidenceOf(r),
-      credibilityOf(r),
-      attentionFromOf(r).join('|'),
-      riskTypesOf(r).join('|'),
-      riskScopesOf(r).join('|'),
-      out.recommended_action || '',
-      out.summary_uz || ''
+      out.summary_uz || '',
+      r.created_at || r.timestamp || ''
     ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',');
   });
 
   const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+  const blob = new Blob([csv], {
+    type: 'text/csv;charset=utf-8;'
+  });
+
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = `records-schema-v12-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `records-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
 
   URL.revokeObjectURL(url);
-  toast('CSV export tayyor', 'success');
+
+  toast(`${items.length} ta yozuv CSV export qilindi`, 'success');
 }
 
 async function openRecord(feedbackId) {
@@ -5067,6 +5186,7 @@ async function analyzeCustom() {
     state.dashboard = d.dashboard;
     renderDashboard();
     renderTestResult(d);
+    await loadDashboard();
 
     toast(t('custom_analyzed'), 'success');
   } catch (e) {
@@ -6435,6 +6555,7 @@ async function resetDemo() {
     const d = await api('/reset-demo', { method: 'POST' });
     state.dashboard = d.dashboard;
     renderDashboard();
+    updateRiskBadge();
     toast(t('reset_success'), 'success');
   } catch (e) {
     toast(e.message, 'error');

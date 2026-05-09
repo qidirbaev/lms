@@ -55,6 +55,153 @@ def _avg(vals: list) -> float:
     return round(sum(vals) / len(vals), 3) if vals else 0.0
 
 
+def _num01(value, default=0.5):
+    """
+    Normalize numeric values to 0..1.
+
+    Supports:
+    - 0.87
+    - 87
+    - None
+    - invalid strings
+    """
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return default
+
+    if 1.0 < v <= 100.0:
+        v = v / 100.0
+
+    return max(0.0, min(1.0, v))
+
+
+def _dimension_score_from_evidence(out: dict, key: str) -> float:
+    """
+    Evidence-weighted satisfaction score.
+
+    Problem fixed:
+    AI-generated satisfaction_dimensions often become unrealistically high
+    like 0.95, 0.96, 0.98 for almost every dimension.
+
+    This function keeps the AI dimension score as one signal, but adjusts it
+    using sentiment, severity, risk probability, risk types, and detected topics.
+    """
+
+    dims = out.get("satisfaction_dimensions", {}) or {}
+
+    ai = _num01(dims.get(key), None)
+    sentiment_score = _num01(out.get("sentiment_score"), 0.5)
+
+    sentiment = str(out.get("sentiment") or "neutral").lower()
+    severity = str(out.get("severity") or "low").lower()
+
+    topics = {
+        str(x).lower()
+        for x in (
+            out.get("topics")
+            or out.get("subtopics")
+            or []
+        )
+    }
+
+    risk = out.get("risk", {}) or {}
+    risk_types = {
+        str(x).lower()
+        for x in (risk.get("types") or [])
+    }
+
+    # Base score: combine AI dimension score with real sentiment score.
+    if ai is not None:
+        base = (0.62 * ai) + (0.38 * sentiment_score)
+    else:
+        base = sentiment_score
+
+    # Sentiment-level correction.
+    if sentiment == "negative":
+        base -= 0.18
+    elif sentiment == "neutral":
+        base -= 0.06
+    elif sentiment == "positive":
+        base += 0.03
+
+    # Severity-level correction.
+    severity_penalty = {
+        "none": 0.0,
+        "low": 0.02,
+        "medium": 0.09,
+        "high": 0.18,
+        "critical": 0.28,
+    }
+
+    base -= severity_penalty.get(severity, 0.04)
+
+    # Risk probability correction.
+    base -= min(0.16, _num01(risk.get("probability"), 0.0) * 0.18)
+
+    # Dimension-specific topic/risk penalties.
+    topic_penalties = {
+        "teaching_quality": (
+            {"teaching_method", "teacher_style", "pace_too_fast", "too_much_theory"},
+            0.13,
+        ),
+        "clarity": (
+            {"clarity", "teaching_method", "confusion", "materials_quality"},
+            0.12,
+        ),
+        "engagement": (
+            {"engagement", "boredom", "teacher_style", "too_much_theory"},
+            0.12,
+        ),
+        "course_content_relevance": (
+            {"course_content_relevance", "course_content", "practicals", "too_much_theory"},
+            0.10,
+        ),
+        "assessment_fairness": (
+            {"assessment_grading", "grading_integrity_issue", "assessment_fairness", "hard_assignments"},
+            0.18,
+        ),
+        "grading_transparency": (
+            {"assessment_grading", "grading_transparency", "grading_integrity_issue"},
+            0.17,
+        ),
+        "materials_quality": (
+            {"materials_quality", "materials", "course_content"},
+            0.12,
+        ),
+        "support_availability": (
+            {"support_availability", "teacher_responsiveness", "support"},
+            0.13,
+        ),
+        "admin_responsiveness": (
+            {"platform_admin", "admin_responsiveness", "system_issue"},
+            0.15,
+        ),
+        "workload_balance": (
+            {"workload", "hard_assignments", "pace_too_fast"},
+            0.14,
+        ),
+        "overall_satisfaction": (
+            {"platform_admin", "assessment_grading", "workload", "teaching_method"},
+            0.08,
+        ),
+    }
+
+    hit_topics, penalty = topic_penalties.get(key, (set(), 0.0))
+
+    if topics.intersection(hit_topics) or risk_types.intersection(hit_topics):
+        base -= penalty
+
+    # Prevent near-perfect scores when there is real negative evidence.
+    if severity in {"high", "critical"} or risk_types:
+        base = min(base, 0.78)
+    elif sentiment == "negative":
+        base = min(base, 0.70)
+
+    # Final clamp.
+    return round(max(0.12, min(0.96, base)), 4)
+
+
 def aggregate_overview() -> dict:
     records = _records()
     if not records:
@@ -437,13 +584,11 @@ def build_satisfaction_dimensions(records: list) -> dict:
 
     for record in records:
         out = _out(record)
-        dims = out.get("satisfaction_dimensions", {}) or {}
 
         for key in SATISFACTION_KEYS:
-            value = dims.get(key)
-            if isinstance(value, (int, float)):
-                sums[key] += float(value)
-                counts[key] += 1
+            score = _dimension_score_from_evidence(out, key)
+            sums[key] += score
+            counts[key] += 1
 
     averages = []
     for key in SATISFACTION_KEYS:
@@ -453,6 +598,7 @@ def build_satisfaction_dimensions(records: list) -> dict:
     return {
         "labels": SATISFACTION_KEYS,
         "values": averages,
+        "method": "evidence_weighted",
     }
 
 

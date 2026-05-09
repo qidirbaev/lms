@@ -3169,20 +3169,20 @@ body.is-loading::after {
 }
 
 .mood-pulse-bars {
-  height: 150px;
+  min-height: 176px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-2);
-  padding: .75rem;
+  padding: .85rem;
   display: flex;
-  align-items: end;
+  align-items: stretch;
   justify-content: space-between;
-  gap: .45rem;
+  gap: .5rem;
 }
 
 .mood-pulse-item {
   flex: 1;
-  min-width: 28px;
+  min-width: 34px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -3192,40 +3192,79 @@ body.is-loading::after {
 .mood-pulse-period {
   color: var(--text-4);
   font-size: .58rem;
-  max-width: 48px;
+  max-width: 58px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-bottom: .35rem;
+  margin-bottom: .4rem;
 }
 
-.mood-pulse-track {
+.mood-pulse-stack {
+  position: relative;
   flex: 1;
   width: 100%;
-  max-width: 24px;
+  max-width: 30px;
+  min-height: 104px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   display: flex;
-  align-items: end;
+  flex-direction: column-reverse;
+  align-items: stretch;
   overflow: hidden;
+  box-shadow: inset 0 1px 8px rgba(0,0,0,.10);
 }
 
-.mood-pulse-fill {
+.mood-pulse-seg {
   width: 100%;
-  background: var(--neu);
-  border-radius: 999px;
+  min-height: 2px;
 }
 
-.mood-pulse-item.positive .mood-pulse-fill { background: var(--pos); }
-.mood-pulse-item.warning .mood-pulse-fill { background: var(--warn); }
-.mood-pulse-item.critical .mood-pulse-fill { background: var(--neg); }
+.mood-pulse-seg.pos {
+  background: var(--pos);
+}
+
+.mood-pulse-seg.neu {
+  background: var(--neu);
+}
+
+.mood-pulse-seg.neg {
+  background: var(--neg);
+}
+
+.mood-pulse-risk {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 2px solid rgba(255,255,255,.75);
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(239,68,68,.85),
+    rgba(239,68,68,.85) 4px,
+    rgba(245,158,11,.85) 4px,
+    rgba(245,158,11,.85) 8px
+  );
+  opacity: .78;
+}
 
 .mood-pulse-score {
-  margin-top: .3rem;
+  margin-top: .35rem;
   color: var(--text-3);
   font-size: .65rem;
-  font-weight: 850;
+  font-weight: 900;
+}
+
+.mood-pulse-item.positive .mood-pulse-score {
+  color: var(--pos);
+}
+
+.mood-pulse-item.warning .mood-pulse-score {
+  color: var(--warn);
+}
+
+.mood-pulse-item.critical .mood-pulse-score {
+  color: var(--neg);
 }
 
 .mood-dimension-grid {
