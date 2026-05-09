@@ -128,13 +128,13 @@ def _dimension_score_from_evidence(out: dict, key: str) -> float:
     # Severity-level correction.
     severity_penalty = {
         "none": 0.0,
-        "low": 0.02,
-        "medium": 0.09,
-        "high": 0.18,
-        "critical": 0.28,
+        "low": 0.05,
+        "medium": 0.2,
+        "high": 0.28,
+        "critical": 0.48,
     }
 
-    base -= severity_penalty.get(severity, 0.04)
+    base -= severity_penalty.get(severity, 0.08)
 
     # Risk probability correction.
     base -= min(0.16, _num01(risk.get("probability"), 0.0) * 0.18)

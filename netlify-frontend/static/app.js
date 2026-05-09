@@ -585,11 +585,11 @@ function t(key) {
 
 const radarState = {
   emotion: {
-    mode: localStorage.getItem('radar_emotion_mode') || 'percent',
+    mode: localStorage.getItem('radar_emotion_mode') || 'raw',
     pinned: new Set(JSON.parse(localStorage.getItem('radar_emotion_pinned') || '[]'))
   },
   satisfaction: {
-    mode: localStorage.getItem('radar_satisfaction_mode') || 'percent',
+    mode: localStorage.getItem('radar_satisfaction_mode') || 'raw',
     pinned: new Set(JSON.parse(localStorage.getItem('radar_satisfaction_pinned') || '[]'))
   }
 };
@@ -1934,7 +1934,6 @@ function renderDashboard() {
   renderKeywords();
   renderEmotionDistributionChart();
   renderSatisfactionDimensionsChart();
-  renderSentimentTrendChart();
   renderEmotionTrendChart();
   renderEmotionRadarChart();
   renderSatisfactionRadarChart();
