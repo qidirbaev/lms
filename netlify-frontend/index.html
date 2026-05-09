@@ -441,77 +441,18 @@
           </div>
         </div>
 
-        <div class="page-body records-body">
-          <div class="records-command-grid">
-            <div class="records-command-card card">
-              <div class="records-search-box">
-                <i data-lucide="search"></i>
-                <input
-                  class="input"
-                  id="filter-search"
-                  type="search"
-                  placeholder="Feedback ID, fan, o‘qituvchi, xulosa yoki issue bo‘yicha qidirish..."
-                  oninput="renderRecordsPanel()"
-                />
-              </div>
-
-              <div class="records-filter-grid">
-                <div class="field">
-                  <label>Sentiment</label>
-                  <select class="select" id="filter-sentiment" onchange="loadRecords()">
-                    <option value="">Barchasi</option>
-                    <option value="positive">Positive</option>
-                    <option value="neutral">Neutral</option>
-                    <option value="negative">Negative</option>
-                  </select>
+        <div class="page-body records-body" id="records-body">
+          <div class="card">
+            <div class="loading-panel-inner">
+              <div class="processing-orb"></div>
+              <div>
+                <div class="loading-title">Records tayyor</div>
+                <div class="loading-subtitle">
+                  Yozuvlar server-side filter va pagination orqali yuklanadi.
                 </div>
-
-                <div class="field">
-                  <label>Jiddiylik</label>
-                  <select class="select" id="filter-severity" onchange="loadRecords()">
-                    <option value="">Barchasi</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label>Muammo turi</label>
-                  <select class="select" id="filter-issue" onchange="loadRecords()">
-                    <option value="">Barchasi</option>
-                    <option value="none">None</option>
-                    <option value="teaching_style">Teaching Style</option>
-                    <option value="content_quality">Content Quality</option>
-                    <option value="assessment">Assessment</option>
-                    <option value="materials">Materials</option>
-                    <option value="communication">Communication</option>
-                    <option value="technical_issue">Technical Issue</option>
-                    <option value="classroom_management">Classroom Mgmt</option>
-                    <option value="fairness_concern">Fairness Concern</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label>Admin e’tibori</label>
-                  <select class="select" id="filter-admin" onchange="loadRecords()">
-                    <option value="">Barchasi</option>
-                    <option value="true">Ha</option>
-                    <option value="false">Yo‘q</option>
-                  </select>
-                </div>
-
-                <button class="btn btn-ghost btn-sm records-clear-btn" onclick="clearFilters()">
-                  <i data-lucide="x"></i> Tozalash
-                </button>
               </div>
             </div>
           </div>
-
-          <div id="records-metrics" class="records-metrics"></div>
-          <div id="records-list" class="records-list"></div>
         </div>
       </section>
 

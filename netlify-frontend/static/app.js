@@ -1818,7 +1818,7 @@ function showPage(page) {
 
   renderIcons();
 
-  if (page === 'records') loadRecords();
+  if (page === 'records') loadRecords(true);
   if (page === 'logs') loadLogs();
   if (page === 'settings') {
     loadPlatformSettingsUI();
@@ -7632,3 +7632,233 @@ window.addEventListener('DOMContentLoaded', () => {
 
   renderIcons();
 });
+
+// ─────────────────────────────────────────────────────────────
+// Records v1.2 — server-side filters + pagination for 10k+
+// ─────────────────────────────────────────────────────────────
+
+async function loadRecords(reset = false) {
+  if (reset) recordsState.offset = 0;
+
+  const params = new URLSearchParams({
+    q: recordsState.q || '',
+    sentiment: recordsState.sentiment || '',
+    severity: recordsState.severity || '',
+    topic: recordsState.topic || '',
+    course_id: recordsState.course_id || '',
+    teacher_id: recordsState.teacher_id || '',
+    limit: String(recordsState.limit || 50),
+    offset: String(recordsState.offset || 0)
+  });
+
+  const body = $('records-body');
+
+  if (body) {
+    body.innerHTML = `
+      <div class="card">
+        <div class="loading-panel-inner">
+          <div class="processing-orb"></div>
+          <div>
+            <div class="loading-title">Records yuklanmoqda</div>
+            <div class="loading-subtitle">
+              Server-side filter va pagination ishlamoqda.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  try {
+    const d = await api(`/records?${params.toString()}`);
+
+    recordsState.total = d.total || 0;
+
+    renderRecordsPage(d.items || [], {
+      total: d.total || 0,
+      limit: d.limit || recordsState.limit || 50,
+      offset: d.offset || recordsState.offset || 0,
+      has_more: Boolean(d.has_more)
+    });
+  } catch (e) {
+    if (body) {
+      body.innerHTML = `
+        <div class="alert alert-err">
+          Records yuklanmadi: ${esc(e.message)}
+        </div>
+      `;
+    }
+
+    toast(e.message, 'error');
+  }
+}
+
+function clearRecordsFilters() {
+  recordsState.q = '';
+  recordsState.sentiment = '';
+  recordsState.severity = '';
+  recordsState.topic = '';
+  recordsState.course_id = '';
+  recordsState.teacher_id = '';
+  recordsState.offset = 0;
+
+  loadRecords(true);
+}
+
+function renderRecordsPage(items, meta) {
+  const body = $('records-body');
+  if (!body) return;
+
+  const from = meta.total ? Number(meta.offset || 0) + 1 : 0;
+  const to = Math.min(
+    Number(meta.offset || 0) + Number(meta.limit || 50),
+    Number(meta.total || 0)
+  );
+
+  const currentPage = Math.floor((meta.offset || 0) / (meta.limit || 50)) + 1;
+  const totalPages = Math.max(1, Math.ceil((meta.total || 0) / (meta.limit || 50)));
+
+  body.innerHTML = `
+    <div class="records-toolbar card">
+      <input
+        class="input"
+        placeholder="Search feedback, summary, course, teacher..."
+        value="${esc(recordsState.q || '')}"
+        oninput="
+          recordsState.q=this.value;
+          clearTimeout(window.__recordsSearchTimer);
+          window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);
+        "
+      />
+
+      <select class="select" onchange="recordsState.sentiment=this.value; loadRecords(true);">
+        <option value="">All sentiment</option>
+        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>Positive</option>
+        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>Neutral</option>
+        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>Negative</option>
+      </select>
+
+      <select class="select" onchange="recordsState.severity=this.value; loadRecords(true);">
+        <option value="">All severity</option>
+        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>None</option>
+        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>Low</option>
+        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>Medium</option>
+        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>High</option>
+        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>Critical</option>
+      </select>
+
+      <input
+        class="input"
+        placeholder="Topic"
+        value="${esc(recordsState.topic || '')}"
+        oninput="
+          recordsState.topic=this.value;
+          clearTimeout(window.__recordsSearchTimer);
+          window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);
+        "
+      />
+
+      <input
+        class="input"
+        placeholder="Course ID"
+        value="${esc(recordsState.course_id || '')}"
+        oninput="
+          recordsState.course_id=this.value;
+          clearTimeout(window.__recordsSearchTimer);
+          window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);
+        "
+      />
+
+      <input
+        class="input"
+        placeholder="Teacher ID"
+        value="${esc(recordsState.teacher_id || '')}"
+        oninput="
+          recordsState.teacher_id=this.value;
+          clearTimeout(window.__recordsSearchTimer);
+          window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);
+        "
+      />
+
+      <select class="select" onchange="recordsState.limit=Number(this.value); loadRecords(true);">
+        <option value="25" ${recordsState.limit === 25 ? 'selected' : ''}>25</option>
+        <option value="50" ${recordsState.limit === 50 ? 'selected' : ''}>50</option>
+        <option value="100" ${recordsState.limit === 100 ? 'selected' : ''}>100</option>
+        <option value="200" ${recordsState.limit === 200 ? 'selected' : ''}>200</option>
+      </select>
+
+      <button class="btn btn-secondary" onclick="clearRecordsFilters()">
+        <i data-lucide="x"></i> Clear
+      </button>
+    </div>
+
+    <div class="records-count-row">
+      <b>${Number(meta.total || 0).toLocaleString()}</b>
+      <span>matching records</span>
+      <small>
+        showing ${from}-${to} · page ${currentPage}/${totalPages}
+      </small>
+    </div>
+
+    <div id="records-list" class="records-list">
+      ${
+        items.length
+          ? items.map(renderRecordCard).join('')
+          : `<div class="empty-chart">No records found</div>`
+      }
+    </div>
+
+    <div class="records-pagination">
+      <button
+        class="btn btn-secondary"
+        ${recordsState.offset <= 0 ? 'disabled' : ''}
+        onclick="
+          recordsState.offset = 0;
+          loadRecords();
+        "
+      >
+        First
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        ${recordsState.offset <= 0 ? 'disabled' : ''}
+        onclick="
+          recordsState.offset = Math.max(0, recordsState.offset - recordsState.limit);
+          loadRecords();
+        "
+      >
+        Previous
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        ${!meta.has_more ? 'disabled' : ''}
+        onclick="
+          recordsState.offset += recordsState.limit;
+          loadRecords();
+        "
+      >
+        Next
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        ${!meta.has_more ? 'disabled' : ''}
+        onclick="
+          recordsState.offset = Math.max(0, (${totalPages} - 1) * recordsState.limit);
+          loadRecords();
+        "
+      >
+        Last
+      </button>
+    </div>
+  `;
+
+  renderIcons();
+}
+
+// Compatibility: if old code calls renderRecordsPanel(), route it to new implementation.
+function renderRecordsPanel() {
+  loadRecords(true);
+}

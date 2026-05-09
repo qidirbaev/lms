@@ -856,13 +856,14 @@ def get_records(
 ):
     require_auth(authorization)
 
-    limit = max(1, min(limit, 200))
-    offset = max(0, offset)
+    limit = max(1, min(int(limit), 200))
+    offset = max(0, int(offset))
 
     rows = data_service.get_all_results()
     filtered = []
 
     q_low = (q or "").lower().strip()
+    topic_low = (topic or "").lower().strip()
 
     for r in rows:
         out = schema_service.output_compat(r.get("output", {}))
@@ -878,13 +879,13 @@ def get_records(
         if severity and out.get("severity") != severity:
             continue
 
-        if topic and topic not in topics:
+        if topic_low and not any(topic_low in str(x).lower() for x in topics):
             continue
 
-        if course_id and meta.get("course_id") != course_id:
+        if course_id and str(meta.get("course_id", "")).lower() != course_id.lower():
             continue
 
-        if teacher_id and meta.get("teacher_id") != teacher_id:
+        if teacher_id and str(meta.get("teacher_id", "")).lower() != teacher_id.lower():
             continue
 
         if q_low:
@@ -895,11 +896,15 @@ def get_records(
                 str(meta.get("teacher_id", "")),
                 str(meta.get("teacher_fullname", "")),
                 str(out.get("summary_uz", "")),
+                str(out.get("emotion", "")),
+                str(out.get("recommended_action", "")),
                 " ".join(topics),
             ]).lower()
 
             if q_low not in haystack:
                 continue
+
+        risk = out.get("risk", {}) or {}
 
         filtered.append({
             "feedback_id": r.get("feedback_id"),
@@ -909,13 +914,13 @@ def get_records(
             "teacher_fullname": meta.get("teacher_fullname"),
             "sentiment": out.get("sentiment"),
             "severity": out.get("severity"),
-            "topics": topics,
             "emotion": out.get("emotion"),
+            "topics": topics,
             "summary_uz": out.get("summary_uz"),
             "confidence": out.get("confidence"),
             "requires_attention_from": out.get("requires_attention_from", []),
-            "risk_types": out.get("risk", {}).get("types", []),
-            "risk_impact_scopes": out.get("risk", {}).get("impact_scopes", []),
+            "risk_types": risk.get("types", []),
+            "risk_impact_scopes": risk.get("impact_scopes", []),
             "recommended_action": out.get("recommended_action"),
         })
 
@@ -928,7 +933,6 @@ def get_records(
         "offset": offset,
         "has_more": offset + limit < total,
     }
-
 @app.get("/records/{feedback_id}")
 def get_record_detail(feedback_id: str, authorization: str = Header(default=None)):
     require_auth(authorization)

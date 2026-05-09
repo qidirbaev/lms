@@ -9821,3 +9821,65 @@ body:not(.authenticated) .spilot-drawer {
     flex-wrap: wrap;
   }
 }
+
+.records-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) 150px 150px 150px 140px 140px 90px auto;
+  gap: .65rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.records-list,
+#records-list {
+  display: grid;
+  gap: .85rem;
+}
+
+.records-count-row {
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
+  margin-bottom: .75rem;
+  color: var(--text-2);
+}
+
+.records-count-row b {
+  color: var(--text);
+  font-size: 1.12rem;
+  font-weight: 950;
+}
+
+.records-count-row small {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+.records-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1320px) {
+  .records-toolbar {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .records-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .records-count-row {
+    flex-wrap: wrap;
+  }
+
+  .records-count-row small {
+    margin-left: 0;
+    width: 100%;
+  }
+}

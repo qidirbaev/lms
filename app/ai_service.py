@@ -93,6 +93,7 @@ Decrease fairness when:
 
 6. Severity
 Severity describes operational urgency, not emotional tone.
+- none: no actionable issue, general praise, or neutral feedback
 - low: praise, minor issue, vague dissatisfaction
 - medium: repeated-feeling complaint, clear academic issue, materials/clarity/communication issue
 - high: serious grading fairness concern, strong negative impact, explicit repeated unresolved problem
@@ -100,8 +101,7 @@ Severity describes operational urgency, not emotional tone.
 
 Do NOT mark severity high/critical only because sentiment is negative.
 
-7. Admin attention
-requires_admin_attention should be true only when:
+7. requires_attention_from should be true only when:
 - severity is high or critical
 - risk.probability >= 0.50
 - issue involves fairness_concern with specific evidence
@@ -109,15 +109,6 @@ requires_admin_attention should be true only when:
 
 8. Risk rules
 Risk types must be empty [] unless explicit evidence exists in raw_text.
-Allowed risk types:
-- corruption_allegation
-- harassment_claim
-- grading_bias
-- academic_integrity_issue
-- discrimination_claim
-- policy_violation
-- system_abuse
-- coordinated_spam
 
 Risk probability:
 - 0.00 if no explicit risk
@@ -130,33 +121,26 @@ Positive feedback should normally have:
 - risk.probability = 0.0
 - risk.impact_scope = "none"
 - severity = "low"
-- requires_admin_attention = false
+- requires_attention_from = "none"
 - recommended_action = "no_action_needed"
 
 9. Satisfaction dimensions
 Use both text and context.
-- teaching_quality: explanation, teacher behavior, teaching method
-- clarity: understandability, confusion, explanation quality
-- engagement: interest, motivation, boring/interactive
-- fairness: grading, equal treatment, bias, transparency
-- materials: slides, resources, assignments, LMS content
 
 Scores:
 - 0.80–1.00 strong positive
 - 0.60–0.79 acceptable
-- 0.40–0.59 mixed/unclear
+- 0.40–0.59 mixed/unclear 
 - 0.20–0.39 weak/problematic
 - 0.00–0.19 severe problem
 
 10. Language and Uzbek summary
 - Detect language as uz, ru, en, or mixed.
-- summary_uz must always be in Uzbek.
-- summary_uz must include the main conclusion and, when useful, context-aware caution.
+- summary_uz must always be in Uzbek and must include the main conclusion and, when useful, context-aware caution.
 - Do not overstate. Use words like "ehtimol", "ko‘rinadi", "aniqlashtirish kerak" for uncertain cases.
 
 11. Lists
-- topics max 3
-- subtopics max 5
+- topics max 4
 - keywords max 4
 - Use short normalized labels, not long sentences.
 
@@ -169,37 +153,36 @@ Return this exact JSON structure:
   "feedback_credibility": {
     "score": 0.0
   },
-  "feedback_fairness": {
-    "score": 0.0,
-    "is_one_sided": false,
-    "has_constructive_tone": false
-  },
   "sentiment": "positive|neutral|negative",
   "sentiment_score": 0.0,
   "emotion": "frustration|confusion|anxiety|anger|boredom|gratitude|curiosity|confidence|inspiration|relief|indifference|disappointment",
   "emotion_intensity": 0.0,
-  "subtopics": ["string"],
+  "topics": ["teaching_instruction|course_content|assessment_grading|workload_difficulty|learning_resources|technology_platforms|support_accessibility|administrative_processes|communication|facilities_infrastructure|health_services|personal_life_family|financial_factors|housing_living|transport_commute|social_peer_interaction|extracurricular_activities|career_employability|diversity_equity_inclusion|safety_security|personal_growth_identity|motivation_engagement|university_system_issues|global_external_factors"],
   "keywords": ["string"],
-  "topics": ["string"],
-  "issue_category": "none|teaching_style|content_quality|assessment|materials|communication|technical_issue|classroom_management|fairness_concern|other",
   "risk": {
-    "types": ["corruption_allegation|harassment_claim|grading_bias|academic_integrity_issue|discrimination_claim|policy_violation|system_abuse|coordinated_spam"],
+    "types": ["safety_risk|harassment_abuse|discrimination_bias|corruption_allegation|academic_misconduct|grading_integrity_issue|policy_violation|system_abuse|retaliation_whistleblowing|data_privacy_breach|mental_health_crisis|negligence_malpractice|exploitation_of_students|misinformation_disinformation|legal_ethical_breach"],
     "probability": 0.0,
-    "impact_scope": "none|course|teacher|department|system"
+    "impact_scope": "individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"
   },
   "satisfaction_dimensions": {
-    "teaching_quality": 0.0,
-    "clarity": 0.0,
-    "engagement": 0.0,
-    "fairness": 0.0,
-    "materials": 0.0
+    "teaching_quality": 0,
+    "clarity": 0,
+    "engagement": 0,
+    "course_content_relevance": 0,
+    "assessment_fairness": 0,
+    "grading_transparency": 0,
+    "materials_quality": 0,
+    "support_availability": 0,
+    "admin_responsiveness": 0,
+    "workload_balance": 0,
+    "overall_satisfaction": 0
   },
-  "severity": "low|medium|high|critical",
+  "severity": "none|low|medium|high|critical",
   "confidence": 0.0,
   "summary_uz": "string",
-  "representative_label": "complaint|praise|suggestion|incident|other",
-  "requires_admin_attention": false,
-  "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
+  "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
+  "requires_attention_from": "none|teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership",
+  "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
 }
 """
 
@@ -221,43 +204,43 @@ Return this exact structure:
     {
       "feedback_id": "string",
       "output": {
-        "schema_version": "1.0.0",
-        "feedback_id": "string",
-        "language": "uz|ru|en|mixed",
-        "feedback_credibility": {
-          "score": 0.0
-        },
-        "feedback_fairness": {
-          "score": 0.0,
-          "is_one_sided": false,
-          "has_constructive_tone": false
-        },
-        "sentiment": "positive|neutral|negative",
-        "sentiment_score": 0.0,
-        "emotion": "frustration|confusion|anxiety|anger|boredom|gratitude|curiosity|confidence|inspiration|relief|indifference|disappointment",
-        "emotion_intensity": 0.0,
-        "subtopics": ["string"],
-        "keywords": ["string"],
-        "topics": ["string"],
-        "issue_category": "none|teaching_style|content_quality|assessment|materials|communication|technical_issue|classroom_management|fairness_concern|other",
-        "risk": {
-          "types": ["corruption_allegation|harassment_claim|grading_bias|academic_integrity_issue|discrimination_claim|policy_violation|system_abuse|coordinated_spam"],
-          "probability": 0.0,
-          "impact_scope": "none|course|teacher|department|system"
-        },
-        "satisfaction_dimensions": {
-          "teaching_quality": 0.0,
-          "clarity": 0.0,
-          "engagement": 0.0,
-          "fairness": 0.0,
-          "materials": 0.0
-        },
-        "severity": "low|medium|high|critical",
-        "confidence": 0.0,
-        "summary_uz": "string",
-        "representative_label": "complaint|praise|suggestion|incident|other",
-        "requires_admin_attention": false,
-        "recommended_action": "no_action_needed|monitor_pattern|follow_up_with_student|review_course_materials|provide_teacher_feedback|escalate_to_department|open_formal_review|check_for_policy_violation|request_more_context"
+            "schema_version": "1.0.0",
+            "feedback_id": "string",
+            "language": "uz|ru|en|mixed",
+            "feedback_credibility": {
+                "score": 0.0
+            },
+            "sentiment": "positive|neutral|negative",
+            "sentiment_score": 0.0,
+            "emotion": "frustration|confusion|anxiety|anger|boredom|gratitude|curiosity|confidence|inspiration|relief|indifference|disappointment",
+            "emotion_intensity": 0.0,
+            "topics": ["teaching_instruction|course_content|assessment_grading|workload_difficulty|learning_resources|technology_platforms|support_accessibility|administrative_processes|communication|facilities_infrastructure|health_services|personal_life_family|financial_factors|housing_living|transport_commute|social_peer_interaction|extracurricular_activities|career_employability|diversity_equity_inclusion|safety_security|personal_growth_identity|motivation_engagement|university_system_issues|global_external_factors"],
+            "keywords": ["string"],
+            "risk": {
+                "types": ["safety_risk|harassment_abuse|discrimination_bias|corruption_allegation|academic_misconduct|grading_integrity_issue|policy_violation|system_abuse|retaliation_whistleblowing|data_privacy_breach|mental_health_crisis|negligence_malpractice|exploitation_of_students|misinformation_disinformation|legal_ethical_breach"],
+                "probability": 0.0,
+                "impact_scope": "individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"
+            },
+            "satisfaction_dimensions": {
+                "teaching_quality": 0,
+                "clarity": 0,
+                "engagement": 0,
+                "course_content_relevance": 0,
+                "assessment_fairness": 0,
+                "grading_transparency": 0,
+                "materials_quality": 0,
+                "support_availability": 0,
+                "admin_responsiveness": 0,
+                "workload_balance": 0,
+                "overall_satisfaction": 0
+            },
+            "severity": "none|low|medium|high|critical",
+            "confidence": 0.0,
+            "summary_uz": "string",
+            "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
+            "requires_attention_from": "none|teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership",
+            "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
+        }
       }
     }
   ]

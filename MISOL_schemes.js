@@ -79,7 +79,7 @@ const outputFromAI = {
 
   /**
    * Main emotional signal detected from the text. 
-   * Emotion enums: frustration, confusion, anxiety, anger, boredom, disappointment, shame, helplessness, isolated, gratitude, confidence, inspiration, relief, satisfaction, surprise
+   * Emotion enums: frustration|confusion|anxiety|anger|boredom|disappointment|shame|helplessness|isolated|gratitude|confidence|inspiration|relief|satisfaction|surprise
    * 
    */
   emotion: "",
