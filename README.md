@@ -8,24 +8,21 @@ pinned: false
 license: mit
 ---
 
-Something
-
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
-
 # LMS Feedback AI Analyzer
 
-MVP system for analyzing LMS feedback using Gemma 4 (Vertex AI).
+MVP system for analyzing LMS feedback using SentoPro
 
 ## Features
 - Dashboard
 - Batch processing
 - AI analysis
 - Logging
+etc
 
 ## Tech
 - FastAPI
-- Hugging Face Spaces
-- Vertex AI (Gemma 4)
 
 ## Run
 Auto-deployed via Hugging Face Space
+
+## Deployed to Vertex, HFS, Google Cloud
