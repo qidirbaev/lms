@@ -1,0 +1,221 @@
+[
+    {
+        "schema_version": "1.0.0",
+        "feedback_id": "upload-bac806da-00001",
+        "language": "uz",
+        "feedback_credibility": {
+            "score": 0.9
+        },
+        "sentiment": "positive",
+        "sentiment_score": 0.9,
+        "emotion": "gratitude",
+        "emotion_intensity": 0.8,
+        "topics": [
+            "teaching_instruction"
+        ],
+        "keywords": [
+            "dars",
+            "zur",
+            "ustoz",
+            "respekt"
+        ],
+        "risk": {
+            "types": [],
+            "probability": 0,
+            "impact_scopes": []
+        },
+        "satisfaction_dimensions": {
+            "teaching_quality": 1,
+            "clarity": 1,
+            "engagement": 1,
+            "course_content_relevance": 1,
+            "assessment_fairness": 1,
+            "grading_transparency": 1,
+            "materials_quality": 1,
+            "support_availability": 1,
+            "admin_responsiveness": 1,
+            "workload_balance": 1,
+            "overall_satisfaction": 1
+        },
+        "severity": "low",
+        "confidence": 0.95,
+        "summary_uz": "Dars sifati yuqori baholandi, o'qituvchiga minnatdorchilik bildirildi.",
+        "representative_label": "praise",
+        "requires_attention_from": [],
+        "recommended_action": "no_action_needed"
+    },
+    {
+        "schema_version": "1.0.0",
+        "feedback_id": "upload-bac806da-00002",
+        "language": "uz",
+        "feedback_credibility": {
+            "score": 0.7
+        },
+        "sentiment": "neutral",
+        "sentiment_score": 0.4,
+        "emotion": "confusion",
+        "emotion_intensity": 0.5,
+        "topics": [
+            "assessment_grading"
+        ],
+        "keywords": [
+            "baholash",
+            "domla",
+            "asos"
+        ],
+        "risk": {
+            "types": [],
+            "probability": 0,
+            "impact_scopes": []
+        },
+        "satisfaction_dimensions": {
+            "teaching_quality": 1,
+            "clarity": 1,
+            "engagement": 1,
+            "course_content_relevance": 1,
+            "assessment_fairness": 1,
+            "grading_transparency": 1,
+            "materials_quality": 1,
+            "support_availability": 1,
+            "admin_responsiveness": 1,
+            "workload_balance": 1,
+            "overall_satisfaction": 1
+        },
+        "severity": "low",
+        "confidence": 0.85,
+        "summary_uz": "Talaba baholash mezonlari tushunarsiz ekanligidan xavotir bildirmoqda.",
+        "representative_label": "query",
+        "requires_attention_from": [],
+        "recommended_action": "clarify_communication"
+    },
+    {
+        "schema_version": "1.0.0",
+        "feedback_id": "upload-bac806da-00003",
+        "language": "mixed",
+        "feedback_credibility": {
+            "score": 0.8
+        },
+        "sentiment": "neutral",
+        "sentiment_score": 0.5,
+        "emotion": "curiosity",
+        "emotion_intensity": 0.4,
+        "topics": [
+            "assessment_grading"
+        ],
+        "keywords": [
+            "baholash",
+            "tushunarli",
+            "norm"
+        ],
+        "risk": {
+            "types": [],
+            "probability": 0,
+            "impact_scopes": []
+        },
+        "satisfaction_dimensions": {
+            "teaching_quality": 1,
+            "clarity": 1,
+            "engagement": 1,
+            "course_content_relevance": 1,
+            "assessment_fairness": 1,
+            "grading_transparency": 1,
+            "materials_quality": 1,
+            "support_availability": 1,
+            "admin_responsiveness": 1,
+            "workload_balance": 1,
+            "overall_satisfaction": 1
+        },
+        "severity": "low",
+        "confidence": 0.9,
+        "summary_uz": "Dars jarayoni qoniqarli, ammo baholash tizimini yanada shaffofroq qilish taklif etildi.",
+        "representative_label": "suggestion",
+        "requires_attention_from": [],
+        "recommended_action": "adjust_assessment"
+    },
+    {
+        "schema_version": "1.0.0",
+        "feedback_id": "upload-bac806da-00004",
+        "language": "uz",
+        "feedback_credibility": {
+            "score": 0.6
+        },
+        "sentiment": "neutral",
+        "sentiment_score": 0.5,
+        "emotion": "indifference",
+        "emotion_intensity": 0.3,
+        "topics": [
+            "course_content"
+        ],
+        "keywords": [
+            "abed",
+            "dars"
+        ],
+        "risk": {
+            "types": [],
+            "probability": 0,
+            "impact_scopes": []
+        },
+        "satisfaction_dimensions": {
+            "teaching_quality": 1,
+            "clarity": 1,
+            "engagement": 1,
+            "course_content_relevance": 1,
+            "assessment_fairness": 1,
+            "grading_transparency": 1,
+            "materials_quality": 1,
+            "support_availability": 1,
+            "admin_responsiveness": 1,
+            "workload_balance": 1,
+            "overall_satisfaction": 1
+        },
+        "severity": "none",
+        "confidence": 0.7,
+        "summary_uz": "Talaba dars mazmuni bo'yicha noaniq fikr bildirgan.",
+        "representative_label": "other",
+        "requires_attention_from": [],
+        "recommended_action": "no_action_needed"
+    },
+    {
+        "schema_version": "1.0.0",
+        "feedback_id": "upload-bac806da-00005",
+        "language": "mixed",
+        "feedback_credibility": {
+            "score": 0.5
+        },
+        "sentiment": "negative",
+        "sentiment_score": 0.1,
+        "emotion": "anger",
+        "emotion_intensity": 0.9,
+        "topics": [
+            "motivation_engagement"
+        ],
+        "keywords": [
+            "0/10",
+            "g'azab"
+        ],
+        "risk": {
+            "types": [],
+            "probability": 0,
+            "impact_scopes": []
+        },
+        "satisfaction_dimensions": {
+            "teaching_quality": 1,
+            "clarity": 1,
+            "engagement": 1,
+            "course_content_relevance": 1,
+            "assessment_fairness": 1,
+            "grading_transparency": 1,
+            "materials_quality": 1,
+            "support_availability": 1,
+            "admin_responsiveness": 1,
+            "workload_balance": 1,
+            "overall_satisfaction": 1
+        },
+        "severity": "medium",
+        "confidence": 0.8,
+        "summary_uz": "Talaba darsdan qoniqmaganligini keskin ifoda etgan.",
+        "representative_label": "complaint",
+        "requires_attention_from": [],
+        "recommended_action": "provide_student_support"
+    }
+]

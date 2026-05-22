@@ -1,0 +1,192 @@
+[
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "B01-0001",
+    "content": {
+      "raw_text": "Dars vawwe zur bopti, ustozga aduwwi respekt",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-02-20T09:57:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "DS-202",
+      "teacher_id": "T-11",
+      "teacher_fullname": "Tursunova Malika",
+      "student_context": {
+        "year": 2,
+        "gender": "female",
+        "group_id": "DS-24-02",
+        "department_name": "Data Science",
+        "course_points": 73,
+        "gpa": 4.1,
+        "course_attendance_rate": 0.85
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Statistics for DS",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 3,
+        "teacher_department_id": "DEP-DS"
+      }
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "B01-0002",
+    "content": {
+      "raw_text": "Bilmadim domla nimaga asoslanib baholamoqda.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2025-02-02T14:39:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "IT-201",
+      "teacher_id": "T-08",
+      "teacher_fullname": "Hamidov Sardor",
+      "student_context": {
+        "year": 3,
+        "gender": "male",
+        "group_id": "IT-23-04",
+        "department_name": "Information Technologies",
+        "course_points": 97,
+        "gpa": 4.7,
+        "course_attendance_rate": 0.8
+      },
+      "feedback_context": {
+        "feedback_channel": "anonymous_form",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Network Administration",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "assistant",
+        "teaching_experience_years": 1,
+        "teacher_department_id": "DEP-IT"
+      }
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "B01-0003",
+    "content": {
+      "raw_text": "Умуман дарс норм, фақат баҳолашни понятныйрооооқ қилиш керак.",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2025-09-09T18:01:00Z",
+      "semester_id": "2025-FALL",
+      "course_id": "SE-201",
+      "teacher_id": "T-04",
+      "teacher_fullname": "Karimova Dilnoza",
+      "student_context": {
+        "year": 1,
+        "gender": "male",
+        "group_id": "SE-25-05",
+        "department_name": "Software Engineering",
+        "course_points": 60,
+        "gpa": 3.4,
+        "course_attendance_rate": 0.66
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Software Engineering",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 11,
+        "teacher_department_id": "DEP-SE"
+      }
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "B01-0004",
+    "content": {
+      "raw_text": "Xullas oshiqchasiga 'priz' soravotti",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2024-02-13T10:01:00Z",
+      "semester_id": "2024-SPRING",
+      "course_id": "IS-202",
+      "teacher_id": "T-06",
+      "teacher_fullname": "Umarova Shahlo",
+      "student_context": {
+        "year": 4,
+        "gender": "female",
+        "group_id": "IS-22-03",
+        "department_name": "Information Systems",
+        "course_points": 70,
+        "gpa": 3.5,
+        "course_attendance_rate": 0.65
+      },
+      "feedback_context": {
+        "feedback_channel": "midterm_survey",
+        "is_anonymous": false
+      },
+      "course_context": {
+        "course_name": "Data Modeling",
+        "course_level": "graduate",
+        "course_delivery_mode": "offline"
+      },
+      "teacher_context": {
+        "teacher_role": "senior_lecturer",
+        "teaching_experience_years": 13,
+        "teacher_department_id": "DEP-IS"
+      }
+    }
+  },
+  {
+    "schema_version": "1.2.0",
+    "feedback_id": "B01-0005",
+    "content": {
+      "raw_text": "😡😡😡 0/10",
+      "rating": 4
+    },
+    "metadata": {
+      "timestamp": "2025-02-03T16:32:00Z",
+      "semester_id": "2025-SPRING",
+      "course_id": "CN-401",
+      "teacher_id": "T-13",
+      "teacher_fullname": "Toshmatov Jasur",
+      "student_context": {
+        "year": 3,
+        "gender": "female",
+        "group_id": "CN-23-04",
+        "department_name": "Computer Networks",
+        "course_points": 48,
+        "gpa": 2.3,
+        "course_attendance_rate": 0.51
+      },
+      "feedback_context": {
+        "feedback_channel": "end_course_survey",
+        "is_anonymous": true
+      },
+      "course_context": {
+        "course_name": "Network Security",
+        "course_level": "undergraduate",
+        "course_delivery_mode": "online"
+      },
+      "teacher_context": {
+        "teacher_role": "lecturer",
+        "teaching_experience_years": 5,
+        "teacher_department_id": "DEP-CN"
+      }
+    }
+  }
+]
