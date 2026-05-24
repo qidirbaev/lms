@@ -8004,6 +8004,693 @@ body:not(.authenticated) .spilot-drawer {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Scoring Methodology Page
+───────────────────────────────────────────────────────────── */
+
+.methodology-page {
+  min-height: 100%;
+  overflow-x: hidden;
+  background:
+    linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 88%, var(--info)) 52%, var(--bg));
+}
+
+.method-shell {
+  width: min(1180px, calc(100vw - 2rem));
+  margin: 0 auto;
+  padding: 1rem 0 4rem;
+}
+
+.method-nav {
+  position: sticky;
+  top: .75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .72rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.method-brand,
+.method-open-app,
+.method-primary-link,
+.method-secondary-link,
+.method-nav-actions a {
+  text-decoration: none;
+}
+
+.method-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  color: var(--text);
+  min-width: 0;
+}
+
+.method-brand > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-text);
+  background: var(--accent);
+  font-weight: 950;
+}
+
+.method-brand b {
+  display: block;
+  font-size: .88rem;
+}
+
+.method-brand small {
+  display: block;
+  color: var(--text-3);
+  font-size: .7rem;
+}
+
+.method-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.method-nav-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.method-nav-actions a {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .45rem .72rem;
+  color: var(--text-2);
+  background: color-mix(in srgb, var(--bg-2) 78%, transparent);
+  font-size: .76rem;
+  font-weight: 850;
+  transition: transform .16s ease, color .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.method-nav-actions a:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--bg-4);
+}
+
+.method-open-app {
+  display: inline-flex;
+  align-items: center;
+  gap: .42rem;
+}
+
+.method-open-app svg,
+.method-primary-link svg,
+.method-secondary-link svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.method-hero {
+  min-height: min(650px, calc(100vh - 2rem));
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+  gap: 1rem;
+  align-items: center;
+  padding: clamp(3.5rem, 8vw, 6rem) 0 2rem;
+}
+
+.method-hero-copy {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.method-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  width: fit-content;
+  color: var(--pos);
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+
+.method-kicker span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pos);
+  box-shadow: 0 0 0 6px var(--pos-bg);
+}
+
+.method-hero h1 {
+  max-width: 850px;
+  font-size: clamp(2.5rem, 7vw, 5.8rem);
+  line-height: .92;
+  letter-spacing: 0;
+  font-weight: 950;
+}
+
+.method-hero p {
+  max-width: 710px;
+  color: var(--text-2);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.75;
+}
+
+.method-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+.method-primary-link,
+.method-secondary-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  border-radius: 999px;
+  padding: .78rem 1rem;
+  font-size: .83rem;
+  font-weight: 900;
+}
+
+.method-primary-link {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+.method-secondary-link {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+.method-system-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 88%, var(--info)), var(--bg-2));
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.method-system-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 10%, transparent), transparent);
+  transform: translateX(-110%);
+  animation: methodScan 4.8s ease-in-out infinite;
+}
+
+.method-version-badge {
+  position: relative;
+  min-height: 220px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-3) 86%, var(--info)), var(--bg));
+}
+
+.method-version-badge span {
+  font-size: clamp(4rem, 12vw, 7rem);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.method-version-badge small {
+  position: absolute;
+  bottom: 1rem;
+  color: var(--text-3);
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.method-system-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .55rem;
+  margin-top: .7rem;
+}
+
+.method-system-grid div {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .75rem;
+  background: color-mix(in srgb, var(--bg-2) 80%, transparent);
+}
+
+.method-system-grid b,
+.method-system-grid span {
+  display: block;
+}
+
+.method-system-grid b {
+  font-size: .92rem;
+}
+
+.method-system-grid span {
+  margin-top: .08rem;
+  color: var(--text-3);
+  font-size: .7rem;
+}
+
+.method-section {
+  padding: 2rem 0;
+  scroll-margin-top: 6rem;
+}
+
+.method-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  margin-bottom: 1rem;
+}
+
+.method-section-head > span {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-text);
+  background: var(--accent);
+  font-weight: 950;
+}
+
+.method-section-head h2 {
+  font-size: clamp(1.5rem, 3vw, 2.45rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.method-section-head p {
+  max-width: 760px;
+  margin-top: .25rem;
+  color: var(--text-3);
+  font-size: .94rem;
+}
+
+.method-flow,
+.method-formula-grid,
+.method-risk-layout,
+.method-aggregate-grid,
+.method-example-grid {
+  display: grid;
+  gap: .85rem;
+}
+
+.method-flow {
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+}
+
+.method-flow::before {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 31px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--info), var(--pos), var(--warn));
+  opacity: .55;
+}
+
+.method-flow article,
+.method-formula-card,
+.method-equation-stack article,
+.method-risk-card,
+.method-aggregate-grid article,
+.method-example-card,
+.method-weight-table,
+.method-null-banner {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, transparent), var(--bg-2));
+  box-shadow: var(--shadow);
+}
+
+.method-flow article {
+  position: relative;
+  display: grid;
+  gap: .45rem;
+  align-content: start;
+  min-height: 170px;
+  padding: .9rem;
+}
+
+.method-flow article i,
+.method-flow article > svg {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--info);
+  background: var(--info-bg);
+  padding: 12px;
+}
+
+.method-flow article svg {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.method-flow article b {
+  margin-top: .35rem;
+  font-size: .93rem;
+}
+
+.method-flow article span,
+.method-formula-card p,
+.method-equation-stack p,
+.method-risk-card p,
+.method-null-banner span,
+.method-example-card p {
+  color: var(--text-3);
+  font-size: .82rem;
+  line-height: 1.6;
+}
+
+.method-formula-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.method-formula-card {
+  padding: 1rem;
+  display: grid;
+  gap: .65rem;
+  align-content: start;
+  min-height: 230px;
+}
+
+.method-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--pos);
+  background: var(--pos-bg);
+}
+
+.method-card-icon svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.method-formula-card h3,
+.method-equation-stack h3,
+.method-risk-card h3,
+.method-weight-table h3,
+.method-example-card h3 {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.method-formula-card code,
+.method-equation-stack code,
+.method-risk-card code,
+.method-aggregate-grid code {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--info) 20%, var(--border));
+  border-radius: 10px;
+  padding: .66rem .72rem;
+  color: color-mix(in srgb, var(--text) 88%, var(--info));
+  background: color-mix(in srgb, var(--bg) 84%, var(--info));
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .74rem;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+.method-equation-stack {
+  display: grid;
+  gap: .75rem;
+}
+
+.method-equation-stack article {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: .75rem 1rem;
+  align-items: start;
+}
+
+.method-equation-stack article p {
+  grid-column: 2;
+}
+
+.method-equation-stack.compact article {
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.method-null-banner {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: 1rem;
+  margin-bottom: .85rem;
+  border-color: color-mix(in srgb, var(--warn) 28%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--warn-bg) 55%, var(--surface)), var(--bg-2));
+}
+
+.method-null-banner svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: var(--warn);
+}
+
+.method-null-banner b {
+  display: block;
+  font-size: .95rem;
+}
+
+.method-dim-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin-bottom: .85rem;
+}
+
+.method-dim-grid span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .48rem .65rem;
+  color: var(--text-2);
+  background: var(--bg-2);
+  font-size: .74rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.method-risk-layout {
+  grid-template-columns: 1fr 1.2fr 1fr;
+}
+
+.method-risk-card {
+  padding: 1rem;
+  display: grid;
+  gap: .65rem;
+  align-content: start;
+}
+
+.method-risk-card.accent {
+  border-color: color-mix(in srgb, var(--neg) 24%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--neg-bg) 55%, var(--surface)), var(--bg-2));
+}
+
+.method-weight-table {
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: .8rem;
+  padding: 1rem;
+  margin-top: .85rem;
+}
+
+.method-weight-table p {
+  color: var(--text-3);
+  font-size: .82rem;
+  line-height: 1.8;
+}
+
+.method-aggregate-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.method-aggregate-grid article {
+  padding: 1rem;
+  display: grid;
+  gap: .55rem;
+}
+
+.method-aggregate-grid b {
+  font-size: .92rem;
+}
+
+.method-example-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.method-example-card {
+  padding: 1rem;
+  display: grid;
+  gap: .75rem;
+}
+
+.method-chip {
+  width: fit-content;
+  border-radius: 999px;
+  padding: .32rem .58rem;
+  font-size: .68rem;
+  font-weight: 900;
+}
+
+.method-chip.negative {
+  color: var(--neg);
+  background: var(--neg-bg);
+}
+
+.method-chip.positive {
+  color: var(--pos);
+  background: var(--pos-bg);
+}
+
+.method-example-card dl {
+  display: grid;
+  gap: .45rem;
+}
+
+.method-example-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .55rem .65rem;
+  background: var(--bg);
+}
+
+.method-example-card dt {
+  color: var(--text-3);
+  font-size: .76rem;
+}
+
+.method-example-card dd {
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.topbar-method-link span {
+  display: inline;
+}
+
+@keyframes methodScan {
+  0%, 56% { transform: translateX(-110%); opacity: 0; }
+  70% { opacity: 1; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+
+@media (max-width: 1040px) {
+  .method-hero,
+  .method-flow,
+  .method-formula-grid,
+  .method-risk-layout,
+  .method-aggregate-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .method-flow::before {
+    display: none;
+  }
+
+  .method-dim-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 740px) {
+  .method-shell {
+    width: min(100% - 1rem, 1180px);
+    padding-top: .5rem;
+  }
+
+  .method-nav {
+    top: .35rem;
+    align-items: flex-start;
+    flex-direction: column;
+    border-radius: 14px;
+  }
+
+  .method-nav-actions {
+    width: 100%;
+  }
+
+  .method-hero,
+  .method-flow,
+  .method-formula-grid,
+  .method-risk-layout,
+  .method-aggregate-grid,
+  .method-example-grid,
+  .method-weight-table {
+    grid-template-columns: 1fr;
+  }
+
+  .method-hero {
+    min-height: auto;
+    padding-top: 2.5rem;
+  }
+
+  .method-hero h1 {
+    font-size: clamp(2.35rem, 14vw, 4rem);
+  }
+
+  .method-system-grid,
+  .method-dim-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .method-equation-stack article,
+  .method-equation-stack.compact article {
+    grid-template-columns: 1fr;
+  }
+
+  .method-equation-stack article p {
+    grid-column: auto;
+  }
+
+  .topbar-method-link span {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
    Notifier / Alert Orchestration
 ───────────────────────────────────────────────────────────── */
 

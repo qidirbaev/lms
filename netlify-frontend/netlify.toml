@@ -2,4 +2,7 @@
   publish = "."
   command = ""
 
-  
+[[redirects]]
+  from = "/scoring-methodology"
+  to = "/scoring.html"
+  status = 200

@@ -87,6 +87,18 @@ def index():
         "message": "The backend is running, the frontend has moved to a separate deployment. Please access the frontend to use the application.",
     }
 
+
+@app.get("/scoring-methodology")
+@app.get("/scoring.html")
+def scoring_methodology():
+    scoring_file = STATIC_DIR / "scoring.html"
+
+    if scoring_file.exists():
+        return FileResponse(scoring_file)
+
+    raise HTTPException(status_code=404, detail="Scoring methodology page not found")
+
+
 @app.get("/worm")
 def index():
     return {

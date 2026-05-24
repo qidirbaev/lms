@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentoPro Scoring Methodology</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+</head>
+<body class="methodology-page">
+  <main class="method-shell">
+    <nav class="method-nav">
+      <a class="method-brand" href="/">
+        <span>S</span>
+        <div>
+          <b>SentoPro</b>
+          <small>Deterministic Scoring v1.1.0</small>
+        </div>
+      </a>
+
+      <div class="method-nav-actions">
+        <a href="#formulas">Formulas</a>
+        <a href="#risk">Risk</a>
+        <a href="#dashboard">Dashboard</a>
+        <a class="method-open-app" href="/">
+          <i data-lucide="layout-dashboard"></i>
+          Open platform
+        </a>
+      </div>
+    </nav>
+
+    <section class="method-hero">
+      <div class="method-hero-copy">
+        <div class="method-kicker">
+          <span></span>
+          Backend-calculated, audit-ready scoring
+        </div>
+        <h1>How every feedback score is calculated</h1>
+        <p>
+          AI reads the student text and selects labels. The backend then recalculates every numeric score with fixed formulas,
+          attaches a score audit, and sends transparent values to the dashboard.
+        </p>
+
+        <div class="method-hero-actions">
+          <a href="#pipeline" class="method-primary-link">
+            <i data-lucide="workflow"></i>
+            View pipeline
+          </a>
+          <a href="#examples" class="method-secondary-link">
+            <i data-lucide="flask-conical"></i>
+            See examples
+          </a>
+        </div>
+      </div>
+
+      <div class="method-system-card">
+        <div class="method-version-badge">
+          <span>1.1</span>
+          <small>outputFromAI</small>
+        </div>
+        <div class="method-system-grid">
+          <div><b>AI</b><span>labels</span></div>
+          <div><b>Code</b><span>scores</span></div>
+          <div><b>Audit</b><span>formulas</span></div>
+          <div><b>Null</b><span>unknowns</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="method-section" id="pipeline">
+      <div class="method-section-head">
+        <span>01</span>
+        <div>
+          <h2>Pipeline</h2>
+          <p>One record moves through four deterministic checkpoints before it reaches juries or dashboards.</p>
+        </div>
+      </div>
+
+      <div class="method-flow">
+        <article>
+          <i data-lucide="file-input"></i>
+          <b>inputToSystem v1.2.0</b>
+          <span>Raw text, rating, course, teacher, student, and feedback context.</span>
+        </article>
+        <article>
+          <i data-lucide="brain-circuit"></i>
+          <b>AI categorization</b>
+          <span>Language, sentiment label, emotion, topics, keywords, severity, routing, and summary.</span>
+        </article>
+        <article>
+          <i data-lucide="shield-check"></i>
+          <b>Validation guardrails</b>
+          <span>Enums are normalized. Risk is removed when raw text has no explicit risk evidence.</span>
+        </article>
+        <article>
+          <i data-lucide="calculator"></i>
+          <b>Formula engine</b>
+          <span>Python overwrites all numeric scores and creates score_audit.formulas.</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="method-section" id="formulas">
+      <div class="method-section-head">
+        <span>02</span>
+        <div>
+          <h2>Core Formula Inputs</h2>
+          <p>These values are computed for every feedback before scoring starts.</p>
+        </div>
+      </div>
+
+      <div class="method-formula-grid">
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="star"></i></div>
+          <h3>rating_score</h3>
+          <code>rating_score = (rating - 1) / 4</code>
+          <p>If no rating exists, the neutral default is <b>0.5</b>.</p>
+        </article>
+
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="message-circle"></i></div>
+          <h3>label_score</h3>
+          <code>positive = 0.80 · neutral = 0.50 · negative = 0.20</code>
+          <p>The AI chooses the label; the backend maps it to this fixed numeric value.</p>
+        </article>
+
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="scan-search"></i></div>
+          <h3>specificity</h3>
+          <code>clip(0.15 + 0.55*min(word_count/20,1) + 0.30*specific_marker_present)</code>
+          <p>Specific markers include academic, dimension, or explicit risk terms found in the raw text.</p>
+        </article>
+
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="git-compare"></i></div>
+          <h3>alignment</h3>
+          <code>alignment = 1 - abs(label_score - rating_score)</code>
+          <p>Contradictory rating/text pairs reduce confidence and credibility.</p>
+        </article>
+
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="graduation-cap"></i></div>
+          <h3>context_modifier</h3>
+          <code>+0.02 / -0.03 / 0</code>
+          <p>
+            +0.02 for specific senior high-attendance/high-GPA feedback. -0.03 for vague low-attendance feedback.
+            Context is only a weak modifier.
+          </p>
+        </article>
+
+        <article class="method-formula-card">
+          <div class="method-card-icon"><i data-lucide="weight"></i></div>
+          <h3>rating_weight</h3>
+          <code>0.25 if vague · 0.15 if specific · 0 if no rating</code>
+          <p>If rating and text strongly conflict, rating weight is capped at <b>0.10</b>.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="method-section">
+      <div class="method-section-head">
+        <span>03</span>
+        <div>
+          <h2>Feedback-Level Scores</h2>
+          <p>These are the numbers juries see on each analyzed record.</p>
+        </div>
+      </div>
+
+      <div class="method-equation-stack">
+        <article>
+          <h3>Sentiment score</h3>
+          <code>clip((1-rating_weight)*label_score + rating_weight*rating_score + context_modifier)</code>
+          <p>Text label is primary. Rating becomes secondary, especially when the text is vague.</p>
+        </article>
+        <article>
+          <h3>Credibility</h3>
+          <code>clip(0.10 + 0.35*specificity + 0.25*alignment + 0.15*attendance_signal + 0.15*domain_evidence)</code>
+          <p>Vague feedback is capped at 0.45. Spam-like or irrelevant text is capped at 0.25.</p>
+        </article>
+        <article>
+          <h3>Confidence</h3>
+          <code>clip(0.20 + 0.35*specificity + 0.20*alignment + 0.25*domain_evidence)</code>
+          <p>Vague feedback is capped at 0.50 because the system should not overclaim certainty.</p>
+        </article>
+        <article>
+          <h3>Emotion intensity</h3>
+          <code>clip(0.55*emotion_base + 0.25*abs(sentiment_score-0.5)*2 + 0.10*rating_extremity + 0.10*specificity)</code>
+          <p>Emotion labels come from AI, but intensity is calculated from fixed base values and evidence strength.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="method-section">
+      <div class="method-section-head">
+        <span>04</span>
+        <div>
+          <h2>Satisfaction Dimensions</h2>
+          <p>Dimensions are scored only when raw text directly mentions the dimension. Otherwise they stay null.</p>
+        </div>
+      </div>
+
+      <div class="method-null-banner">
+        <i data-lucide="circle-slash"></i>
+        <div>
+          <b>No direct evidence = null</b>
+          <span>The system does not convert silence into 0%, 50%, or guessed satisfaction.</span>
+        </div>
+      </div>
+
+      <div class="method-dim-grid">
+        <span>teaching_quality</span>
+        <span>clarity</span>
+        <span>engagement</span>
+        <span>course_content_relevance</span>
+        <span>assessment_fairness</span>
+        <span>grading_transparency</span>
+        <span>materials_quality</span>
+        <span>support_availability</span>
+        <span>admin_responsiveness</span>
+        <span>workload_balance</span>
+        <span>overall_satisfaction</span>
+      </div>
+
+      <div class="method-equation-stack compact">
+        <article>
+          <h3>Dimension polarity</h3>
+          <code>negative markers = 0.20 · positive markers = 0.85 · mixed markers = 0.50 · otherwise sentiment_score</code>
+          <p>For assessment fairness and grading transparency, neutral grading markers with negative sentiment use 0.30.</p>
+        </article>
+        <article>
+          <h3>Dimension score</h3>
+          <code>null if no direct evidence; otherwise clip(0.80*polarity + 0.15*sentiment_score + 0.05*rating_score + context_modifier)</code>
+          <p>Only dimensions with direct raw-text evidence contribute to their dashboard average.</p>
+        </article>
+        <article>
+          <h3>Overall satisfaction</h3>
+          <code>clip(0.70*sentiment_score + 0.20*rating_score + 0.10*mean(non_null_dimensions or sentiment_score))</code>
+          <p>Overall always exists because it summarizes the feedback as a whole.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="method-section" id="risk">
+      <div class="method-section-head">
+        <span>05</span>
+        <div>
+          <h2>Risk and Impact</h2>
+          <p>Risk fields remain empty unless explicit risk evidence appears in raw_text.</p>
+        </div>
+      </div>
+
+      <div class="method-risk-layout">
+        <article class="method-risk-card">
+          <h3>No explicit risk evidence</h3>
+          <code>risk.types = []</code>
+          <code>risk.probability = 0.0</code>
+          <code>risk.impact_scopes = []</code>
+          <p>Ordinary complaints may still have recommended_action, but they are not treated as legal/safety risks.</p>
+        </article>
+
+        <article class="method-risk-card accent">
+          <h3>Explicit risk probability</h3>
+          <code>clip(base_by_evidence_level + 0.10*specificity + 0.03*min(type_count,3))</code>
+          <p>Evidence bases: weak 0.35, explicit 0.55, serious 0.75.</p>
+        </article>
+
+        <article class="method-risk-card">
+          <h3>Risk impact score</h3>
+          <code>clip(0.55*risk_probability + 0.30*max_scope_weight + 0.15*severity_weight)</code>
+          <p>Used for dashboard ranking and institutional risk summaries.</p>
+        </article>
+      </div>
+
+      <div class="method-weight-table">
+        <div>
+          <h3>Severity weights</h3>
+          <p><b>none</b> 0.00 · <b>low</b> 0.20 · <b>medium</b> 0.45 · <b>high</b> 0.75 · <b>critical</b> 1.00</p>
+        </div>
+        <div>
+          <h3>Scope weights</h3>
+          <p>
+            individual_student 0.20 · group_of_students 0.35 · course_section 0.45 · teacher_instructor 0.50 ·
+            staff_admin 0.55 · department 0.65 · faculty 0.75 · institute 0.85 · education_system 1.00 ·
+            external_community 0.65 · digital_platform 0.55
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="method-section" id="dashboard">
+      <div class="method-section-head">
+        <span>06</span>
+        <div>
+          <h2>Dashboard Aggregates</h2>
+          <p>University, course, teacher, trend, and dimension dashboards use weighted calculations.</p>
+        </div>
+      </div>
+
+      <div class="method-aggregate-grid">
+        <article>
+          <b>Record weight</b>
+          <code>max(0.05, credibility * confidence)</code>
+        </article>
+        <article>
+          <b>Average sentiment</b>
+          <code>sum(sentiment_score * record_weight) / sum(record_weight)</code>
+        </article>
+        <article>
+          <b>University satisfaction</b>
+          <code>weighted average of overall_satisfaction</code>
+        </article>
+        <article>
+          <b>Dimension average</b>
+          <code>weighted average of non-null dimension_score[key]</code>
+        </article>
+        <article>
+          <b>Average risk impact</b>
+          <code>weighted average of risk_impact_score</code>
+        </article>
+        <article>
+          <b>Audit trail</b>
+          <code>output.score_audit.formulas + components + scores</code>
+        </article>
+      </div>
+    </section>
+
+    <section class="method-section" id="examples">
+      <div class="method-section-head">
+        <span>07</span>
+        <div>
+          <h2>Two Example Outcomes</h2>
+          <p>The examples below show why the system does not guess hidden dimensions.</p>
+        </div>
+      </div>
+
+      <div class="method-example-grid">
+        <article class="method-example-card">
+          <span class="method-chip negative">negative label</span>
+          <h3>“chummadim”</h3>
+          <p>Direct evidence exists for clarity only. Risk is empty. Other dimensions stay null.</p>
+          <dl>
+            <div><dt>sentiment_score</dt><dd>0.2125</dd></div>
+            <div><dt>clarity</dt><dd>0.2044</dd></div>
+            <div><dt>overall_satisfaction</dt><dd>0.2192</dd></div>
+          </dl>
+        </article>
+
+        <article class="method-example-card">
+          <span class="method-chip positive">positive label</span>
+          <h3>“xullasi bitta abed ekande 5”</h3>
+          <p>Text is vague and non-academic, so credibility is low and non-overall dimensions stay null.</p>
+          <dl>
+            <div><dt>credibility</dt><dd>0.25</dd></div>
+            <div><dt>risk</dt><dd>empty</dd></div>
+            <div><dt>overall_satisfaction</dt><dd>0.756</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.addEventListener('load', () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
