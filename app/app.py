@@ -921,6 +921,7 @@ def get_records(
             "requires_attention_from": out.get("requires_attention_from", []),
             "risk_types": risk.get("types", []),
             "risk_impact_scopes": risk.get("impact_scopes", []),
+            "risk_impact_score": out.get("risk_impact_score", 0.0),
             "recommended_action": out.get("recommended_action"),
         })
 

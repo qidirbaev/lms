@@ -387,9 +387,11 @@ def output_compat(output: Dict[str, Any]) -> Dict[str, Any]:
         "impact_scope": old_scope,
         "impact_scopes": scopes,
     }
+    fairness_value = sd.get("assessment_fairness", sd.get("fairness"))
+    materials_value = sd.get("materials_quality", sd.get("materials"))
     out["satisfaction_dimensions"] = {
         **sd,
-        "fairness": sd.get("assessment_fairness", sd.get("fairness", 0.5)),
-        "materials": sd.get("materials_quality", sd.get("materials", 0.5)),
+        "fairness": fairness_value,
+        "materials": materials_value,
     }
     return out

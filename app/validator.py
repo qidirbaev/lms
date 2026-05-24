@@ -184,8 +184,12 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
         sd_raw = {}
         corrections.append("Fixed satisfaction_dimensions: not a dict")
 
-    def sd(key, default=0.5):
-        return clamp_float(sd_raw.get(key), default)
+    def sd(key):
+        if key not in sd_raw:
+            return 0.5 if key == "overall_satisfaction" else None
+        if sd_raw.get(key) is None:
+            return None if key != "overall_satisfaction" else 0.5
+        return clamp_float(sd_raw.get(key), 0.5 if key == "overall_satisfaction" else None)
 
     cred_raw = raw.get("feedback_credibility", {})
     if not isinstance(cred_raw, dict):
@@ -211,7 +215,7 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
     action = normalize_choice(action, ACTION_ALLOWED, "no_action_needed")
 
     output = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "feedback_id": str(raw.get("feedback_id") or feedback_id),
         "language": normalize_choice(raw.get("language"), LANGUAGE_ALLOWED, "uz"),
         "feedback_credibility": {"score": clamp_float(cred_raw.get("score"), 0.6)},
@@ -222,13 +226,15 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
         "topics": topics,
         "keywords": safe_list(raw.get("keywords", []), 4, str),
         "risk": risk,
-        "satisfaction_dimensions": {key: sd(key, 0.5) for key in SD_KEYS},
+        "risk_impact_score": clamp_float(raw.get("risk_impact_score"), 0.0),
+        "satisfaction_dimensions": {key: sd(key) for key in SD_KEYS},
         "severity": severity,
         "confidence": clamp_float(raw.get("confidence"), 0.7),
         "summary_uz": str(raw.get("summary_uz", ""))[:700],
         "representative_label": normalize_choice(raw.get("representative_label"), LABEL_ALLOWED, "other"),
         "requires_attention_from": requires,
         "recommended_action": action,
+        "score_audit": raw.get("score_audit") if isinstance(raw.get("score_audit"), dict) else {},
     }
 
     if output["sentiment"] == "positive" and not output["risk"]["types"]:

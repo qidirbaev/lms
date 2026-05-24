@@ -55,6 +55,48 @@ def _avg(vals: list) -> float:
     return round(sum(vals) / len(vals), 3) if vals else 0.0
 
 
+def _record_weight(out: dict) -> float:
+    cred = _num01((out.get("feedback_credibility") or {}).get("score"), 0.5)
+    conf = _num01(out.get("confidence"), 0.5)
+    return max(0.05, cred * conf)
+
+
+def _weighted_avg(values: list, weights: list, empty=0.0):
+    pairs = [
+        (float(v), float(w))
+        for v, w in zip(values, weights)
+        if v is not None and w is not None
+    ]
+    if not pairs:
+        return empty
+    total_weight = sum(w for _, w in pairs)
+    if total_weight <= 0:
+        return empty
+    return round(sum(v * w for v, w in pairs) / total_weight, 4)
+
+
+def _weighted_records_avg(records: list, getter, empty=0.0):
+    values = []
+    weights = []
+    for record in records:
+        out = record.get("output", {}) or {}
+        value = getter(record)
+        if value is None:
+            continue
+        values.append(value)
+        weights.append(_record_weight(out))
+    return _weighted_avg(values, weights, empty)
+
+
+def _risk_impact_score(out: dict) -> float:
+    direct = out.get("risk_impact_score")
+    if direct is not None:
+        return _num01(direct, 0.0)
+    audit = out.get("score_audit", {}) or {}
+    scores = audit.get("scores", {}) if isinstance(audit, dict) else {}
+    return _num01(scores.get("risk_impact_score"), 0.0)
+
+
 def _num01(value, default=0.5):
     """
     Normalize numeric values to 0..1.
@@ -212,8 +254,15 @@ def aggregate_overview() -> dict:
     issues = Counter(r.get("output", {}).get("issue_category", "none") for r in records)
     labels = Counter(r.get("output", {}).get("representative_label", "other") for r in records)
 
-    sentiment_scores = [r.get("output", {}).get("sentiment_score", 0.5) for r in records]
     confidences = [r.get("output", {}).get("confidence", 0.5) for r in records]
+    avg_sentiment_score = _weighted_records_avg(
+        records,
+        lambda r: r.get("output", {}).get("sentiment_score"),
+    )
+    avg_risk_impact_score = _weighted_records_avg(
+        records,
+        lambda r: _risk_impact_score(r.get("output", {}) or {}),
+    )
 
     high_critical = severities.get("high", 0) + severities.get("critical", 0)
     admin_attention = sum(1 for r in records if r.get("output", {}).get("requires_attention_from"))
@@ -230,8 +279,11 @@ def aggregate_overview() -> dict:
     sd_keys = ["teaching_quality", "clarity", "engagement", "fairness", "materials"]
     sd_avgs = {}
     for k in sd_keys:
-        vals = [r.get("output", {}).get("satisfaction_dimensions", {}).get(k) for r in records]
-        sd_avgs[k] = _avg([v for v in vals if v is not None])
+        sd_avgs[k] = _weighted_records_avg(
+            records,
+            lambda r, key=k: (r.get("output", {}).get("satisfaction_dimensions", {}) or {}).get(key),
+            empty=None,
+        )
 
     latest = sorted(records, key=lambda r: r.get("processed_at", ""), reverse=True)[:5]
     latest_items = [
@@ -252,8 +304,9 @@ def aggregate_overview() -> dict:
         "severities": dict(severities),
         "issues": dict(issues.most_common(10)),
         "labels": dict(labels),
-        "avg_sentiment_score": _avg(sentiment_scores),
+        "avg_sentiment_score": avg_sentiment_score,
         "avg_confidence": _avg(confidences),
+        "avg_risk_impact_score": avg_risk_impact_score,
         "high_critical_count": high_critical,
         "admin_attention_count": admin_attention,
         "top_issue": top_issue,
@@ -266,7 +319,7 @@ def aggregate_overview() -> dict:
 def _empty_overview():
     return {
         "total": 0, "sentiments": {}, "severities": {}, "issues": {}, "labels": {},
-        "avg_sentiment_score": 0, "avg_confidence": 0, "high_critical_count": 0,
+        "avg_sentiment_score": 0, "avg_confidence": 0, "avg_risk_impact_score": 0, "high_critical_count": 0,
         "admin_attention_count": 0, "top_issue": "none", "top_risk": "none",
         "satisfaction_dimensions": {}, "latest": [],
     }
@@ -278,13 +331,22 @@ def aggregate_university_mood() -> dict:
         return {}
 
     emotions = Counter(r.get("output", {}).get("emotion", "indifference") for r in records)
-    sentiment_scores = [r.get("output", {}).get("sentiment_score", 0.5) for r in records]
+    university_satisfaction_score = _weighted_records_avg(
+        records,
+        lambda r: (r.get("output", {}).get("satisfaction_dimensions", {}) or {}).get(
+            "overall_satisfaction",
+            r.get("output", {}).get("sentiment_score"),
+        ),
+    )
 
     sd_keys = ["teaching_quality", "clarity", "engagement", "fairness", "materials"]
     sd_avgs = {}
     for k in sd_keys:
-        vals = [r.get("output", {}).get("satisfaction_dimensions", {}).get(k) for r in records if r.get("output", {}).get("satisfaction_dimensions", {}).get(k) is not None]
-        sd_avgs[k] = _avg(vals)
+        sd_avgs[k] = _weighted_records_avg(
+            records,
+            lambda r, key=k: (r.get("output", {}).get("satisfaction_dimensions", {}) or {}).get(key),
+            empty=None,
+        )
 
     # Mood over time: group by month
     monthly = defaultdict(list)
@@ -292,16 +354,23 @@ def aggregate_university_mood() -> dict:
         ts = r.get("timestamp") or r.get("processed_at", "")
         if ts and len(ts) >= 7:
             month = ts[:7]
-            monthly[month].append(r.get("output", {}).get("sentiment_score", 0.5))
+            out = r.get("output", {}) or {}
+            monthly[month].append((out.get("sentiment_score", 0.5), _record_weight(out)))
 
-    mood_trend = [{"month": m, "avg_score": _avg(v)} for m, v in sorted(monthly.items())]
+    mood_trend = [
+        {
+            "month": m,
+            "avg_score": _weighted_avg([x[0] for x in v], [x[1] for x in v]),
+        }
+        for m, v in sorted(monthly.items())
+    ]
 
     dominant_emotion = emotions.most_common(1)[0][0] if emotions else "indifference"
 
     return {
         "dominant_emotion": dominant_emotion,
         "emotion_distribution": dict(emotions.most_common(12)),
-        "university_satisfaction_score": _avg(sentiment_scores),
+        "university_satisfaction_score": university_satisfaction_score,
         "satisfaction_dimensions": sd_avgs,
         "mood_trend": mood_trend,
         "total_analyzed": len(records),
@@ -322,7 +391,6 @@ def aggregate_courses() -> dict:
     for cid, recs in by_course.items():
         sentiments = Counter(r.get("output", {}).get("sentiment") for r in recs)
         issues = Counter(r.get("output", {}).get("issue_category") for r in recs)
-        scores = [r.get("output", {}).get("sentiment_score", 0.5) for r in recs]
         severities = Counter(r.get("output", {}).get("severity") for r in recs)
         high_risk = severities.get("high", 0) + severities.get("critical", 0)
 
@@ -338,7 +406,10 @@ def aggregate_courses() -> dict:
             "course_id": cid,
             "course_name": course_name,
             "feedback_count": len(recs),
-            "avg_sentiment": _avg(scores),
+            "avg_sentiment": _weighted_records_avg(
+                recs,
+                lambda r: r.get("output", {}).get("sentiment_score"),
+            ),
             "sentiments": dict(sentiments),
             "top_issue": issues.most_common(1)[0][0] if issues else "none",
             "high_risk_count": high_risk,
@@ -369,10 +440,7 @@ def aggregate_teachers() -> dict:
     for tid, recs in by_teacher.items():
         sentiments = Counter(r.get("output", {}).get("sentiment") for r in recs)
         emotions = Counter(r.get("output", {}).get("emotion") for r in recs)
-        scores = [r.get("output", {}).get("sentiment_score", 0.5) for r in recs]
         severities = Counter(r.get("output", {}).get("severity") for r in recs)
-        tq_vals = [r.get("output", {}).get("satisfaction_dimensions", {}).get("teaching_quality") for r in recs]
-        clarity_vals = [r.get("output", {}).get("satisfaction_dimensions", {}).get("clarity") for r in recs]
         fairness_issues = sum(1 for r in recs if r.get("output", {}).get("issue_category") == "fairness_concern")
         high_count = severities.get("high", 0) + severities.get("critical", 0)
         admin_count = sum(1 for r in recs if r.get("output", {}).get("requires_attention_from"))
@@ -384,11 +452,22 @@ def aggregate_teachers() -> dict:
             "teacher_fullname": name,
             "teacher_role": role,
             "feedback_count": len(recs),
-            "avg_sentiment_score": _avg(scores),
+            "avg_sentiment_score": _weighted_records_avg(
+                recs,
+                lambda r: r.get("output", {}).get("sentiment_score"),
+            ),
             "dominant_emotion": emotions.most_common(1)[0][0] if emotions else "indifference",
             "sentiments": dict(sentiments),
-            "avg_teaching_quality": _avg([v for v in tq_vals if v is not None]),
-            "avg_clarity": _avg([v for v in clarity_vals if v is not None]),
+            "avg_teaching_quality": _weighted_records_avg(
+                recs,
+                lambda r: (r.get("output", {}).get("satisfaction_dimensions", {}) or {}).get("teaching_quality"),
+                empty=None,
+            ),
+            "avg_clarity": _weighted_records_avg(
+                recs,
+                lambda r: (r.get("output", {}).get("satisfaction_dimensions", {}) or {}).get("clarity"),
+                empty=None,
+            ),
             "fairness_concern_count": fairness_issues,
             "high_critical_count": high_count,
             "admin_attention_count": admin_count,
@@ -582,25 +661,29 @@ def build_emotion_distribution(records: list) -> dict:
 
 def build_satisfaction_dimensions(records: list) -> dict:
     sums = {k: 0.0 for k in SATISFACTION_KEYS}
-    counts = {k: 0 for k in SATISFACTION_KEYS}
+    weights = {k: 0.0 for k in SATISFACTION_KEYS}
 
     for record in records:
         out = _out(record)
+        dims = out.get("satisfaction_dimensions", {}) or {}
+        weight = _record_weight(out)
 
         for key in SATISFACTION_KEYS:
-            score = _dimension_score_from_evidence(out, key)
-            sums[key] += score
-            counts[key] += 1
+            score = dims.get(key)
+            if score is None:
+                continue
+            sums[key] += _num01(score, 0.0) * weight
+            weights[key] += weight
 
     averages = []
     for key in SATISFACTION_KEYS:
-        avg = (sums[key] / counts[key]) if counts[key] else 0.0
-        averages.append(round(avg, 4))
+        avg = (sums[key] / weights[key]) if weights[key] else None
+        averages.append(round(avg, 4) if avg is not None else None)
 
     return {
         "labels": SATISFACTION_KEYS,
         "values": averages,
-        "method": "evidence_weighted",
+        "method": "credibility_weighted_non_null",
     }
 
 

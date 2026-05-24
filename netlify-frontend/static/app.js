@@ -1524,8 +1524,12 @@ function renderEmotionRadarChart() {
 
 function renderSatisfactionRadarChart() {
   const d = state.dashboard?.satisfaction_dimensions_chart || {};
-  const rawLabels = d.labels || [];
-  const rawValues = (d.values || []).map(v => Math.round(Number(v || 0) * 100));
+  const pairs = (d.labels || []).map((label, idx) => ({
+    label,
+    value: (d.values || [])[idx]
+  })).filter(x => x.value !== null && x.value !== undefined);
+  const rawLabels = pairs.map(x => x.label);
+  const rawValues = pairs.map(x => Math.round(Number(x.value) * 100));
 
   const el = $('satisfaction-radar-chart');
   if (!el) return;
@@ -3132,6 +3136,21 @@ function renderMoodEmotionMap(distribution) {
 }
 
 function renderMoodDimensionCard(label, value, iconName) {
+  if (value === null || value === undefined || value === '') {
+    return `
+      <div class="mood-dimension-card neutral">
+        <div class="mood-dimension-top">
+          <i data-lucide="${esc(iconName)}"></i>
+          <span>${esc(label)}</span>
+        </div>
+        <div class="mood-dimension-score">No direct evidence</div>
+        <div class="mood-dimension-track">
+          <div class="mood-dimension-fill" style="width:0%"></div>
+        </div>
+      </div>
+    `;
+  }
+
   const p = pct(value);
   const cls = p >= 72 ? 'positive' : p >= 48 ? 'neutral' : p >= 32 ? 'warning' : 'critical';
 
@@ -3209,7 +3228,8 @@ function moodInsightSentence(m) {
   const dims = m.satisfaction_dimensions || {};
 
   const weakest = Object.entries(dims)
-    .map(([k, v]) => ({ key: k, value: Number(v || 0) }))
+    .filter(([, v]) => v !== null && v !== undefined)
+    .map(([k, v]) => ({ key: k, value: Number(v) }))
     .sort((a, b) => a.value - b.value)[0];
 
   const dimNames = Object.fromEntries(
@@ -4333,7 +4353,8 @@ function drawCharts() {
   );
 
   const satisfactionRaw = d.overview?.satisfaction_averages || d.overview?.satisfaction_dimensions || {};
-  const satisfactionValues = Object.values(satisfactionRaw).map(v => {
+  const satisfactionPairs = Object.entries(satisfactionRaw).filter(([, v]) => v !== null && v !== undefined);
+  const satisfactionValues = satisfactionPairs.map(([, v]) => {
     const n = Number(v || 0);
     return n <= 1 ? Math.round(n * 100) : n;
   });
@@ -4341,7 +4362,7 @@ function drawCharts() {
   chart(
     'chart-dims',
     'bar',
-    Object.keys(satisfactionRaw),
+    satisfactionPairs.map(([k]) => k),
     satisfactionValues,
     uiText('average_percent_axis')
   );
@@ -4453,18 +4474,26 @@ function confidenceOf(x) {
 function satisfactionOf(x) {
   const out = outputOf(x);
   const sd = out.satisfaction_dimensions || {};
+  const dim = (...keys) => {
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(sd, key)) {
+        return sd[key] === null || sd[key] === undefined ? null : Number(sd[key]);
+      }
+    }
+    return null;
+  };
 
   return {
-    teaching_quality: Number(sd.teaching_quality ?? 0.5),
-    clarity: Number(sd.clarity ?? 0.5),
-    engagement: Number(sd.engagement ?? 0.5),
-    course_content_relevance: Number(sd.course_content_relevance ?? 0.5),
-    assessment_fairness: Number(sd.assessment_fairness ?? sd.fairness ?? 0.5),
-    grading_transparency: Number(sd.grading_transparency ?? 0.5),
-    materials_quality: Number(sd.materials_quality ?? sd.materials ?? 0.5),
-    support_availability: Number(sd.support_availability ?? 0.5),
-    admin_responsiveness: Number(sd.admin_responsiveness ?? 0.5),
-    workload_balance: Number(sd.workload_balance ?? 0.5),
+    teaching_quality: dim('teaching_quality'),
+    clarity: dim('clarity'),
+    engagement: dim('engagement'),
+    course_content_relevance: dim('course_content_relevance'),
+    assessment_fairness: dim('assessment_fairness', 'fairness'),
+    grading_transparency: dim('grading_transparency'),
+    materials_quality: dim('materials_quality', 'materials'),
+    support_availability: dim('support_availability'),
+    admin_responsiveness: dim('admin_responsiveness'),
+    workload_balance: dim('workload_balance'),
     overall_satisfaction: Number(sd.overall_satisfaction ?? out.sentiment_score ?? 0.5)
   };
 }
@@ -4979,9 +5008,9 @@ async function openRecord(feedbackId) {
               <div class="schema-dimension">
                 <div>
                   <span>${esc(labelFor('satisfaction_dimension', k))}</span>
-                  <b>${Math.round(Number(v || 0) * 100)}%</b>
+                  <b>${v === null || v === undefined ? 'No direct evidence' : `${Math.round(Number(v) * 100)}%`}</b>
                 </div>
-                <i style="width:${Math.round(Number(v || 0) * 100)}%"></i>
+                <i style="width:${v === null || v === undefined ? 0 : Math.round(Number(v) * 100)}%"></i>
               </div>
             `).join('')}
           </div>
@@ -4991,7 +5020,7 @@ async function openRecord(feedbackId) {
           <div class="card-header">
             <div>
               <div class="card-title">${esc(uiText('schema_objects'))}</div>
-              <div class="text-muted text-sm">inputToSystem v1.2.0 → inputToAI v1.0.0 → outputFromAI v1.0.0</div>
+              <div class="text-muted text-sm">inputToSystem v1.2.0 → inputToAI v1.0.0 → outputFromAI v1.1.0</div>
             </div>
           </div>
 
@@ -5677,6 +5706,22 @@ function signalTitle(out) {
 }
 
 function scoreBar(label, value, extra = '') {
+  const isUnknown = value === null || value === undefined || value === '';
+  if (isUnknown) {
+    return `
+      <div class="score-row score-row-unknown">
+        <div class="score-top">
+          <span>${esc(label)}</span>
+          <b>No direct evidence</b>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" style="width:0%"></div>
+        </div>
+        ${extra ? `<div class="score-extra">${esc(extra)}</div>` : ''}
+      </div>
+    `;
+  }
+
   const p = pct(value);
   return `
     <div class="score-row">
@@ -5744,6 +5789,12 @@ function renderTestResult(d) {
   const inputToAI = d.inputToAI || {};
   const riskTypes = risk.types || [];
   const dims = out.satisfaction_dimensions || {};
+  const dimValue = (...keys) => {
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(dims, key)) return dims[key];
+    }
+    return null;
+  };
   const fairness = out.feedback_fairness || {};
   const credibility = out.feedback_credibility || {};
   const signal = signalClass(out);
@@ -5772,7 +5823,7 @@ function renderTestResult(d) {
         <div class="test-command-score">
           <div class="radial-score ${signal}">
             <span>${sentimentPct}</span>
-            <small>${esc(t('avg_sentiment_short'))}</small>
+            <small style="text-align: center">${esc(t('avg_sentiment_short'))}</small>
           </div>
         </div>
       </div>
@@ -5811,11 +5862,11 @@ function renderTestResult(d) {
           </div>
 
           <div class="test-dim-grid">
-            ${scoreBar(labelFor('satisfaction_dimension', 'teaching_quality'), dims.teaching_quality)}
-            ${scoreBar(labelFor('satisfaction_dimension', 'clarity'), dims.clarity)}
-            ${scoreBar(labelFor('satisfaction_dimension', 'engagement'), dims.engagement)}
-            ${scoreBar(labelFor('satisfaction_dimension', 'fairness'), dims.fairness)}
-            ${scoreBar(labelFor('satisfaction_dimension', 'materials'), dims.materials)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'teaching_quality'), dimValue('teaching_quality'))}
+            ${scoreBar(labelFor('satisfaction_dimension', 'clarity'), dimValue('clarity'))}
+            ${scoreBar(labelFor('satisfaction_dimension', 'engagement'), dimValue('engagement'))}
+            ${scoreBar(labelFor('satisfaction_dimension', 'fairness'), dimValue('assessment_fairness', 'fairness'))}
+            ${scoreBar(labelFor('satisfaction_dimension', 'materials'), dimValue('materials_quality', 'materials'))}
           </div>
         </div>
       </div>

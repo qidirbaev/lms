@@ -18,6 +18,7 @@ except Exception:
 from . import config
 from . import logger_service as logger
 from . import schema_service
+from .deterministic_scoring import apply_deterministic_scores
 from .validator import validate_output, extract_json_from_text
 
 
@@ -41,6 +42,12 @@ Do not add fields outside the required schema.
 Follow the outputFromAI schema exactly.
 
 CRITICAL ANALYSIS PRINCIPLES
+
+0. Deterministic scoring policy
+- You classify categorical evidence only: language, sentiment label, emotion label, topics, keywords, severity, routing, and summary.
+- Numeric scores are recalculated by backend deterministic formulas after validation.
+- For numeric fields, return conservative placeholders only; do not pretend exact numeric certainty.
+- Do not fill satisfaction dimensions unless raw_text directly mentions that dimension. Unmentioned dimensions may be null.
 
 1. Evidence-first rule
 - The raw_text is the primary evidence.
@@ -153,7 +160,7 @@ Scores:
 Return this exact JSON structure:
 
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "feedback_id": "string",
   "language": "uz|ru|en|mixed",
   "feedback_credibility": {
@@ -171,16 +178,16 @@ Return this exact JSON structure:
     "impact_scopes": ["individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"]
   },
   "satisfaction_dimensions": {
-    "teaching_quality": 0,
-    "clarity": 0,
-    "engagement": 0,
-    "course_content_relevance": 0,
-    "assessment_fairness": 0,
-    "grading_transparency": 0,
-    "materials_quality": 0,
-    "support_availability": 0,
-    "admin_responsiveness": 0,
-    "workload_balance": 0,
+    "teaching_quality": null,
+    "clarity": null,
+    "engagement": null,
+    "course_content_relevance": null,
+    "assessment_fairness": null,
+    "grading_transparency": null,
+    "materials_quality": null,
+    "support_availability": null,
+    "admin_responsiveness": null,
+    "workload_balance": null,
     "overall_satisfaction": 0
   },
   "severity": "none|low|medium|high|critical",
@@ -210,7 +217,7 @@ Return this exact structure:
     {
       "feedback_id": "string",
       "output": {
-            "schema_version": "1.0.0",
+            "schema_version": "1.1.0",
             "feedback_id": "string",
             "language": "uz|ru|en|mixed",
             "feedback_credibility": {
@@ -228,16 +235,16 @@ Return this exact structure:
                 "impact_scopes": ["individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"]
             },
             "satisfaction_dimensions": {
-                "teaching_quality": 0,
-                "clarity": 0,
-                "engagement": 0,
-                "course_content_relevance": 0,
-                "assessment_fairness": 0,
-                "grading_transparency": 0,
-                "materials_quality": 0,
-                "support_availability": 0,
-                "admin_responsiveness": 0,
-                "workload_balance": 0,
+                "teaching_quality": null,
+                "clarity": null,
+                "engagement": null,
+                "course_content_relevance": null,
+                "assessment_fairness": null,
+                "grading_transparency": null,
+                "materials_quality": null,
+                "support_availability": null,
+                "admin_responsiveness": null,
+                "workload_balance": null,
                 "overall_satisfaction": 0
             },
             "severity": "none|low|medium|high|critical",
@@ -255,6 +262,8 @@ Return this exact structure:
 Rules:
 - Treat each feedback independently.
 - raw_text is primary evidence.
+- Numeric scores are backend-authoritative; return conservative placeholders only.
+- Do not invent satisfaction dimensions. Use null when raw_text does not directly mention that dimension.
 - Never infer corruption, harassment, discrimination, abuse, or policy violation unless raw_text explicitly suggests it.
 - Positive feedback should normally have low severity, no risk, and requires_attention_from [].
 - If a field is missing, analyze conservatively.
@@ -588,7 +597,7 @@ def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     rating = content.get("rating") or context.get("rating")
 
     positive_words = ["rahmat", "zo'r", "zor", "yaxshi", "ajoyib", "tushunarli", "yoqdi", "excellent", "good", "super"]
-    negative_words = ["yomon", "qiyin", "tushunarsiz", "adolatsiz", "nohaq", "muammo", "zerikarli", "shikoyat", "bad"]
+    negative_words = ["yomon", "qiyin", "tushunmadim", "chummadim", "chunmadim", "tushunarsiz", "adolatsiz", "nohaq", "muammo", "zerikarli", "shikoyat", "bad"]
     assessment_words = ["baho", "baholash", "ball", "imtihon", "test", "grading", "assessment", "mezon"]
     technical_words = ["platforma", "login", "xato", "texnik", "server", "lms", "kirmayapti"]
     corruption_words = ["pora", "pul so'radi", "pul soradi", "korrupsiya", "corruption"]
@@ -671,7 +680,7 @@ def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
         recommended_action = "adjust_assessment"
 
     raw_output = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "feedback_id": feedback_id,
         "language": "uz",
         "feedback_credibility": {"score": 0.65},
@@ -788,6 +797,12 @@ def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, 
 
     return guarded, corrections
 
+
+def finalize_output(output: Dict[str, Any], input_to_system: Dict[str, Any], corrections: list) -> Tuple[Dict[str, Any], list]:
+    scored, scoring_corrections = apply_deterministic_scores(output, input_to_system)
+    corrections.extend(scoring_corrections)
+    return scored, corrections
+
 async def call_vertex_genai_batch_once(items: List[Dict[str, Any]]) -> Dict[str, Any]:
     client = get_genai_client()
 
@@ -839,6 +854,7 @@ def _mock_analyze_batch(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         output, corrections = validate_output(result["parsed_raw"], feedback_id)
         output, guardrail_corrections = apply_context_guardrails(output, item)
         corrections.extend(guardrail_corrections)
+        output, corrections = finalize_output(output, item, corrections)
 
         rows.append({
             "feedback_id": feedback_id,
@@ -912,6 +928,7 @@ def analyze_feedback_batch(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 output, corrections = validate_output(raw_output_obj, fid)
                 output, guardrail_corrections = apply_context_guardrails(output, item)
                 corrections.extend(guardrail_corrections)
+                output, corrections = finalize_output(output, item, corrections)
 
                 outputs.append({
                     "feedback_id": fid,
@@ -976,6 +993,7 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
         output, corrections = validate_output(result["parsed_raw"], feedback_id)
         output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
         corrections.extend(guardrail_corrections)
+        output, corrections = finalize_output(output, input_to_system, corrections)
         
         if corrections:
             logger.info("validation_corrections", {"feedback_id": feedback_id, "corrections": corrections})
@@ -998,6 +1016,7 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
             output, corrections = validate_output(result["parsed_raw"], feedback_id)
             output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
             corrections.extend(guardrail_corrections)
+            output, corrections = finalize_output(output, input_to_system, corrections)
 
             logger.info("gemma_call_success", {"feedback_id": feedback_id, "attempt": attempt})
             if corrections:
@@ -1033,6 +1052,7 @@ def analyze_feedback(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
         output, corrections = validate_output(result["parsed_raw"], feedback_id)
         output, guardrail_corrections = apply_context_guardrails(output, input_to_system)
         corrections.extend(guardrail_corrections)
+        output, corrections = finalize_output(output, input_to_system, corrections)
 
         return {
             "input_to_ai": result["input_to_ai"],

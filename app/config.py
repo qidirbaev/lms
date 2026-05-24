@@ -25,7 +25,7 @@ REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "90"))
 FALLBACK_TO_MOCK = os.getenv("FALLBACK_TO_MOCK", "true").lower() == "true"
 
 # Model params
-MODEL_TEMPERATURE = float(os.getenv("MODEL_TEMPERATURE", "0.2"))
+MODEL_TEMPERATURE = float(os.getenv("MODEL_TEMPERATURE", "0.0"))
 MODEL_MAX_TOKENS = int(os.getenv("MODEL_MAX_TOKENS", "2048"))
 
 # Auth
