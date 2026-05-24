@@ -174,7 +174,7 @@ const I18N = {
     risks: 'Xavf signallari',
     keywords: 'Kalit so‘zlar',
     records: 'Yozuvlar',
-    batch: 'Batch tahlil',
+    batch: 'To\'plamli tahlil',
     test: 'Test tahlil',
     simulate: 'Simulyatsiya',
     logs: 'Loglar',
@@ -579,6 +579,760 @@ function t(key) {
   return (I18N[state.lang] && I18N[state.lang][key]) || I18N.uz[key] || key;
 }
 
+const UI_TEXT = {
+  uz: {
+    raw: 'Asl',
+    percent: 'Foiz',
+    log: 'Log',
+    show_all: 'Barchasini ko‘rsatish',
+    records_unit: 'yozuv',
+    periods_latest: 'Oxirgi {count} davr ko‘rsatilmoqda',
+    show_n: '{count} ta',
+    no_selected_emotion_data: 'Tanlangan emotsiya ma’lumoti yo‘q',
+    no_selected_satisfaction_data: 'Tanlangan qoniqish ma’lumoti yo‘q',
+    no_sankey_data: 'Sankey ma’lumoti yo‘q',
+    no_sentiment_trend_data: 'Sentiment trendi ma’lumoti yo‘q',
+    no_emotion_trend_data: 'Emotsiya trendi ma’lumoti yo‘q',
+    no_emotion_timeline: 'Ustun emotsiya xronologiyasi yo‘q',
+    no_emotion: 'Emotsiya yo‘q',
+    no_records_found: 'Yozuv topilmadi',
+    no_topic: 'Mavzu yo‘q',
+    count_axis: 'Soni',
+    students_axis: 'Talabalar',
+    average_percent_axis: 'O‘rtacha %',
+    net_sentiment: 'Sof sentiment',
+    feedback_count: 'Fikrlar soni',
+    emotion_radar_name: 'Emotsiya ({mode})',
+    satisfaction_radar_name: 'Qoniqish ({mode})',
+    chart_student_emotions_title: 'Talaba emotsiyalari radar grafigi',
+    chart_student_emotions_subtitle: 'Tahlil qilingan fikrlardagi ustun emotsiyalar',
+    chart_satisfaction_title: 'Qoniqish o‘lchovlari radar grafigi',
+    chart_satisfaction_subtitle: 'Akademik tajriba yo‘nalishlari bo‘yicha o‘rtacha baholar',
+    chart_sankey_title: 'Sentimentdan emotsiyaga oqim',
+    chart_sankey_subtitle: 'Universitet sentimenti emotsional holatlarga qanday oqishini ko‘rsatadi',
+    sentiment_trend_title: 'Universitet sentimenti vaqt bo‘yicha',
+    sentiment_trend_subtitle: 'Ijobiy, neytral va salbiy fikrlar hajmi',
+    emotion_heatmap_title: 'Emotsiyalar issiqlik xaritasi',
+    emotion_heatmap_subtitle: 'Ustun talaba emotsiyalarining oylik intensivligi',
+    dominant_emotion_date_title: 'Sana bo‘yicha ustun emotsiya',
+    dominant_emotion_date_subtitle: 'Har bir davrda eng ko‘p uchragan emotsiya',
+    sentiment_snapshot: 'Sentiment kesimi',
+    issue_snapshot: 'Muammolar kesimi',
+    live_feedback_feed: 'Jonli tahlil qilingan fikrlar oqimi',
+    executive_summary: 'Ijrochi xulosa',
+    processed_feedbacks: 'tahlil qilingan fikrlar',
+    average_confidence: 'o‘rtacha ishonch',
+    high_critical_cases: 'yuqori / kritik holatlar',
+    university_signal: 'universitet signali',
+    top_issue_category: 'asosiy muammo kategoriyasi',
+    health_index: 'sog‘lomlik indeksi',
+    confidence: 'Ishonch',
+    credibility: 'Ishonchlilik',
+    primary_topic: 'Asosiy mavzu',
+    attention_from: 'Mas’ul yo‘nalish',
+    risk_scopes: 'Xavf ko‘lami',
+    schema_detail: 'Schema tafsiloti',
+    attention_routing: 'yo‘naltirish kerak',
+    no_routing: 'yo‘naltirish yo‘q',
+    risk_signal: 'xavf signali',
+    search_records_placeholder: 'Fikr, xulosa, fan yoki o‘qituvchi bo‘yicha qidirish...',
+    all_sentiment: 'Barcha sentimentlar',
+    all_severity: 'Barcha jiddiyliklar',
+    topic: 'Mavzu',
+    clear: 'Tozalash',
+    matching_records: 'mos yozuvlar',
+    showing_page: '{from}-{to} ko‘rsatilmoqda · sahifa {page}/{pages}',
+    first: 'Birinchi',
+    previous: 'Oldingi',
+    next: 'Keyingi',
+    last: 'Oxirgi',
+    records_loading_title: 'Yozuvlar yuklanmoqda',
+    records_loading_subtitle: 'Server-side filter va pagination ishlamoqda.',
+    records_load_failed: 'Yozuvlar yuklanmadi',
+    schema_view: 'Kanonik schema ko‘rinishi',
+    topics: 'Mavzular',
+    risk: 'Xavf',
+    types: 'Turlari',
+    probability: 'Ehtimollik',
+    impact_scopes: 'Ta’sir ko‘lami',
+    routing: 'Yo‘naltirish',
+    requires_attention_from: 'E’tibor kerak bo‘lgan yo‘nalish',
+    recommended_action: 'Tavsiya qilingan harakat',
+    satisfaction_dimensions_v1: 'Qoniqish o‘lchovlari v1.0',
+    expanded_scoring: 'Kengaytirilgan aspektli baholash',
+    schema_objects: 'Schema obyektlari',
+    language: 'Til',
+    none_value: 'Yo‘q',
+    trend_hero_title: 'Universitet sentimenti va emotsiya dinamikasi',
+    trend_hero_text: 'Panel outputFromAI schemasidagi sentiment hajmi va ustun emotsiyalarni vaqt bo‘yicha kuzatadi.',
+    latest_dominant_emotion: 'Oxirgi ustun emotsiya',
+    total_volume: 'Jami hajm',
+    peak_period: 'Eng yuqori davr',
+    latest_period: 'Oxirgi davr',
+    highest_activity: 'eng yuqori faollik',
+    last_observed_date: 'oxirgi kuzatilgan sana',
+    latest_emotional_signal: 'oxirgi emotsional signal'
+  },
+  en: {
+    raw: 'Raw',
+    percent: 'Percent',
+    log: 'Log',
+    show_all: 'Show all',
+    records_unit: 'records',
+    periods_latest: 'Showing latest {count} periods',
+    show_n: 'Show {count}',
+    no_selected_emotion_data: 'No selected emotion data',
+    no_selected_satisfaction_data: 'No selected satisfaction data',
+    no_sankey_data: 'No Sankey data',
+    no_sentiment_trend_data: 'No sentiment trend data',
+    no_emotion_trend_data: 'No emotion trend data',
+    no_emotion_timeline: 'No dominant emotion timeline',
+    no_emotion: 'No emotion',
+    no_records_found: 'No records found',
+    no_topic: 'No topic',
+    count_axis: 'Count',
+    students_axis: 'Students',
+    average_percent_axis: 'Average %',
+    net_sentiment: 'Net sentiment',
+    feedback_count: 'Feedback count',
+    emotion_radar_name: 'Emotion ({mode})',
+    satisfaction_radar_name: 'Satisfaction ({mode})',
+    chart_student_emotions_title: 'Student emotions radar chart',
+    chart_student_emotions_subtitle: 'Dominant student feelings across processed feedback',
+    chart_satisfaction_title: 'Satisfaction dimensions radar chart',
+    chart_satisfaction_subtitle: 'Average scores across academic experience dimensions',
+    chart_sankey_title: 'Sentiment to Emotion Sankey',
+    chart_sankey_subtitle: 'How university sentiment flows into emotional states',
+    sentiment_trend_title: 'University sentiment over time',
+    sentiment_trend_subtitle: 'Positive, neutral and negative feedback volume',
+    emotion_heatmap_title: 'Emotion heatmap over time',
+    emotion_heatmap_subtitle: 'Monthly intensity of dominant student emotions',
+    dominant_emotion_date_title: 'Dominant emotion by date',
+    dominant_emotion_date_subtitle: 'Most common emotion per observed day',
+    sentiment_snapshot: 'Sentiment snapshot',
+    issue_snapshot: 'Issue snapshot',
+    live_feedback_feed: 'Live analyzed feedback feed',
+    executive_summary: 'Executive summary',
+    processed_feedbacks: 'processed feedbacks',
+    average_confidence: 'average confidence',
+    high_critical_cases: 'high / critical cases',
+    university_signal: 'university signal',
+    top_issue_category: 'top issue category',
+    health_index: 'health index',
+    confidence: 'Confidence',
+    credibility: 'Credibility',
+    primary_topic: 'Primary topic',
+    attention_from: 'Attention from',
+    risk_scopes: 'Risk scopes',
+    schema_detail: 'Schema detail',
+    attention_routing: 'attention routing',
+    no_routing: 'no routing',
+    risk_signal: 'risk signal',
+    search_records_placeholder: 'Search feedback, summary, course, teacher...',
+    all_sentiment: 'All sentiment',
+    all_severity: 'All severity',
+    topic: 'Topic',
+    clear: 'Clear',
+    matching_records: 'matching records',
+    showing_page: 'showing {from}-{to} · page {page}/{pages}',
+    first: 'First',
+    previous: 'Previous',
+    next: 'Next',
+    last: 'Last',
+    records_loading_title: 'Records loading',
+    records_loading_subtitle: 'Server-side filters and pagination are running.',
+    records_load_failed: 'Records failed to load',
+    schema_view: 'Canonical schema view',
+    topics: 'Topics',
+    risk: 'Risk',
+    types: 'Types',
+    probability: 'Probability',
+    impact_scopes: 'Impact scopes',
+    routing: 'Routing',
+    requires_attention_from: 'Requires attention from',
+    recommended_action: 'Recommended action',
+    satisfaction_dimensions_v1: 'Satisfaction dimensions v1.0',
+    expanded_scoring: 'Expanded aspect-based scoring',
+    schema_objects: 'Schema objects',
+    language: 'Language',
+    none_value: 'None',
+    trend_hero_title: 'University sentiment and emotion dynamics',
+    trend_hero_text: 'This panel tracks sentiment volume and dominant emotions over time using the outputFromAI schema.',
+    latest_dominant_emotion: 'Latest dominant emotion',
+    total_volume: 'Total volume',
+    peak_period: 'Peak period',
+    latest_period: 'Latest period',
+    highest_activity: 'highest activity',
+    last_observed_date: 'last observed date',
+    latest_emotional_signal: 'latest emotional signal'
+  },
+  ru: {
+    raw: 'Исходные',
+    percent: 'Процент',
+    log: 'Лог',
+    show_all: 'Показать все',
+    records_unit: 'записей',
+    periods_latest: 'Показаны последние {count} периодов',
+    show_n: 'Показать {count}',
+    no_selected_emotion_data: 'Нет данных по выбранным эмоциям',
+    no_selected_satisfaction_data: 'Нет данных по выбранной удовлетворённости',
+    no_sankey_data: 'Нет данных Sankey',
+    no_sentiment_trend_data: 'Нет данных тренда sentiment',
+    no_emotion_trend_data: 'Нет данных тренда эмоций',
+    no_emotion_timeline: 'Нет хронологии доминирующих эмоций',
+    no_emotion: 'Нет эмоции',
+    no_records_found: 'Записи не найдены',
+    no_topic: 'Нет темы',
+    count_axis: 'Количество',
+    students_axis: 'Студенты',
+    average_percent_axis: 'Средний %',
+    net_sentiment: 'Чистый sentiment',
+    feedback_count: 'Количество отзывов',
+    emotion_radar_name: 'Эмоция ({mode})',
+    satisfaction_radar_name: 'Удовлетворённость ({mode})',
+    chart_student_emotions_title: 'Радар эмоций студентов',
+    chart_student_emotions_subtitle: 'Доминирующие эмоции в обработанных отзывах',
+    chart_satisfaction_title: 'Радар показателей удовлетворённости',
+    chart_satisfaction_subtitle: 'Средние оценки по аспектам академического опыта',
+    chart_sankey_title: 'Поток sentiment в эмоции',
+    chart_sankey_subtitle: 'Как sentiment университета переходит в эмоциональные состояния',
+    sentiment_trend_title: 'Sentiment университета во времени',
+    sentiment_trend_subtitle: 'Объём позитивных, нейтральных и негативных отзывов',
+    emotion_heatmap_title: 'Тепловая карта эмоций',
+    emotion_heatmap_subtitle: 'Месячная интенсивность доминирующих эмоций студентов',
+    dominant_emotion_date_title: 'Доминирующая эмоция по датам',
+    dominant_emotion_date_subtitle: 'Самая частая эмоция за каждый период',
+    sentiment_snapshot: 'Срез sentiment',
+    issue_snapshot: 'Срез проблем',
+    live_feedback_feed: 'Живая лента анализированных отзывов',
+    executive_summary: 'Краткий вывод',
+    processed_feedbacks: 'обработанных отзывов',
+    average_confidence: 'средняя уверенность',
+    high_critical_cases: 'высокие / критические случаи',
+    university_signal: 'сигнал университета',
+    top_issue_category: 'главная категория проблемы',
+    health_index: 'индекс состояния',
+    confidence: 'Уверенность',
+    credibility: 'Достоверность',
+    primary_topic: 'Главная тема',
+    attention_from: 'Ответственный блок',
+    risk_scopes: 'Масштаб риска',
+    schema_detail: 'Детали schema',
+    attention_routing: 'нужна маршрутизация',
+    no_routing: 'маршрутизация не нужна',
+    risk_signal: 'сигнал риска',
+    search_records_placeholder: 'Поиск по отзыву, выводу, курсу или преподавателю...',
+    all_sentiment: 'Все sentiment',
+    all_severity: 'Все уровни серьёзности',
+    topic: 'Тема',
+    clear: 'Очистить',
+    matching_records: 'подходящих записей',
+    showing_page: 'показано {from}-{to} · страница {page}/{pages}',
+    first: 'Первая',
+    previous: 'Предыдущая',
+    next: 'Следующая',
+    last: 'Последняя',
+    records_loading_title: 'Записи загружаются',
+    records_loading_subtitle: 'Работают серверные фильтры и пагинация.',
+    records_load_failed: 'Не удалось загрузить записи',
+    schema_view: 'Канонический вид schema',
+    topics: 'Темы',
+    risk: 'Риск',
+    types: 'Типы',
+    probability: 'Вероятность',
+    impact_scopes: 'Масштаб влияния',
+    routing: 'Маршрутизация',
+    requires_attention_from: 'Требует внимания от',
+    recommended_action: 'Рекомендуемое действие',
+    satisfaction_dimensions_v1: 'Показатели удовлетворённости v1.0',
+    expanded_scoring: 'Расширенная аспектная оценка',
+    schema_objects: 'Объекты schema',
+    language: 'Язык',
+    none_value: 'Нет',
+    trend_hero_title: 'Динамика sentiment и эмоций университета',
+    trend_hero_text: 'Панель отслеживает объём sentiment и доминирующие эмоции во времени по schema outputFromAI.',
+    latest_dominant_emotion: 'Последняя доминирующая эмоция',
+    total_volume: 'Общий объём',
+    peak_period: 'Пиковый период',
+    latest_period: 'Последний период',
+    highest_activity: 'самая высокая активность',
+    last_observed_date: 'последняя дата наблюдения',
+    latest_emotional_signal: 'последний эмоциональный сигнал'
+  }
+};
+
+const TAXONOMY_LABELS = {
+  uz: {
+    sentiment: {
+      positive: 'Ijobiy',
+      neutral: 'Neytral',
+      negative: 'Salbiy',
+      mixed: 'Aralash',
+      unknown: 'Noma’lum'
+    },
+    severity: {
+      none: 'Yo‘q',
+      low: 'Past',
+      medium: 'O‘rta',
+      high: 'Yuqori',
+      critical: 'Kritik'
+    },
+    emotion: {
+      frustration: 'Norozilik',
+      confusion: 'Tushunmovchilik',
+      anxiety: 'Xavotir',
+      anger: 'Jahl',
+      boredom: 'Zerikish',
+      disappointment: 'Ko‘ngilsizlik',
+      shame: 'Uyat',
+      helplessness: 'Chorasizlik',
+      isolated: 'Yolg‘izlik',
+      gratitude: 'Minnatdorchilik',
+      confidence: 'Ishonch',
+      inspiration: 'Ilhom',
+      relief: 'Yengillik',
+      satisfaction: 'Qoniqish',
+      surprise: 'Hayrat',
+      curiosity: 'Qiziqish',
+      indifference: 'Befarqlik'
+    },
+    satisfaction_dimension: {
+      teaching_quality: 'O‘qitish sifati',
+      clarity: 'Aniqlik',
+      engagement: 'Faollik',
+      course_content_relevance: 'Fan mazmuni mosligi',
+      assessment_fairness: 'Baholash adolatliligi',
+      grading_transparency: 'Baholash shaffofligi',
+      materials_quality: 'Materiallar sifati',
+      support_availability: 'Yordam mavjudligi',
+      admin_responsiveness: 'Admin javobgarligi',
+      workload_balance: 'Yuklama muvozanati',
+      overall_satisfaction: 'Umumiy qoniqish',
+      fairness: 'Adolatlilik',
+      materials: 'Materiallar'
+    },
+    issue: {
+      none: 'Muammo yo‘q',
+      teaching_style: 'O‘qitish uslubi',
+      content_quality: 'Kontent sifati',
+      assessment: 'Baholash',
+      materials: 'Materiallar',
+      communication: 'Kommunikatsiya',
+      technical_issue: 'Texnik muammo',
+      classroom_management: 'Dars boshqaruvi',
+      fairness_concern: 'Adolat signali',
+      other: 'Boshqa'
+    },
+    topic: {
+      teaching_instruction: 'O‘qitish va tushuntirish',
+      course_content: 'Fan mazmuni',
+      assessment_grading: 'Baholash va ball',
+      workload_difficulty: 'Yuklama va murakkablik',
+      learning_resources: 'O‘quv resurslari',
+      technology_platforms: 'Texnologik platformalar',
+      support_accessibility: 'Yordam va ochiqlik',
+      administrative_processes: 'Ma’muriy jarayonlar',
+      communication: 'Kommunikatsiya',
+      facilities_infrastructure: 'Infratuzilma',
+      health_services: 'Sog‘liq xizmatlari',
+      personal_life_family: 'Shaxsiy hayot va oila',
+      financial_factors: 'Moliyaviy omillar',
+      housing_living: 'Yashash sharoiti',
+      transport_commute: 'Transport',
+      social_peer_interaction: 'Talabalararo muloqot',
+      extracurricular_activities: 'Darsdan tashqari faoliyat',
+      career_employability: 'Karyera va ishga joylashish',
+      diversity_equity_inclusion: 'Tenglik va inklyuziya',
+      safety_security: 'Xavfsizlik',
+      personal_growth_identity: 'Shaxsiy rivojlanish',
+      motivation_engagement: 'Motivatsiya va faollik',
+      university_system_issues: 'Universitet tizimi muammolari',
+      global_external_factors: 'Tashqi omillar',
+      teaching_method: 'O‘qitish metodi',
+      teacher_style: 'O‘qituvchi uslubi',
+      pace_too_fast: 'Dars tezligi yuqori',
+      too_much_theory: 'Nazariya ko‘p',
+      grading_integrity_issue: 'Baholash halolligi',
+      hard_assignments: 'Murakkab topshiriqlar',
+      practicals: 'Amaliyotlar',
+      teacher_responsiveness: 'O‘qituvchi javobgarligi',
+      support: 'Yordam',
+      platform_admin: 'Platforma/admin',
+      system_issue: 'Tizim muammosi',
+      workload: 'Yuklama',
+      clarity: 'Aniqlik',
+      engagement: 'Faollik',
+      boredom: 'Zerikish',
+      confusion: 'Tushunmovchilik'
+    },
+    action: {
+      no_action_needed: 'Harakat talab qilinmaydi',
+      monitor_pattern: 'Patternni kuzatish',
+      follow_up_with_student: 'Talaba bilan aniqlashtirish',
+      review_course_materials: 'Materiallarni qayta ko‘rib chiqish',
+      provide_teacher_feedback: 'O‘qituvchiga fikr berish',
+      escalate_to_department: 'Kafedraga eskalatsiya qilish',
+      open_formal_review: 'Rasmiy tekshiruv ochish',
+      check_for_policy_violation: 'Qoidabuzarlikni tekshirish',
+      request_more_context: 'Qo‘shimcha kontekst so‘rash',
+      improve_teaching: 'O‘qitishni yaxshilash',
+      adjust_assessment: 'Baholashni sozlash',
+      update_content: 'Kontentni yangilash',
+      clarify_communication: 'Kommunikatsiyani aniqlashtirish',
+      provide_student_support: 'Talabaga yordam berish',
+      address_wellbeing: 'Farovonlik masalasini ko‘rish',
+      fix_infrastructure: 'Infratuzilmani tuzatish',
+      investigate_misconduct: 'Nojo‘ya holatni tekshirish',
+      emergency_intervention: 'Shoshilinch aralashuv'
+    },
+    risk_type: {
+      corruption_allegation: 'Korrupsiya gumoni',
+      harassment_abuse: 'Tazyiq yoki zo‘ravonlik',
+      grading_integrity_issue: 'Baholash halolligi muammosi',
+      discrimination_bias: 'Diskriminatsiya yoki tarafkashlik',
+      safety_security: 'Xavfsizlik signali',
+      self_harm: 'O‘ziga zarar xavfi',
+      wellbeing_crisis: 'Farovonlik inqirozi',
+      academic_integrity: 'Akademik halollik',
+      privacy_data: 'Maxfiylik yoki ma’lumot xavfi',
+      legal_compliance: 'Huquqiy moslik xavfi',
+      dropout_risk: 'O‘qishni tashlash xavfi',
+      none: 'Yo‘q'
+    },
+    attention_role: {
+      teacher_instructor: 'O‘qituvchi',
+      department_head: 'Kafedra mudiri',
+      student_affairs: 'Talabalar bilan ishlash',
+      disability_support: 'Inklyuziv yordam',
+      counseling_mental_health: 'Psixologik yordam',
+      academic_integrity_office: 'Akademik halollik bo‘limi',
+      legal_compliance: 'Huquqiy moslik',
+      it_platform_team: 'IT platforma jamoasi',
+      executive_leadership: 'Rahbariyat',
+      admin: 'Administrator'
+    },
+    risk_scope: {
+      individual_student: 'Alohida talaba',
+      group_of_students: 'Talabalar guruhi',
+      course_section: 'Fan bo‘limi',
+      teacher_instructor: 'O‘qituvchi',
+      staff_admin: 'Xodim/admin',
+      department: 'Kafedra',
+      faculty: 'Fakultet',
+      institute: 'Institut',
+      education_system: 'Ta’lim tizimi',
+      external_community: 'Tashqi hamjamiyat',
+      digital_platform: 'Raqamli platforma',
+      course: 'Fan',
+      teacher: 'O‘qituvchi',
+      system: 'Tizim',
+      none: 'Yo‘q'
+    },
+    representative_label: {
+      complaint: 'Shikoyat',
+      praise: 'Maqtov',
+      suggestion: 'Taklif',
+      incident: 'Hodisa',
+      query: 'Savol',
+      concern: 'Xavotir',
+      other: 'Boshqa'
+    },
+    language: {
+      uz: 'O‘zbek',
+      en: 'Ingliz',
+      ru: 'Rus',
+      mixed: 'Aralash'
+    }
+  },
+  en: {
+    sentiment: { positive: 'Positive', neutral: 'Neutral', negative: 'Negative', mixed: 'Mixed', unknown: 'Unknown' },
+    severity: { none: 'None', low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' },
+    emotion: {
+      frustration: 'Frustration', confusion: 'Confusion', anxiety: 'Anxiety', anger: 'Anger',
+      boredom: 'Boredom', disappointment: 'Disappointment', shame: 'Shame', helplessness: 'Helplessness',
+      isolated: 'Isolated', gratitude: 'Gratitude', confidence: 'Confidence', inspiration: 'Inspiration',
+      relief: 'Relief', satisfaction: 'Satisfaction', surprise: 'Surprise', curiosity: 'Curiosity',
+      indifference: 'Indifference'
+    },
+    satisfaction_dimension: {
+      teaching_quality: 'Teaching Quality', clarity: 'Clarity', engagement: 'Engagement',
+      course_content_relevance: 'Course Content Relevance', assessment_fairness: 'Assessment Fairness',
+      grading_transparency: 'Grading Transparency', materials_quality: 'Materials Quality',
+      support_availability: 'Support Availability', admin_responsiveness: 'Admin Responsiveness',
+      workload_balance: 'Workload Balance', overall_satisfaction: 'Overall Satisfaction',
+      fairness: 'Fairness', materials: 'Materials'
+    },
+    issue: {
+      none: 'No issue', teaching_style: 'Teaching Style', content_quality: 'Content Quality',
+      assessment: 'Assessment', materials: 'Materials', communication: 'Communication',
+      technical_issue: 'Technical Issue', classroom_management: 'Classroom Management',
+      fairness_concern: 'Fairness Concern', other: 'Other'
+    },
+    action: {
+      no_action_needed: 'No action needed',
+      monitor_pattern: 'Monitor pattern',
+      follow_up_with_student: 'Follow up with student',
+      review_course_materials: 'Review course materials',
+      provide_teacher_feedback: 'Provide teacher feedback',
+      escalate_to_department: 'Escalate to department',
+      open_formal_review: 'Open formal review',
+      check_for_policy_violation: 'Check policy violation',
+      request_more_context: 'Request more context',
+      improve_teaching: 'Improve teaching',
+      adjust_assessment: 'Adjust assessment',
+      update_content: 'Update content',
+      clarify_communication: 'Clarify communication',
+      provide_student_support: 'Provide student support',
+      address_wellbeing: 'Address wellbeing',
+      fix_infrastructure: 'Fix infrastructure',
+      investigate_misconduct: 'Investigate misconduct',
+      emergency_intervention: 'Emergency intervention'
+    },
+    risk_type: {
+      corruption_allegation: 'Corruption allegation',
+      harassment_abuse: 'Harassment or abuse',
+      grading_integrity_issue: 'Grading integrity issue',
+      discrimination_bias: 'Discrimination or bias',
+      safety_security: 'Safety or security',
+      self_harm: 'Self-harm risk',
+      wellbeing_crisis: 'Wellbeing crisis',
+      academic_integrity: 'Academic integrity',
+      privacy_data: 'Privacy or data risk',
+      legal_compliance: 'Legal compliance risk',
+      dropout_risk: 'Dropout risk',
+      none: 'None'
+    },
+    attention_role: {
+      teacher_instructor: 'Teacher / instructor',
+      department_head: 'Department head',
+      student_affairs: 'Student affairs',
+      disability_support: 'Disability support',
+      counseling_mental_health: 'Counseling / mental health',
+      academic_integrity_office: 'Academic integrity office',
+      legal_compliance: 'Legal compliance',
+      it_platform_team: 'IT platform team',
+      executive_leadership: 'Executive leadership',
+      admin: 'Administrator'
+    },
+    risk_scope: {
+      individual_student: 'Individual student',
+      group_of_students: 'Group of students',
+      course_section: 'Course section',
+      teacher_instructor: 'Teacher / instructor',
+      staff_admin: 'Staff/admin',
+      department: 'Department',
+      faculty: 'Faculty',
+      institute: 'Institute',
+      education_system: 'Education system',
+      external_community: 'External community',
+      digital_platform: 'Digital platform',
+      course: 'Course',
+      teacher: 'Teacher',
+      system: 'System',
+      none: 'None'
+    },
+    representative_label: {
+      complaint: 'Complaint', praise: 'Praise', suggestion: 'Suggestion', incident: 'Incident',
+      query: 'Query', concern: 'Concern', other: 'Other'
+    },
+    language: { uz: 'Uzbek', en: 'English', ru: 'Russian', mixed: 'Mixed' }
+  },
+  ru: {
+    sentiment: { positive: 'Позитивный', neutral: 'Нейтральный', negative: 'Негативный', mixed: 'Смешанный', unknown: 'Неизвестно' },
+    severity: { none: 'Нет', low: 'Низкая', medium: 'Средняя', high: 'Высокая', critical: 'Критическая' },
+    emotion: {
+      frustration: 'Недовольство', confusion: 'Непонимание', anxiety: 'Тревога', anger: 'Злость',
+      boredom: 'Скука', disappointment: 'Разочарование', shame: 'Стыд', helplessness: 'Беспомощность',
+      isolated: 'Изоляция', gratitude: 'Благодарность', confidence: 'Уверенность', inspiration: 'Вдохновение',
+      relief: 'Облегчение', satisfaction: 'Удовлетворённость', surprise: 'Удивление', curiosity: 'Любопытство',
+      indifference: 'Безразличие'
+    },
+    satisfaction_dimension: {
+      teaching_quality: 'Качество обучения', clarity: 'Ясность', engagement: 'Вовлечённость',
+      course_content_relevance: 'Релевантность содержания', assessment_fairness: 'Справедливость оценивания',
+      grading_transparency: 'Прозрачность оценивания', materials_quality: 'Качество материалов',
+      support_availability: 'Доступность поддержки', admin_responsiveness: 'Реакция администрации',
+      workload_balance: 'Баланс нагрузки', overall_satisfaction: 'Общая удовлетворённость',
+      fairness: 'Справедливость', materials: 'Материалы'
+    },
+    issue: {
+      none: 'Нет проблемы', teaching_style: 'Стиль преподавания', content_quality: 'Качество контента',
+      assessment: 'Оценивание', materials: 'Материалы', communication: 'Коммуникация',
+      technical_issue: 'Техническая проблема', classroom_management: 'Управление занятием',
+      fairness_concern: 'Сигнал справедливости', other: 'Другое'
+    },
+    topic: {
+      teaching_instruction: 'Преподавание и объяснение',
+      course_content: 'Содержание курса',
+      assessment_grading: 'Оценивание и баллы',
+      workload_difficulty: 'Нагрузка и сложность',
+      learning_resources: 'Учебные ресурсы',
+      technology_platforms: 'Технологические платформы',
+      support_accessibility: 'Поддержка и доступность',
+      administrative_processes: 'Административные процессы',
+      communication: 'Коммуникация',
+      facilities_infrastructure: 'Инфраструктура',
+      university_system_issues: 'Проблемы системы университета',
+      diversity_equity_inclusion: 'Равенство и инклюзия',
+      motivation_engagement: 'Мотивация и вовлечённость',
+      teaching_method: 'Метод преподавания',
+      teacher_style: 'Стиль преподавателя',
+      pace_too_fast: 'Слишком быстрый темп',
+      too_much_theory: 'Слишком много теории',
+      grading_integrity_issue: 'Честность оценивания',
+      hard_assignments: 'Сложные задания',
+      practicals: 'Практические занятия',
+      teacher_responsiveness: 'Отклик преподавателя',
+      support: 'Поддержка',
+      platform_admin: 'Платформа/admin',
+      system_issue: 'Системная проблема',
+      workload: 'Нагрузка',
+      clarity: 'Ясность',
+      engagement: 'Вовлечённость',
+      boredom: 'Скука',
+      confusion: 'Непонимание'
+    },
+    action: {
+      no_action_needed: 'Действие не требуется',
+      monitor_pattern: 'Отслеживать паттерн',
+      follow_up_with_student: 'Уточнить со студентом',
+      review_course_materials: 'Пересмотреть материалы курса',
+      provide_teacher_feedback: 'Передать отзыв преподавателю',
+      escalate_to_department: 'Эскалировать в кафедру',
+      open_formal_review: 'Открыть формальную проверку',
+      check_for_policy_violation: 'Проверить нарушение правил',
+      request_more_context: 'Запросить дополнительный контекст',
+      improve_teaching: 'Улучшить преподавание',
+      adjust_assessment: 'Скорректировать оценивание',
+      update_content: 'Обновить контент',
+      clarify_communication: 'Уточнить коммуникацию',
+      provide_student_support: 'Оказать поддержку студенту',
+      address_wellbeing: 'Разобрать вопрос благополучия',
+      fix_infrastructure: 'Исправить инфраструктуру',
+      investigate_misconduct: 'Проверить неправомерное поведение',
+      emergency_intervention: 'Срочное вмешательство'
+    },
+    risk_type: {
+      corruption_allegation: 'Подозрение на коррупцию',
+      harassment_abuse: 'Домогательство или насилие',
+      grading_integrity_issue: 'Проблема честности оценивания',
+      discrimination_bias: 'Дискриминация или предвзятость',
+      safety_security: 'Безопасность',
+      self_harm: 'Риск самоповреждения',
+      wellbeing_crisis: 'Кризис благополучия',
+      academic_integrity: 'Академическая честность',
+      privacy_data: 'Риск приватности или данных',
+      legal_compliance: 'Юридический риск',
+      dropout_risk: 'Риск отчисления',
+      none: 'Нет'
+    },
+    attention_role: {
+      teacher_instructor: 'Преподаватель',
+      department_head: 'Заведующий кафедрой',
+      student_affairs: 'Работа со студентами',
+      disability_support: 'Инклюзивная поддержка',
+      counseling_mental_health: 'Психологическая поддержка',
+      academic_integrity_office: 'Офис академической честности',
+      legal_compliance: 'Юридическое соответствие',
+      it_platform_team: 'IT-команда платформы',
+      executive_leadership: 'Руководство',
+      admin: 'Администратор'
+    },
+    risk_scope: {
+      individual_student: 'Отдельный студент',
+      group_of_students: 'Группа студентов',
+      course_section: 'Раздел курса',
+      teacher_instructor: 'Преподаватель',
+      staff_admin: 'Сотрудник/admin',
+      department: 'Кафедра',
+      faculty: 'Факультет',
+      institute: 'Институт',
+      education_system: 'Система образования',
+      external_community: 'Внешнее сообщество',
+      digital_platform: 'Цифровая платформа',
+      course: 'Курс',
+      teacher: 'Преподаватель',
+      system: 'Система',
+      none: 'Нет'
+    },
+    representative_label: {
+      complaint: 'Жалоба', praise: 'Похвала', suggestion: 'Предложение', incident: 'Инцидент',
+      query: 'Вопрос', concern: 'Опасение', other: 'Другое'
+    },
+    language: { uz: 'Узбекский', en: 'Английский', ru: 'Русский', mixed: 'Смешанный' }
+  }
+};
+
+['en', 'ru'].forEach(lang => {
+  ['topic', 'action', 'risk_type', 'attention_role', 'risk_scope'].forEach(kind => {
+    TAXONOMY_LABELS[lang][kind] = TAXONOMY_LABELS[lang][kind] || {};
+    Object.keys(TAXONOMY_LABELS.uz[kind] || {}).forEach(key => {
+      if (!TAXONOMY_LABELS[lang][kind][key]) {
+        TAXONOMY_LABELS[lang][kind][key] = fallbackHumanize(key);
+      }
+    });
+  });
+});
+
+function uiText(key, vars = {}) {
+  const text = (UI_TEXT[state.lang] && UI_TEXT[state.lang][key]) || UI_TEXT.uz[key] || key;
+  return String(text).replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? '');
+}
+
+function normalizeTaxKey(key) {
+  return String(key ?? '').trim().toLowerCase();
+}
+
+function fallbackHumanize(key) {
+  const raw = String(key ?? '').trim();
+  if (!raw) return uiText('none_value');
+  return raw
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function inferTaxonomyKind(key) {
+  const normalized = normalizeTaxKey(key);
+  const labels = TAXONOMY_LABELS[state.lang] || TAXONOMY_LABELS.uz;
+  const order = [
+    'sentiment',
+    'severity',
+    'representative_label',
+    'emotion',
+    'satisfaction_dimension',
+    'issue',
+    'topic',
+    'action',
+    'risk_type',
+    'attention_role',
+    'risk_scope',
+    'language'
+  ];
+
+  return order.find(kind => labels[kind]?.[normalized] || TAXONOMY_LABELS.uz[kind]?.[normalized]) || 'generic';
+}
+
+function labelFor(kind, key) {
+  const normalized = normalizeTaxKey(key);
+  if (!normalized || normalized === '—') return normalized === '—' ? '—' : uiText('none_value');
+
+  const requestedKind = kind && kind !== 'auto' ? kind : inferTaxonomyKind(normalized);
+  const labels = TAXONOMY_LABELS[state.lang] || TAXONOMY_LABELS.uz;
+
+  if (requestedKind === 'generic') {
+    const inferred = inferTaxonomyKind(normalized);
+    if (inferred !== 'generic') return labelFor(inferred, normalized);
+  }
+
+  return labels[requestedKind]?.[normalized]
+    || TAXONOMY_LABELS.uz[requestedKind]?.[normalized]
+    || fallbackHumanize(key);
+}
+
+function labelsFor(kind, keys = []) {
+  return (keys || []).map(key => labelFor(kind, key));
+}
+
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
@@ -644,6 +1398,7 @@ function renderRadarControls(type, containerId, labels, rerenderFn) {
   if (!el) return;
 
   const state = radarState[type];
+  const labelKind = type === 'satisfaction' ? 'satisfaction_dimension' : 'emotion';
 
   el.innerHTML = `
     <div class="radar-control-bar">
@@ -653,7 +1408,7 @@ function renderRadarControls(type, containerId, labels, rerenderFn) {
             class="radar-mode-btn ${state.mode === mode ? 'active' : ''}"
             onclick="radarState.${type}.mode='${mode}'; saveRadarState('${type}'); ${rerenderFn}();"
           >
-            ${mode.toUpperCase()}
+            ${esc(uiText(mode))}
           </button>
         `).join('')}
       </div>
@@ -662,7 +1417,7 @@ function renderRadarControls(type, containerId, labels, rerenderFn) {
         class="radar-mode-btn"
         onclick="radarState.${type}.pinned.clear(); saveRadarState('${type}'); ${rerenderFn}();"
       >
-        Show all
+        ${esc(uiText('show_all'))}
       </button>
     </div>
 
@@ -680,7 +1435,7 @@ function renderRadarControls(type, containerId, labels, rerenderFn) {
               ${rerenderFn}();
             "
           >
-            ${esc(humanLabel(label))}
+            ${esc(labelFor(labelKind, label))}
           </button>
         `;
       }).join('')}
@@ -689,9 +1444,7 @@ function renderRadarControls(type, containerId, labels, rerenderFn) {
 }
 
 function humanLabel(s) {
-  return String(s || '')
-    .replaceAll('_', ' ')
-    .replace(/\b\w/g, ch => ch.toUpperCase());
+  return labelFor('generic', s);
 }
 
 function renderEmotionRadarChart() {
@@ -714,12 +1467,12 @@ function renderEmotionRadarChart() {
   const values = transformRadarValues(filtered.values, radarState.emotion.mode);
 
   if (!labels.length || !values.length) {
-    el.innerHTML = `<div class="empty-chart">No selected emotion data</div>`;
+    el.innerHTML = `<div class="empty-chart">${esc(uiText('no_selected_emotion_data'))}</div>`;
     return;
   }
 
   const c = themeColors();
-  const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
+  const theta = [...labels.map(x => labelFor('emotion', x)), labelFor('emotion', labels[0])];
   const r = [...values, values[0]];
   const unit = radarUnit(radarState.emotion.mode);
 
@@ -728,7 +1481,7 @@ function renderEmotionRadarChart() {
     r,
     theta,
     fill: 'toself',
-    name: `Emotion ${radarState.emotion.mode}`,
+    name: uiText('emotion_radar_name', { mode: uiText(radarState.emotion.mode) }),
     line: { width: 3, color: c.info },
     marker: { size: 7, color: c.info },
     fillcolor: 'rgba(59,130,246,.22)',
@@ -757,7 +1510,7 @@ function renderEmotionRadarChart() {
     const label = ev?.points?.[0]?.theta;
     if (!label) return;
 
-    const raw = rawLabels.find(x => humanLabel(x) === label);
+    const raw = rawLabels.find(x => labelFor('emotion', x) === label);
     if (!raw) return;
 
     radarState.emotion.pinned.has(raw)
@@ -789,12 +1542,12 @@ function renderSatisfactionRadarChart() {
   const values = transformRadarValues(filtered.values, radarState.satisfaction.mode);
 
   if (!labels.length || !values.length) {
-    el.innerHTML = `<div class="empty-chart">No selected satisfaction data</div>`;
+    el.innerHTML = `<div class="empty-chart">${esc(uiText('no_selected_satisfaction_data'))}</div>`;
     return;
   }
 
   const c = themeColors();
-  const theta = [...labels.map(humanLabel), humanLabel(labels[0])];
+  const theta = [...labels.map(x => labelFor('satisfaction_dimension', x)), labelFor('satisfaction_dimension', labels[0])];
   const r = [...values, values[0]];
   const unit = radarUnit(radarState.satisfaction.mode);
 
@@ -803,7 +1556,7 @@ function renderSatisfactionRadarChart() {
     r,
     theta,
     fill: 'toself',
-    name: `Satisfaction ${radarState.satisfaction.mode}`,
+    name: uiText('satisfaction_radar_name', { mode: uiText(radarState.satisfaction.mode) }),
     line: { width: 3, color: c.pos },
     marker: { size: 7, color: c.pos },
     fillcolor: 'rgba(34,197,94,.22)',
@@ -833,7 +1586,7 @@ function renderSatisfactionRadarChart() {
     const label = ev?.points?.[0]?.theta;
     if (!label) return;
 
-    const raw = rawLabels.find(x => humanLabel(x) === label);
+    const raw = rawLabels.find(x => labelFor('satisfaction_dimension', x) === label);
     if (!raw) return;
 
     radarState.satisfaction.pinned.has(raw)
@@ -856,7 +1609,7 @@ function renderEmotionSankeyChart() {
   if (!el) return;
 
   if (!nodes.length || !value.length) {
-    el.innerHTML = `<div class="empty-chart">No Sankey data</div>`;
+    el.innerHTML = `<div class="empty-chart">${esc(uiText('no_sankey_data'))}</div>`;
     return;
   }
 
@@ -897,7 +1650,7 @@ function renderEmotionSankeyChart() {
     node: {
       pad: 16,
       thickness: 18,
-      label: nodes.map(humanLabel),
+      label: nodes.map(n => labelFor(['positive', 'neutral', 'negative'].includes(String(n).toLowerCase()) ? 'sentiment' : 'emotion', n)),
       color: nodeColors,
       x: nodeX,
       y: nodeY,
@@ -911,7 +1664,7 @@ function renderEmotionSankeyChart() {
       target,
       value,
       color: linkColors,
-      hovertemplate: '%{source.label} → %{target.label}<br>%{value} records<extra></extra>'
+      hovertemplate: `%{source.label} → %{target.label}<br>%{value} ${uiText('records_unit')}<extra></extra>`
     }
   }], basePlotLayout({
     height: 430,
@@ -924,7 +1677,7 @@ function renderEmotionSankeyChart() {
   }), basePlotConfig());
 }
 
-function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
+function chartFallbackBars(elId, labels = [], values = [], suffix = '', kind = 'generic') {
   const el = $(elId);
   if (!el) return;
 
@@ -937,7 +1690,7 @@ function chartFallbackBars(elId, labels = [], values = [], suffix = '') {
         const pct = Math.round((value / max) * 100);
         return `
           <div class="fallback-bar-row">
-            <span>${esc(humanLabel(label))}</span>
+            <span>${esc(labelFor(kind, label))}</span>
             <div class="fallback-bar-track">
               <i style="width:${pct}%"></i>
             </div>
@@ -957,19 +1710,19 @@ function renderDominantEmotionTimeline(items, limit = 12) {
 
   el.innerHTML = `
     <div class="timeline-toolbar">
-      <span>Showing latest ${rows.length} periods</span>
+      <span>${esc(uiText('periods_latest', { count: rows.length }))}</span>
 
       <div class="action-row">
         <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 12)">
-          Show 12
+          ${esc(uiText('show_n', { count: 12 }))}
         </button>
 
         <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 30)">
-          Show 30
+          ${esc(uiText('show_n', { count: 30 }))}
         </button>
 
         <button class="btn btn-secondary btn-sm" onclick="renderDominantEmotionTimeline(window.__dominantEmotionRows || [], 100)">
-          Show 100
+          ${esc(uiText('show_n', { count: 100 }))}
         </button>
       </div>
     </div>
@@ -978,10 +1731,10 @@ function renderDominantEmotionTimeline(items, limit = 12) {
       ${rows.length ? rows.map(item => `
         <div class="dominant-emotion-row">
           <span>${esc(item.date)}</span>
-          <b>${esc(item.emotion ? humanLabel(item.emotion) : 'No emotion')}</b>
-          <small>${esc(item.count || 0)} records</small>
+          <b>${esc(item.emotion ? labelFor('emotion', item.emotion) : uiText('no_emotion'))}</b>
+          <small>${esc(item.count || 0)} ${esc(uiText('records_unit'))}</small>
         </div>
-      `).join('') : `<div class="empty-chart">No dominant emotion timeline</div>`}
+      `).join('') : `<div class="empty-chart">${esc(uiText('no_emotion_timeline'))}</div>`}
     </div>
   `;
 }
@@ -997,14 +1750,14 @@ function renderEmotionDistributionChart() {
     Plotly.react('emotion-distribution-chart', [
       {
         type: 'bar',
-        x: labels.map(humanLabel),
+        x: labels.map(x => labelFor('emotion', x)),
         y: values,
         hovertemplate: '%{x}: %{y}<extra></extra>'
       }
     ], {
       margin: { l: 40, r: 20, t: 20, b: 120 },
       xaxis: { tickangle: -35, automargin: true },
-      yaxis: { title: 'Students' },
+      yaxis: { title: uiText('students_axis') },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent'
     }, {
@@ -1012,7 +1765,7 @@ function renderEmotionDistributionChart() {
       responsive: true
     });
   } else {
-    chartFallbackBars('emotion-distribution-chart', labels, values);
+    chartFallbackBars('emotion-distribution-chart', labels, values, '', 'emotion');
   }
 }
 
@@ -1029,12 +1782,12 @@ function renderSatisfactionDimensionsChart() {
         type: 'bar',
         orientation: 'h',
         x: values,
-        y: labels.map(humanLabel),
+        y: labels.map(x => labelFor('satisfaction_dimension', x)),
         hovertemplate: '%{y}: %{x}%<extra></extra>'
       }
     ], {
       margin: { l: 180, r: 20, t: 20, b: 40 },
-      xaxis: { title: 'Average %', range: [0, 100] },
+      xaxis: { title: uiText('average_percent_axis'), range: [0, 100] },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent'
     }, {
@@ -1042,7 +1795,7 @@ function renderSatisfactionDimensionsChart() {
       responsive: true
     });
   } else {
-    chartFallbackBars('satisfaction-dimensions-chart', labels.map(humanLabel), values, '%');
+    chartFallbackBars('satisfaction-dimensions-chart', labels, values, '%', 'satisfaction_dimension');
   }
 }
 
@@ -1098,39 +1851,39 @@ function renderSentimentTrendChart() {
   const c = themeColors();
 
   if (!d.labels.length) {
-    el.innerHTML = `<div class="empty-chart">No sentiment trend data</div>`;
+    el.innerHTML = `<div class="empty-chart">${esc(uiText('no_sentiment_trend_data'))}</div>`;
     return;
   }
 
   Plotly.react(el, [
     {
       type: 'bar',
-      name: 'Positive',
+      name: labelFor('sentiment', 'positive'),
       x: d.labels,
       y: d.positive,
       marker: { color: c.pos },
-      hovertemplate: '<b>%{x}</b><br>Positive: %{y}<extra></extra>'
+      hovertemplate: `<b>%{x}</b><br>${labelFor('sentiment', 'positive')}: %{y}<extra></extra>`
     },
     {
       type: 'bar',
-      name: 'Neutral',
+      name: labelFor('sentiment', 'neutral'),
       x: d.labels,
       y: d.neutral,
       marker: { color: c.warn },
-      hovertemplate: '<b>%{x}</b><br>Neutral: %{y}<extra></extra>'
+      hovertemplate: `<b>%{x}</b><br>${labelFor('sentiment', 'neutral')}: %{y}<extra></extra>`
     },
     {
       type: 'bar',
-      name: 'Negative',
+      name: labelFor('sentiment', 'negative'),
       x: d.labels,
       y: d.negative,
       marker: { color: c.neg },
-      hovertemplate: '<b>%{x}</b><br>Negative: %{y}<extra></extra>'
+      hovertemplate: `<b>%{x}</b><br>${labelFor('sentiment', 'negative')}: %{y}<extra></extra>`
     },
     {
       type: 'scatter',
       mode: 'lines+markers',
-      name: 'Net sentiment',
+      name: uiText('net_sentiment'),
       x: d.labels,
       y: d.net,
       yaxis: 'y2',
@@ -1141,7 +1894,7 @@ function renderSentimentTrendChart() {
       marker: {
         size: 7
       },
-      hovertemplate: '<b>%{x}</b><br>Net sentiment: %{y}%<extra></extra>'
+      hovertemplate: `<b>%{x}</b><br>${uiText('net_sentiment')}: %{y}%<extra></extra>`
     }
   ], basePlotLayout({
     barmode: 'stack',
@@ -1153,12 +1906,12 @@ function renderSentimentTrendChart() {
       automargin: true
     },
     yaxis: {
-      title: 'Feedback count',
+      title: uiText('feedback_count'),
       gridcolor: c.grid,
       rangemode: 'tozero'
     },
     yaxis2: {
-      title: 'Net sentiment %',
+      title: `${uiText('net_sentiment')} %`,
       overlaying: 'y',
       side: 'right',
       range: [-100, 100],
@@ -1249,13 +2002,13 @@ function renderEmotionTrendChart() {
   const c = themeColors();
 
   if (!d.periods.length || !d.emotions.length) {
-    el.innerHTML = `<div class="empty-chart">No emotion trend data</div>`;
+    el.innerHTML = `<div class="empty-chart">${esc(uiText('no_emotion_trend_data'))}</div>`;
   } else {
     Plotly.react(el, [
       {
         type: 'heatmap',
         x: d.periods,
-        y: d.emotions.map(humanLabel),
+        y: d.emotions.map(x => labelFor('emotion', x)),
         z: d.z,
         colorscale: [
           [0, 'rgba(255,255,255,0.04)'],
@@ -1263,10 +2016,10 @@ function renderEmotionTrendChart() {
           [0.6, c.warn],
           [1, c.neg]
         ],
-        hovertemplate: '<b>%{y}</b><br>%{x}: %{z} records<extra></extra>',
+        hovertemplate: `<b>%{y}</b><br>%{x}: %{z} ${uiText('records_unit')}<extra></extra>`,
         showscale: true,
         colorbar: {
-          title: 'Count',
+          title: uiText('count_axis'),
           thickness: 10
         }
       }
@@ -1380,9 +2133,7 @@ function showAboutProjectModal() {
 }
 
 function humanize(key) {
-  return key
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
+  return labelFor('generic', key);
 }
 
 function $(id) { return document.getElementById(id); }
@@ -1615,7 +2366,7 @@ function badge(v) {
   const cls = ['positive', 'negative', 'neutral', 'critical', 'high', 'medium', 'low'].includes(x)
     ? `badge-${x}`
     : 'badge-outline';
-  return `<span class="badge ${cls}">${esc(v || t('none'))}</span>`;
+  return `<span class="badge ${cls}">${esc(labelFor('auto', v || 'none'))}</span>`;
 }
 
 function kpi(label, value, sub = '') {
@@ -2030,7 +2781,7 @@ function renderOverviewMiniDistribution(title, obj) {
       <div class="card-title mb-3">${esc(title)}</div>
       ${entries.map(x => `
         <div class="overview-dist-row">
-          <span>${esc(humanize(x.name))}</span>
+          <span>${esc(labelFor('generic', x.name))}</span>
           <div class="overview-dist-bar">
             <div style="width:${Math.round((x.count / max) * 100)}%"></div>
           </div>
@@ -2108,8 +2859,8 @@ function renderOverviewLatestCards(items) {
         <p>${esc(out.summary_uz || r.raw_text || 'Xulosa mavjud emas')}</p>
         <div class="overview-live-meta">
           <span>${esc(r.course_id || '')}</span>
-          <span>${esc(out.issue_category || 'none')}</span>
-          <span>${esc(out.severity || 'low')}</span>
+          <span>${esc(labelFor('issue', out.issue_category || 'none'))}</span>
+          <span>${esc(labelFor('severity', out.severity || 'low'))}</span>
         </div>
       </div>
     `;
@@ -2120,7 +2871,7 @@ function overviewInsightSentence(o) {
   const total = o.total_processed ?? o.total ?? 0;
   const sentiment = Number(o.average_sentiment_score ?? o.avg_sentiment_score ?? 0);
   const critical = o.high_critical_count || 0;
-  const issue = o.top_issue_category || o.top_issue || 'aniqlanmagan';
+  const issue = labelFor('issue', o.top_issue_category || o.top_issue || 'none');
 
   if (!total) return 'Hali tahlil qilingan feedback mavjud emas. Batch tahlil yoki Test tahlil orqali dashboardni ishga tushiring.';
 
@@ -2159,17 +2910,17 @@ function renderOverview() {
 
         <div class="overview-main-orb ${cls}">
           <span>${Math.round(sentiment * 100)}</span>
-          <small>health index</small>
+          <small>${esc(uiText('health_index'))}</small>
         </div>
       </div>
 
       <div class="overview-command-grid">
-        ${renderOverviewCommandCard('database', 'Jami tahlil', total, 'processed feedbacks', 'neutral')}
-        ${renderOverviewCommandCard('brain-circuit', 'AI ishonch', `${Math.round(confidence * 100)}%`, 'average confidence', confidence >= .7 ? 'positive' : 'warning')}
-        ${renderOverviewCommandCard('shield-alert', 'Risk signallari', critical, 'high / critical cases', critical ? 'critical' : 'positive')}
-        ${renderOverviewCommandCard('user-check', 'Admin e’tibori', o.admin_attention_count || 0, 'requires action', (o.admin_attention_count || 0) ? 'warning' : 'positive')}
-        ${renderOverviewCommandCard('triangle-alert', 'Dominant muammo', o.top_issue_category || o.top_issue || '—', 'top issue category', 'neutral')}
-        ${renderOverviewCommandCard('activity', 'Sentiment', `${Math.round(sentiment * 100)}%`, 'university signal', cls)}
+        ${renderOverviewCommandCard('database', 'Jami tahlil', total, uiText('processed_feedbacks'), 'neutral')}
+        ${renderOverviewCommandCard('brain-circuit', 'AI ishonch', `${Math.round(confidence * 100)}%`, uiText('average_confidence'), confidence >= .7 ? 'positive' : 'warning')}
+        ${renderOverviewCommandCard('shield-alert', 'Risk signallari', critical, uiText('high_critical_cases'), critical ? 'critical' : 'positive')}
+        ${renderOverviewCommandCard('user-check', 'Admin e’tibori', o.admin_attention_count || 0, t('requires_action'), (o.admin_attention_count || 0) ? 'warning' : 'positive')}
+        ${renderOverviewCommandCard('triangle-alert', 'Dominant muammo', labelFor('issue', o.top_issue_category || o.top_issue || 'none'), uiText('top_issue_category'), 'neutral')}
+        ${renderOverviewCommandCard('activity', 'Sentiment', `${Math.round(sentiment * 100)}%`, uiText('university_signal'), cls)}
       </div>
 
       <div class="overview-grid-main">
@@ -2185,7 +2936,7 @@ function renderOverview() {
           <div class="overview-health-layout">
             <div class="overview-health-orb ${cls}">
               <span>${Math.round(sentiment * 100)}</span>
-              <small>sentiment</small>
+              <small>${esc(t('avg_sentiment_short'))}</small>
             </div>
 
             <div class="overview-signal-list">
@@ -2223,7 +2974,7 @@ function renderOverview() {
           <div class="card-header">
             <div>
               <div class="card-title">${esc(t('sentiment_distribution'))}</div>
-              <div class="text-muted text-sm">Positive / neutral / negative</div>
+              <div class="text-muted text-sm">${esc(labelsFor('sentiment', ['positive', 'neutral', 'negative']).join(' / '))}</div>
             </div>
           </div>
           <div class="chart-box"><canvas id="chart-sentiment"></canvas></div>
@@ -2242,18 +2993,18 @@ function renderOverview() {
 
       <div class="grid-2 responsive-grid">
         <div class="card">
-          ${renderOverviewMiniDistribution('Sentiment snapshot', o.sentiment_counts || o.sentiments || {})}
+          ${renderOverviewMiniDistribution(uiText('sentiment_snapshot'), o.sentiment_counts || o.sentiments || {})}
         </div>
 
         <div class="card">
-          ${renderOverviewMiniDistribution('Issue snapshot', o.issue_distribution || o.issues || {})}
+          ${renderOverviewMiniDistribution(uiText('issue_snapshot'), o.issue_distribution || o.issues || {})}
         </div>
       </div>
 
       <div class="card overview-live-feed">
         <div class="card-header">
           <div>
-            <div class="card-title">Live analyzed feedback feed</div>
+            <div class="card-title">${esc(uiText('live_feedback_feed'))}</div>
             <div class="text-muted text-sm">Oxirgi AI tahlil qilingan feedbacklar</div>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="showPage('records')">
@@ -2265,8 +3016,8 @@ function renderOverview() {
           <div class="card chart-card">
             <div class="card-header">
               <div>
-                <div class="card-title">Student emotions web chart</div>
-                <div class="text-muted text-sm">Dominant student feelings across processed feedback</div>
+                <div class="card-title">${esc(uiText('chart_student_emotions_title'))}</div>
+                <div class="text-muted text-sm">${esc(uiText('chart_student_emotions_subtitle'))}</div>
               </div>
             </div>
 
@@ -2277,8 +3028,8 @@ function renderOverview() {
           <div class="card chart-card">
             <div class="card-header">
               <div>
-                <div class="card-title">Satisfaction dimensions web chart</div>
-                <div class="text-muted text-sm">Average scores across academic experience dimensions</div>
+                <div class="card-title">${esc(uiText('chart_satisfaction_title'))}</div>
+                <div class="text-muted text-sm">${esc(uiText('chart_satisfaction_subtitle'))}</div>
               </div>
             </div>
 
@@ -2290,8 +3041,8 @@ function renderOverview() {
         <div class="card chart-card mt-3">
           <div class="card-header">
             <div>
-              <div class="card-title">Sentiment → Emotion Sankey</div>
-              <div class="text-muted text-sm">How university sentiment flows into emotional states</div>
+              <div class="card-title">${esc(uiText('chart_sankey_title'))}</div>
+              <div class="text-muted text-sm">${esc(uiText('chart_sankey_subtitle'))}</div>
             </div>
           </div>
           <div id="emotion-sankey-chart" class="chart-host chart-host-wide"></div>
@@ -2303,7 +3054,7 @@ function renderOverview() {
       </div>
 
       <div class="card">
-        <div class="card-title mb-3">Executive summary</div>
+        <div class="card-title mb-3">${esc(uiText('executive_summary'))}</div>
         <div class="overview-exec-box ${cls}">
           <i data-lucide="sparkles"></i>
           <p>${esc(o.executive_summary || overviewInsightSentence(o))}</p>
@@ -2344,21 +3095,7 @@ function moodHealthText(score) {
 }
 
 function emotionHumanName(emotion) {
-  const map = {
-    frustration: 'Norozilik',
-    confusion: 'Tushunmovchilik',
-    anxiety: 'Xavotir',
-    anger: 'Jahl',
-    boredom: 'Zerikish',
-    gratitude: 'Minnatdorchilik',
-    curiosity: 'Qiziqish',
-    confidence: 'Ishonch',
-    inspiration: 'Ilhomlanish',
-    relief: 'Yengillik',
-    indifference: 'Befarqlik',
-    disappointment: 'Ko‘ngilsizlik'
-  };
-  return map[emotion] || emotion || 'Aniqlanmagan';
+  return labelFor('emotion', emotion || 'indifference');
 }
 
 function emotionClass(emotion) {
@@ -2384,7 +3121,7 @@ function renderMoodEmotionMap(distribution) {
       <div class="mood-emotion-name">
         <span class="emotion-dot"></span>
         <b>${esc(emotionHumanName(x.name))}</b>
-        <small>${esc(humanize(x.name))}</small>
+        <small>${esc(labelFor('emotion', x.name))}</small>
       </div>
       <div class="mood-emotion-bar">
         <div class="mood-emotion-fill" style="width:${Math.round((x.count / max) * 100)}%"></div>
@@ -2449,7 +3186,7 @@ function renderMoodPulseTimeline() {
     return `
       <div
         class="mood-pulse-item ${cls}"
-        title="${esc(x.period || '')}: ${positive} positive, ${neutral} neutral, ${negative} negative, ${high} high-risk"
+        title="${esc(x.period || '')}: ${positive} ${esc(labelFor('sentiment', 'positive'))}, ${neutral} ${esc(labelFor('sentiment', 'neutral'))}, ${negative} ${esc(labelFor('sentiment', 'negative'))}, ${high} ${esc(t('high_risk'))}"
       >
         <div class="mood-pulse-period">${esc(x.period || '')}</div>
 
@@ -2475,13 +3212,10 @@ function moodInsightSentence(m) {
     .map(([k, v]) => ({ key: k, value: Number(v || 0) }))
     .sort((a, b) => a.value - b.value)[0];
 
-  const dimNames = {
-    teaching_quality: 'o‘qitish sifati',
-    clarity: 'aniqlik',
-    engagement: 'faollik',
-    fairness: 'adolatlilik',
-    materials: 'materiallar'
-  };
+  const dimNames = Object.fromEntries(
+    ['teaching_quality', 'clarity', 'engagement', 'fairness', 'materials']
+      .map(key => [key, labelFor('satisfaction_dimension', key).toLowerCase()])
+  );
 
   if (score >= 0.72) {
     return `Umumiy kayfiyat sog‘lom. Dominant emotsiya: “${emotionHumanName(dominant)}”. Eng zaif indikator: ${dimNames[weakest?.key] || 'aniqlanmagan'}.`;
@@ -2620,7 +3354,7 @@ function renderCourses() {
       <td><b>${esc(x.course_id)}</b><br><span class="text-muted">${esc(x.course_name)}</span></td>
       <td>${x.feedback_count}</td>
       <td>${fmt(x.average_sentiment ?? x.avg_sentiment)}</td>
-      <td>${esc(x.top_issue || t('none'))}</td>
+      <td>${esc(labelFor('issue', x.top_issue || 'none'))}</td>
       <td>${x.high_risk_count || 0}</td>
       <td>${(x.top_keywords || []).slice(0, 4).map(k => `<span class="badge badge-outline">${esc(k)}</span>`).join(' ')}</td>
     </tr>
@@ -2643,7 +3377,7 @@ function renderTeachers() {
       <td><b>${esc(x.teacher_fullname || x.teacher_id)}</b><br><span class="text-muted">${esc(x.teacher_role || '')}</span></td>
       <td>${x.feedback_count}</td>
       <td>${fmt(x.average_sentiment_score ?? x.avg_sentiment_score)}</td>
-      <td>${esc(x.dominant_emotion || t('none'))}</td>
+      <td>${esc(labelFor('emotion', x.dominant_emotion || 'indifference'))}</td>
       <td>${x.fairness_concern_count || 0}</td>
       <td>${x.high_critical_count || 0}</td>
     </tr>
@@ -2688,7 +3422,7 @@ function renderTrendTimeline(series) {
         <div class="trend-dot"></div>
         <div>
           <b>${esc(x.period || `P${i + 1}`)}</b>
-          <span>${Math.round(score * 100)}% sentiment · ${x.total || 0} feedback</span>
+          <span>${Math.round(score * 100)}% ${esc(t('avg_sentiment_short'))} · ${x.total || 0} ${esc(uiText('records_unit'))}</span>
         </div>
       </div>
     `;
@@ -2763,32 +3497,32 @@ function renderTrends() {
       <div class="trend-v12-hero card">
         <div>
           <div class="eyebrow">TEMPORAL INTELLIGENCE v1.2</div>
-          <h3>University sentiment and emotion dynamics</h3>
+          <h3>${esc(uiText('trend_hero_title'))}</h3>
           <p>
-            This panel tracks sentiment volume and dominant emotions over time using the new outputFromAI schema.
+            ${esc(uiText('trend_hero_text'))}
           </p>
         </div>
 
         <div class="trend-v12-status">
-          <span>Latest dominant emotion</span>
-          <b>${esc(humanLabel(dominantLatest))}</b>
+          <span>${esc(uiText('latest_dominant_emotion'))}</span>
+          <b>${esc(labelFor('emotion', dominantLatest))}</b>
           <small>${esc(latestPeriod)}</small>
         </div>
       </div>
 
       <div class="kpi-grid">
-        ${kpi('Total volume', totalVolume, 'feedback records')}
-        ${kpi('Peak period', peakPeriod, 'highest activity')}
-        ${kpi('Latest period', latestPeriod, 'last observed date')}
-        ${kpi('Dominant emotion', humanLabel(dominantLatest), 'latest emotional signal')}
+        ${kpi(uiText('total_volume'), totalVolume, uiText('processed_feedbacks'))}
+        ${kpi(uiText('peak_period'), peakPeriod, uiText('highest_activity'))}
+        ${kpi(uiText('latest_period'), latestPeriod, uiText('last_observed_date'))}
+        ${kpi(t('dominant_emotion'), labelFor('emotion', dominantLatest), uiText('latest_emotional_signal'))}
       </div>
 
       <div class="charts-grid-2">
         <div class="card chart-card chart-card-v12">
           <div class="card-header">
             <div>
-              <div class="card-title">University sentiment over time</div>
-              <div class="text-muted text-sm">Positive, neutral and negative feedback volume</div>
+              <div class="card-title">${esc(uiText('sentiment_trend_title'))}</div>
+              <div class="text-muted text-sm">${esc(uiText('sentiment_trend_subtitle'))}</div>
             </div>
           </div>
           <div id="sentiment-trend-chart" class="chart-host"></div>
@@ -2797,8 +3531,8 @@ function renderTrends() {
         <div class="card chart-card chart-card-v12">
           <div class="card-header">
             <div>
-              <div class="card-title">Emotion heatmap over time</div>
-              <div class="text-muted text-sm">Monthly intensity of dominant student emotions</div>
+              <div class="card-title">${esc(uiText('emotion_heatmap_title'))}</div>
+              <div class="text-muted text-sm">${esc(uiText('emotion_heatmap_subtitle'))}</div>
             </div>
           </div>
           <div id="emotion-trend-chart" class="chart-host"></div>
@@ -2808,8 +3542,8 @@ function renderTrends() {
       <div class="card chart-card chart-card-v12 mt-3">
         <div class="card-header">
           <div>
-            <div class="card-title">Dominant emotion by date</div>
-            <div class="text-muted text-sm">Most common emotion per observed day</div>
+            <div class="card-title">${esc(uiText('dominant_emotion_date_title'))}</div>
+            <div class="text-muted text-sm">${esc(uiText('dominant_emotion_date_subtitle'))}</div>
           </div>
         </div>
         <div id="dominant-emotion-timeline" class="dominant-emotion-list"></div>
@@ -2837,19 +3571,7 @@ function issueImpactClass(item) {
 }
 
 function issueHumanName(name) {
-  const map = {
-    none: 'Muammo yo‘q',
-    teaching_style: 'O‘qitish uslubi',
-    content_quality: 'Kontent sifati',
-    assessment: 'Baholash',
-    materials: 'Materiallar',
-    communication: 'Kommunikatsiya',
-    technical_issue: 'Texnik muammo',
-    classroom_management: 'Dars boshqaruvi',
-    fairness_concern: 'Adolat signali',
-    other: 'Boshqa'
-  };
-  return map[name] || name || 'Boshqa';
+  return labelFor('issue', name || 'other');
 }
 
 function renderIssueRadar(items) {
@@ -3034,9 +3756,9 @@ function renderRisks() {
       <td>${esc(x.feedback_id)}</td>
       <td>${esc(x.course_id)}</td>
       <td>${esc(x.teacher_fullname || x.teacher_id)}</td>
-      <td>${esc((x.risk?.types || x.risk_types || []).join(', ') || t('none'))}<br><span class="text-muted">p=${fmt(x.risk?.probability ?? x.probability)}</span></td>
+      <td>${esc((x.risk?.types || x.risk_types || []).map(r => labelFor('risk_type', r)).join(', ') || t('none'))}<br><span class="text-muted">p=${fmt(x.risk?.probability ?? x.probability)}</span></td>
       <td>${badge(x.severity)}</td>
-      <td>${esc(x.recommended_action)}</td>
+      <td>${esc(labelFor('action', x.recommended_action || 'no_action_needed'))}</td>
     </tr>
   `);
 
@@ -3448,18 +4170,19 @@ function chart(id, type, labels, data, label = '') {
     palette.high
   ];
 
-  const cleanLabels = (labels || []).map(x => humanize(String(x || 'Unknown')));
+  const rawLabels = labels || [];
+  const cleanLabels = rawLabels.map(x => labelFor('generic', String(x || 'unknown')));
   const cleanData = (data || []).map(v => Number(v || 0));
 
-  const finalLabels = cleanLabels.length ? cleanLabels : ['No data'];
+  const finalLabels = cleanLabels.length ? cleanLabels : [t('no_data')];
   const finalData = cleanData.length ? cleanData : [0];
 
   const isDoughnut = type === 'doughnut';
   const isLine = type === 'line';
   const isBar = type === 'bar';
 
-  const chartColors = finalLabels.map((x, i) => {
-    const key = x.toLowerCase();
+  const chartColors = finalLabels.map((_, i) => {
+    const key = String(rawLabels[i] || '').toLowerCase();
     if (key.includes('positive')) return palette.positive;
     if (key.includes('neutral')) return palette.neutral;
     if (key.includes('negative')) return palette.negative;
@@ -3620,7 +4343,7 @@ function drawCharts() {
     'bar',
     Object.keys(satisfactionRaw),
     satisfactionValues,
-    'Score'
+    uiText('average_percent_axis')
   );
 
   const tr = d.trends?.sentiment_over_time || d.trends?.daily || d.trends?.monthly || [];
@@ -3631,8 +4354,8 @@ function drawCharts() {
     return Math.round(Number(raw || 0) * 100);
   });
 
-  chart('chart-trend', 'line', trendLabels, trendValues, 'Sentiment');
-  chart('chart-mood-trend', 'line', trendLabels, trendValues, 'Mood');
+  chart('chart-trend', 'line', trendLabels, trendValues, t('avg_sentiment_short'));
+  chart('chart-mood-trend', 'line', trendLabels, trendValues, t('mood_trend'));
 }
 
 function redrawVisibleCharts() {
@@ -3758,16 +4481,16 @@ function schemaBadge(label, value) {
 function chips(items, limit = 8) {
   const arr = Array.isArray(items) ? items.slice(0, limit) : [];
   return arr.length
-    ? arr.map(x => `<span class="keyword-chip">${esc(humanize(x))}</span>`).join('')
+    ? arr.map(x => `<span class="keyword-chip">${esc(labelFor('generic', x))}</span>`).join('')
     : `<span class="text-muted">—</span>`;
 }
 
 function humanAction(action) {
-  return humanize(action || 'no_action_needed');
+  return labelFor('action', action || 'no_action_needed');
 }
 
 function humanTopic(topic) {
-  return humanize(topic || 'none');
+  return labelFor('topic', topic || 'none');
 }
 
 
@@ -3838,9 +4561,9 @@ function renderRecordsMetrics(items) {
 
   $('records-metrics').innerHTML = [
     recordMetric('Jami yozuvlar', total, 'joriy filter natijasi'),
-    recordMetric('Positive', positive, `${total ? Math.round((positive / total) * 100) : 0}% ulush`),
-    recordMetric('Negative', negative, `${total ? Math.round((negative / total) * 100) : 0}% ulush`),
-    recordMetric('High/Critical', highRisk, 'inson tekshiruvi kerak'),
+    recordMetric(labelFor('sentiment', 'positive'), positive, `${total ? Math.round((positive / total) * 100) : 0}% ulush`),
+    recordMetric(labelFor('sentiment', 'negative'), negative, `${total ? Math.round((negative / total) * 100) : 0}% ulush`),
+    recordMetric(`${labelFor('severity', 'high')}/${labelFor('severity', 'critical')}`, highRisk, 'inson tekshiruvi kerak'),
     recordMetric('Ishonch', percent(avgConfidence), 'o‘rtacha AI confidence')
   ].join('');
 }
@@ -3883,21 +4606,21 @@ function renderRecordCard(r) {
               ${badge(sentiment)}
               ${badge(severity)}
               ${badge(out.representative_label || 'other')}
-              ${attentionFrom.length ? badge('attention routing') : ''}
-              ${riskTypes.length ? badge('risk signal') : ''}
+              ${attentionFrom.length ? `<span class="badge badge-outline">${esc(uiText('attention_routing'))}</span>` : ''}
+              ${riskTypes.length ? `<span class="badge badge-outline">${esc(uiText('risk_signal'))}</span>` : ''}
             </div>
           </div>
 
           <div class="record-confidence-ring">
             <b>${Math.round(confidence * 100)}%</b>
-            <span>confidence</span>
+            <span>${esc(uiText('confidence'))}</span>
           </div>
         </div>
 
         <p class="record-summary">${esc(summary)}</p>
 
         <div class="record-topic-strip">
-          ${topics.length ? chips(topics, 5) : `<span class="keyword-chip muted">No topic</span>`}
+          ${topics.length ? chips(topics, { limit: 5, kind: 'topic' }) : `<span class="keyword-chip muted">${esc(uiText('no_topic'))}</span>`}
         </div>
 
         <div class="record-meta-grid">
@@ -3912,13 +4635,13 @@ function renderRecordCard(r) {
           </div>
 
           <div class="record-meta">
-            <span>Primary topic</span>
+            <span>${esc(uiText('primary_topic'))}</span>
             <b title="${esc(primaryTopic)}">${esc(humanTopic(primaryTopic))}</b>
           </div>
 
           <div class="record-meta">
-            <span>Attention from</span>
-            <b>${attentionFrom.length ? esc(attentionFrom.map(humanize).join(', ')) : 'None'}</b>
+            <span>${esc(uiText('attention_from'))}</span>
+            <b>${attentionFrom.length ? esc(attentionFrom.map(x => labelFor('attention_role', x)).join(', ')) : esc(uiText('none_value'))}</b>
           </div>
         </div>
       </div>
@@ -3926,7 +4649,7 @@ function renderRecordCard(r) {
       <aside class="record-side">
         <div class="record-score">
           <div class="record-score-top">
-            <span>Credibility</span>
+            <span>${esc(uiText('credibility'))}</span>
             <b>${Math.round(credibility * 100)}%</b>
           </div>
           <div class="record-score-bar"><span style="width:${Math.round(credibility * 100)}%"></span></div>
@@ -3934,16 +4657,16 @@ function renderRecordCard(r) {
 
         <div class="record-score">
           <div class="record-score-top">
-            <span>Risk scopes</span>
+            <span>${esc(uiText('risk_scopes'))}</span>
             <b>${riskScopes.length || 0}</b>
           </div>
           <div class="record-mini-tags">
-            ${riskScopes.length ? chips(riskScopes, 3) : `<span class="text-muted">none</span>`}
+            ${riskScopes.length ? chips(riskScopes, { limit: 3, kind: 'risk_scope' }) : `<span class="text-muted">${esc(uiText('none_value'))}</span>`}
           </div>
         </div>
 
         <span class="record-open-hint">
-          <i data-lucide="mouse-pointer-click"></i> Schema detail
+          <i data-lucide="mouse-pointer-click"></i> ${esc(uiText('schema_detail'))}
         </span>
       </aside>
     </article>
@@ -3979,37 +4702,37 @@ function renderRecordsPage(items, meta) {
     <div class="records-toolbar card">
       <input
         class="input"
-        placeholder="Search feedback, course, teacher, summary..."
+        placeholder="${esc(uiText('search_records_placeholder'))}"
         value="${esc(recordsState.q)}"
         oninput="recordsState.q=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
       />
 
       <select class="select" onchange="recordsState.sentiment=this.value; loadRecords(true);">
-        <option value="">All sentiment</option>
-        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>Positive</option>
-        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>Neutral</option>
-        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>Negative</option>
+        <option value="">${esc(uiText('all_sentiment'))}</option>
+        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>${esc(labelFor('sentiment', 'positive'))}</option>
+        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>${esc(labelFor('sentiment', 'neutral'))}</option>
+        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>${esc(labelFor('sentiment', 'negative'))}</option>
       </select>
 
       <select class="select" onchange="recordsState.severity=this.value; loadRecords(true);">
-        <option value="">All severity</option>
-        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>None</option>
-        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>Low</option>
-        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>Medium</option>
-        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>High</option>
-        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>Critical</option>
+        <option value="">${esc(uiText('all_severity'))}</option>
+        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>${esc(labelFor('severity', 'none'))}</option>
+        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>${esc(labelFor('severity', 'low'))}</option>
+        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>${esc(labelFor('severity', 'medium'))}</option>
+        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>${esc(labelFor('severity', 'high'))}</option>
+        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>${esc(labelFor('severity', 'critical'))}</option>
       </select>
 
       <input
         class="input"
-        placeholder="Course ID"
+        placeholder="${esc(t('course_id'))}"
         value="${esc(recordsState.course_id)}"
         oninput="recordsState.course_id=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
       />
 
       <input
         class="input"
-        placeholder="Teacher ID"
+        placeholder="${esc(t('teacher_id'))}"
         value="${esc(recordsState.teacher_id)}"
         oninput="recordsState.teacher_id=this.value; clearTimeout(window.__recordsSearchTimer); window.__recordsSearchTimer=setTimeout(() => loadRecords(true), 350);"
       />
@@ -4017,21 +4740,21 @@ function renderRecordsPage(items, meta) {
 
     <div class="records-count-row">
       <b>${meta.total || 0}</b>
-      <span>matching records</span>
-      <small>showing ${meta.offset + 1}-${Math.min(meta.offset + meta.limit, meta.total)}</small>
+      <span>${esc(uiText('matching_records'))}</span>
+      <small>${esc(uiText('showing_page', { from: meta.offset + 1, to: Math.min(meta.offset + meta.limit, meta.total), page: 1, pages: 1 }))}</small>
     </div>
 
     <div id="records-list" class="records-list">
-      ${items.length ? items.map(renderRecordCard).join('') : `<div class="empty-state">No records found</div>`}
+      ${items.length ? items.map(renderRecordCard).join('') : `<div class="empty-state">${esc(uiText('no_records_found'))}</div>`}
     </div>
 
     <div class="records-pagination">
       <button class="btn btn-secondary" ${recordsState.offset <= 0 ? 'disabled' : ''} onclick="recordsState.offset=Math.max(0,recordsState.offset-recordsState.limit); loadRecords();">
-        Previous
+        ${esc(uiText('previous'))}
       </button>
 
       <button class="btn btn-secondary" ${!meta.has_more ? 'disabled' : ''} onclick="recordsState.offset+=recordsState.limit; loadRecords();">
-        Next
+        ${esc(uiText('next'))}
       </button>
     </div>
   `;
@@ -4201,44 +4924,44 @@ async function openRecord(feedbackId) {
 
         <div class="schema-hero-card">
           <div>
-            <div class="eyebrow">CANONICAL SCHEMA VIEW</div>
+            <div class="eyebrow">${esc(uiText('schema_view'))}</div>
             <h3>${esc(out.summary_uz || 'Xulosa mavjud emas')}</h3>
 
             <div class="record-badges mt-3">
               ${badge(out.sentiment || 'neutral')}
               ${badge(out.severity || 'none')}
               ${badge(out.representative_label || 'other')}
-              ${attentionFrom.length ? badge('requires routing') : badge('no routing')}
+              <span class="badge badge-outline">${esc(attentionFrom.length ? uiText('attention_routing') : uiText('no_routing'))}</span>
             </div>
           </div>
 
           <div class="schema-score-stack">
-            ${schemaBadge('Confidence', `${Math.round(confidenceOf(out) * 100)}%`)}
-            ${schemaBadge('Credibility', `${Math.round(credibilityOf(out) * 100)}%`)}
-            ${schemaBadge('Language', out.language || '—')}
+            ${schemaBadge(uiText('confidence'), `${Math.round(confidenceOf(out) * 100)}%`)}
+            ${schemaBadge(uiText('credibility'), `${Math.round(credibilityOf(out) * 100)}%`)}
+            ${schemaBadge(uiText('language'), labelFor('language', out.language || '—'))}
           </div>
         </div>
 
         <div class="schema-grid-3 mt-3">
           <div class="card schema-panel">
-            <div class="card-title mb-3">Topics</div>
-            <div class="keyword-chip-zone">${chips(topics, 8)}</div>
+            <div class="card-title mb-3">${esc(uiText('topics'))}</div>
+            <div class="keyword-chip-zone">${chips(topics, { limit: 8, kind: 'topic' })}</div>
           </div>
 
           <div class="card schema-panel">
-            <div class="card-title mb-3">Risk</div>
+            <div class="card-title mb-3">${esc(uiText('risk'))}</div>
             <div class="schema-list">
-              <div><span>Types</span><b>${riskTypes.length ? esc(riskTypes.map(humanize).join(', ')) : 'None'}</b></div>
-              <div><span>Probability</span><b>${Math.round(Number(out.risk?.probability || 0) * 100)}%</b></div>
-              <div><span>Impact scopes</span><b>${riskScopes.length ? esc(riskScopes.map(humanize).join(', ')) : 'None'}</b></div>
+              <div><span>${esc(uiText('types'))}</span><b>${riskTypes.length ? esc(riskTypes.map(x => labelFor('risk_type', x)).join(', ')) : esc(uiText('none_value'))}</b></div>
+              <div><span>${esc(uiText('probability'))}</span><b>${Math.round(Number(out.risk?.probability || 0) * 100)}%</b></div>
+              <div><span>${esc(uiText('impact_scopes'))}</span><b>${riskScopes.length ? esc(riskScopes.map(x => labelFor('risk_scope', x)).join(', ')) : esc(uiText('none_value'))}</b></div>
             </div>
           </div>
 
           <div class="card schema-panel">
-            <div class="card-title mb-3">Routing</div>
+            <div class="card-title mb-3">${esc(uiText('routing'))}</div>
             <div class="schema-list">
-              <div><span>Requires attention from</span><b>${attentionFrom.length ? esc(attentionFrom.map(humanize).join(', ')) : 'None'}</b></div>
-              <div><span>Recommended action</span><b>${esc(humanAction(out.recommended_action))}</b></div>
+              <div><span>${esc(uiText('requires_attention_from'))}</span><b>${attentionFrom.length ? esc(attentionFrom.map(x => labelFor('attention_role', x)).join(', ')) : esc(uiText('none_value'))}</b></div>
+              <div><span>${esc(uiText('recommended_action'))}</span><b>${esc(humanAction(out.recommended_action))}</b></div>
             </div>
           </div>
         </div>
@@ -4246,8 +4969,8 @@ async function openRecord(feedbackId) {
         <div class="card schema-panel mt-3">
           <div class="card-header">
             <div>
-              <div class="card-title">Satisfaction dimensions v1.0</div>
-              <div class="text-muted text-sm">Expanded aspect-based scoring</div>
+              <div class="card-title">${esc(uiText('satisfaction_dimensions_v1'))}</div>
+              <div class="text-muted text-sm">${esc(uiText('expanded_scoring'))}</div>
             </div>
           </div>
 
@@ -4255,7 +4978,7 @@ async function openRecord(feedbackId) {
             ${Object.entries(sd).map(([k, v]) => `
               <div class="schema-dimension">
                 <div>
-                  <span>${esc(humanize(k))}</span>
+                  <span>${esc(labelFor('satisfaction_dimension', k))}</span>
                   <b>${Math.round(Number(v || 0) * 100)}%</b>
                 </div>
                 <i style="width:${Math.round(Number(v || 0) * 100)}%"></i>
@@ -4267,7 +4990,7 @@ async function openRecord(feedbackId) {
         <div class="card schema-panel mt-3">
           <div class="card-header">
             <div>
-              <div class="card-title">Schema objects</div>
+              <div class="card-title">${esc(uiText('schema_objects'))}</div>
               <div class="text-muted text-sm">inputToSystem v1.2.0 → inputToAI v1.0.0 → outputFromAI v1.0.0</div>
             </div>
           </div>
@@ -4922,28 +5645,11 @@ function severityRank(severity) {
 }
 
 function severityText(severity) {
-  const map = {
-    low: "Past",
-    medium: "O‘rta",
-    high: "Yuqori",
-    critical: "Kritik"
-  };
-  return map[String(severity || '').toLowerCase()] || severity || "Past";
+  return labelFor('severity', severity || 'low');
 }
 
 function actionHuman(action) {
-  const map = {
-    no_action_needed: "Harakat talab qilinmaydi",
-    monitor_pattern: "Patternni kuzatish",
-    follow_up_with_student: "Talaba bilan aniqlashtirish",
-    review_course_materials: "Materiallarni qayta ko‘rib chiqish",
-    provide_teacher_feedback: "O‘qituvchiga feedback berish",
-    escalate_to_department: "Kafedraga eskalatsiya qilish",
-    open_formal_review: "Rasmiy tekshiruv ochish",
-    check_for_policy_violation: "Siyosat buzilishini tekshirish",
-    request_more_context: "Qo‘shimcha kontekst so‘rash"
-  };
-  return map[action] || action || "Patternni kuzatish";
+  return labelFor('action', action || 'monitor_pattern');
 }
 
 function signalClass(out) {
@@ -4999,10 +5705,24 @@ function insightCard(iconName, label, value, sub = '', cls = '') {
   `;
 }
 
-function chips(items, emptyText = 'Ma’lumot yo‘q') {
-  const arr = Array.isArray(items) ? items.filter(Boolean) : [];
+function chips(items, limitOrOptions = 8, options = {}) {
+  const opts =
+    typeof limitOrOptions === 'object' && limitOrOptions !== null
+      ? limitOrOptions
+      : {
+          limit: typeof limitOrOptions === 'number' ? limitOrOptions : undefined,
+          emptyText: typeof limitOrOptions === 'string' ? limitOrOptions : undefined
+        };
+
+  const finalOptions = { ...opts, ...options };
+  const limit = Number(finalOptions.limit || 8);
+  const kind = finalOptions.kind || 'generic';
+  const className = finalOptions.className || 'keyword-chip';
+  const emptyText = finalOptions.emptyText || t('no_data');
+
+  const arr = Array.isArray(items) ? items.filter(Boolean).slice(0, limit) : [];
   if (!arr.length) return `<span class="text-muted">${esc(emptyText)}</span>`;
-  return arr.map(x => `<span class="chip">${esc(x)}</span>`).join('');
+  return arr.map(x => `<span class="${esc(className)}">${esc(labelFor(kind, x))}</span>`).join('');
 }
 
 function renderTestJsonBlock(title, data, initiallyOpen = false) {
@@ -5052,17 +5772,17 @@ function renderTestResult(d) {
         <div class="test-command-score">
           <div class="radial-score ${signal}">
             <span>${sentimentPct}</span>
-            <small>sentiment</small>
+            <small>${esc(t('avg_sentiment_short'))}</small>
           </div>
         </div>
       </div>
 
       <div class="test-insight-grid">
-        ${insightCard('activity', 'Sentiment', out.sentiment || 'neutral', sentimentScoreLabel(out.sentiment_score), `signal-${out.sentiment || 'neutral'}`)}
-        ${insightCard('flame', 'Emotsiya', out.emotion || 'indifference', `intensivlik ${pct(out.emotion_intensity)}%`)}
+        ${insightCard('activity', t('avg_sentiment_short'), labelFor('sentiment', out.sentiment || 'neutral'), sentimentScoreLabel(out.sentiment_score), `signal-${out.sentiment || 'neutral'}`)}
+        ${insightCard('flame', 'Emotsiya', labelFor('emotion', out.emotion || 'indifference'), `intensivlik ${pct(out.emotion_intensity)}%`)}
         ${insightCard('gauge', 'Jiddiylik', severityText(out.severity), `rank ${severityRank(out.severity)}/4`, `severity-${out.severity || 'low'}`)}
-        ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
-        ${insightCard('user-check', 'Admin e’tibori', adminAttention, attentionTargets.length ? attentionTargets.join(', ') : actionHuman(out.recommended_action), attentionTargets.length ? 'severity-high' : 'signal-positive')}
+        ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.map(x => labelFor('risk_type', x)).join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
+        ${insightCard('user-check', 'Admin e’tibori', adminAttention, attentionTargets.length ? attentionTargets.map(x => labelFor('attention_role', x)).join(', ') : actionHuman(out.recommended_action), attentionTargets.length ? 'severity-high' : 'signal-positive')}
         ${insightCard('brain-circuit', 'SentoPro runtime', SENTPRO_RUNTIME.model, `${SENTPRO_RUNTIME.provider} · ${SENTPRO_RUNTIME.endpoint}`, 'signal-positive' )}
       </div>
 
@@ -5075,10 +5795,10 @@ function renderTestResult(d) {
             </div>
           </div>
 
-          ${scoreBar('Sentiment score', out.sentiment_score, out.sentiment || 'neutral')}
-          ${scoreBar('Confidence', out.confidence, 'model ishonchliligi')}
-          ${scoreBar('Risk probability', risk.probability, riskScopes.length ? riskScopes.join(', ') : 'none')}
-          ${scoreBar('Credibility', credibility.score, 'feedback ishonchliligi')}
+          ${scoreBar('Sentiment score', out.sentiment_score, labelFor('sentiment', out.sentiment || 'neutral'))}
+          ${scoreBar(uiText('confidence'), out.confidence, 'model ishonchliligi')}
+          ${scoreBar('Risk probability', risk.probability, riskScopes.length ? riskScopes.map(x => labelFor('risk_scope', x)).join(', ') : uiText('none_value'))}
+          ${scoreBar(uiText('credibility'), credibility.score, 'feedback ishonchliligi')}
           ${scoreBar('Fairness signal', fairness.score, fairness.is_one_sided ? 'bir tomonlama signal' : 'balanced signal')}
         </div>
 
@@ -5091,11 +5811,11 @@ function renderTestResult(d) {
           </div>
 
           <div class="test-dim-grid">
-            ${scoreBar('Teaching quality', dims.teaching_quality)}
-            ${scoreBar('Clarity', dims.clarity)}
-            ${scoreBar('Engagement', dims.engagement)}
-            ${scoreBar('Fairness', dims.fairness)}
-            ${scoreBar('Materials', dims.materials)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'teaching_quality'), dims.teaching_quality)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'clarity'), dims.clarity)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'engagement'), dims.engagement)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'fairness'), dims.fairness)}
+            ${scoreBar(labelFor('satisfaction_dimension', 'materials'), dims.materials)}
           </div>
         </div>
       </div>
@@ -5105,18 +5825,18 @@ function renderTestResult(d) {
           <div class="card-title mb-3">Muammo va mavzular</div>
 
           <div class="test-field-block">
-            <span>Issue category</span>
+            <span>${esc(t('issue'))}</span>
             ${badge(out.issue_category || 'none')}
           </div>
 
           <div class="test-field-block">
-            <span>Topics</span>
-            <div>${chips(out.topics)}</div>
+            <span>${esc(uiText('topics'))}</span>
+            <div>${chips(out.topics, { kind: 'topic' })}</div>
           </div>
 
           <div class="test-field-block">
-            <span>Topics</span>
-            <div>${chips(topicsOf(out), 5)}</div>
+            <span>${esc(uiText('topics'))}</span>
+            <div>${chips(topicsOf(out), { limit: 5, kind: 'topic' })}</div>
           </div>
 
           <div class="test-field-block">
@@ -5134,20 +5854,20 @@ function renderTestResult(d) {
               <b>${esc(actionHuman(out.recommended_action))}</b>
               <p>
                 ${attentionFromOf(out).length
-                  ? `Bu feedback quyidagi rollarga yo‘naltiriladi: ${attentionFromOf(out).map(humanize).join(', ')}.`
+                  ? `Bu feedback quyidagi rollarga yo‘naltiriladi: ${attentionFromOf(out).map(x => labelFor('attention_role', x)).join(', ')}.`
                   : 'Bu feedback hozircha monitoring yoki oddiy kuzatuv rejimida qolishi mumkin.'}
               </p>
             </div>
           </div>
 
           <div class="test-field-block mt-3">
-            <span>Representative label</span>
+            <span>${esc(t('status'))}</span>
             ${badge(out.representative_label || 'other')}
           </div>
 
           <div class="test-field-block">
-            <span>Risk impact scopes</span>
-            <div>${chips(riskScopesOf(out), 5)}</div>
+            <span>${esc(uiText('impact_scopes'))}</span>
+            <div>${chips(riskScopesOf(out), { limit: 5, kind: 'risk_scope' })}</div>
           </div>
         </div>
       </div>
@@ -7852,9 +8572,9 @@ async function loadRecords(reset = false) {
         <div class="loading-panel-inner">
           <div class="processing-orb"></div>
           <div>
-            <div class="loading-title">Records yuklanmoqda</div>
+            <div class="loading-title">${esc(uiText('records_loading_title'))}</div>
             <div class="loading-subtitle">
-              Server-side filter va pagination ishlamoqda.
+              ${esc(uiText('records_loading_subtitle'))}
             </div>
           </div>
         </div>
@@ -7877,7 +8597,7 @@ async function loadRecords(reset = false) {
     if (body) {
       body.innerHTML = `
         <div class="alert alert-err">
-          Records yuklanmadi: ${esc(e.message)}
+          ${esc(uiText('records_load_failed'))}: ${esc(e.message)}
         </div>
       `;
     }
@@ -7915,7 +8635,7 @@ function renderRecordsPage(items, meta) {
     <div class="records-toolbar card">
       <input
         class="input"
-        placeholder="Search feedback, summary, course, teacher..."
+        placeholder="${esc(uiText('search_records_placeholder'))}"
         value="${esc(recordsState.q || '')}"
         oninput="
           recordsState.q=this.value;
@@ -7925,24 +8645,24 @@ function renderRecordsPage(items, meta) {
       />
 
       <select class="select" onchange="recordsState.sentiment=this.value; loadRecords(true);">
-        <option value="">All sentiment</option>
-        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>Positive</option>
-        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>Neutral</option>
-        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>Negative</option>
+        <option value="">${esc(uiText('all_sentiment'))}</option>
+        <option value="positive" ${recordsState.sentiment === 'positive' ? 'selected' : ''}>${esc(labelFor('sentiment', 'positive'))}</option>
+        <option value="neutral" ${recordsState.sentiment === 'neutral' ? 'selected' : ''}>${esc(labelFor('sentiment', 'neutral'))}</option>
+        <option value="negative" ${recordsState.sentiment === 'negative' ? 'selected' : ''}>${esc(labelFor('sentiment', 'negative'))}</option>
       </select>
 
       <select class="select" onchange="recordsState.severity=this.value; loadRecords(true);">
-        <option value="">All severity</option>
-        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>None</option>
-        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>Low</option>
-        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>Medium</option>
-        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>High</option>
-        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>Critical</option>
+        <option value="">${esc(uiText('all_severity'))}</option>
+        <option value="none" ${recordsState.severity === 'none' ? 'selected' : ''}>${esc(labelFor('severity', 'none'))}</option>
+        <option value="low" ${recordsState.severity === 'low' ? 'selected' : ''}>${esc(labelFor('severity', 'low'))}</option>
+        <option value="medium" ${recordsState.severity === 'medium' ? 'selected' : ''}>${esc(labelFor('severity', 'medium'))}</option>
+        <option value="high" ${recordsState.severity === 'high' ? 'selected' : ''}>${esc(labelFor('severity', 'high'))}</option>
+        <option value="critical" ${recordsState.severity === 'critical' ? 'selected' : ''}>${esc(labelFor('severity', 'critical'))}</option>
       </select>
 
       <input
         class="input"
-        placeholder="Topic"
+        placeholder="${esc(uiText('topic'))}"
         value="${esc(recordsState.topic || '')}"
         oninput="
           recordsState.topic=this.value;
@@ -7981,15 +8701,15 @@ function renderRecordsPage(items, meta) {
       </select>
 
       <button class="btn btn-secondary" onclick="clearRecordsFilters()">
-        <i data-lucide="x"></i> Clear
+        <i data-lucide="x"></i> ${esc(uiText('clear'))}
       </button>
     </div>
 
     <div class="records-count-row">
       <b>${Number(meta.total || 0).toLocaleString()}</b>
-      <span>matching records</span>
+      <span>${esc(uiText('matching_records'))}</span>
       <small>
-        showing ${from}-${to} · page ${currentPage}/${totalPages}
+        ${esc(uiText('showing_page', { from, to, page: currentPage, pages: totalPages }))}
       </small>
     </div>
 
@@ -7997,7 +8717,7 @@ function renderRecordsPage(items, meta) {
       ${
         items.length
           ? items.map(renderRecordCard).join('')
-          : `<div class="empty-chart">No records found</div>`
+          : `<div class="empty-chart">${esc(uiText('no_records_found'))}</div>`
       }
     </div>
 
@@ -8010,7 +8730,7 @@ function renderRecordsPage(items, meta) {
           loadRecords();
         "
       >
-        First
+        ${esc(uiText('first'))}
       </button>
 
       <button
@@ -8021,7 +8741,7 @@ function renderRecordsPage(items, meta) {
           loadRecords();
         "
       >
-        Previous
+        ${esc(uiText('previous'))}
       </button>
 
       <button
@@ -8032,7 +8752,7 @@ function renderRecordsPage(items, meta) {
           loadRecords();
         "
       >
-        Next
+        ${esc(uiText('next'))}
       </button>
 
       <button
@@ -8043,7 +8763,7 @@ function renderRecordsPage(items, meta) {
           loadRecords();
         "
       >
-        Last
+        ${esc(uiText('last'))}
       </button>
     </div>
   `;
