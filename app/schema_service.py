@@ -366,12 +366,22 @@ def output_compat(output: Dict[str, Any]) -> Dict[str, Any]:
     topics = out.get("topics") or []
     issue_category = derive_issue_category(out)
     scopes = risk.get("impact_scopes") or []
+    if not isinstance(scopes, list):
+        scopes = [scopes]
+    if not scopes and risk.get("impact_scope"):
+        mapped = OLD_SCOPE_TO_NEW.get(str(risk.get("impact_scope")).strip().lower())
+        scopes = [mapped] if mapped else []
+    scopes = [s for s in scopes if s and s != "none"]
     old_scope = NEW_SCOPE_TO_OLD.get(scopes[0], scopes[0]) if scopes else "none"
     requires_attention_from = out.get("requires_attention_from") or []
+    if isinstance(requires_attention_from, str):
+        requires_attention_from = [requires_attention_from]
+    requires_attention_from = [x for x in requires_attention_from if x and x != "none"]
 
     out.setdefault("issue_category", issue_category)
-    out.setdefault("requires_admin_attention", bool(requires_attention_from))
+    out["requires_admin_attention"] = bool(requires_attention_from)
     out.setdefault("subtopics", topics[:5])
+    out["requires_attention_from"] = requires_attention_from
     out["risk"] = {
         **risk,
         "impact_scope": old_scope,

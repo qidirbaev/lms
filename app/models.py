@@ -64,6 +64,6 @@ class RecordsFilterRequest(BaseModel):
     issue_category: Optional[str] = None
     course_id: Optional[str] = None
     teacher_id: Optional[str] = None
-    requires_admin_attention: Optional[bool] = None
+    requires_attention_from: Optional[str] = None
     limit: int = 100
     offset: int = 0

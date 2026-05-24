@@ -34,6 +34,13 @@ def safe_list(value, max_len: int, item_type=str, allowed: set | None = None) ->
     return result
 
 
+def safe_string_or_list(value, max_len: int, item_type=str, allowed: set | None = None) -> list:
+    """Normalize canonical arrays while accepting old single-string model output."""
+    if isinstance(value, str):
+        value = [value]
+    return safe_list(value, max_len, item_type, allowed)
+
+
 def extract_json_from_text(text: str) -> dict:
     if not text:
         raise ValueError("Empty text")
@@ -116,12 +123,12 @@ SD_KEYS = [
 
 
 def _normalize_topics(raw: dict) -> list:
-    topics = safe_list(raw.get("topics", []), 5, str, TOPIC_ALLOWED)
+    topics = safe_list(raw.get("topics", []), 4, str, TOPIC_ALLOWED)
     if not topics and raw.get("issue_category"):
         mapped = schema_service.ISSUE_TO_TOPIC.get(str(raw.get("issue_category")).strip().lower())
         if mapped:
             topics = [mapped]
-    return topics[:5]
+    return topics[:4]
 
 
 def _normalize_risk(raw: dict, corrections: list) -> dict:
@@ -184,7 +191,7 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
     if not isinstance(cred_raw, dict):
         cred_raw = {}
 
-    requires = safe_list(raw.get("requires_attention_from", []), 6, str, ATTENTION_ALLOWED)
+    requires = safe_string_or_list(raw.get("requires_attention_from", []), 6, str, ATTENTION_ALLOWED)
     requires = [x for x in requires if x != "none"]
 
     # Compatibility from old boolean.
@@ -213,7 +220,7 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
         "emotion": normalize_choice(raw.get("emotion"), EMOTION_ALLOWED, "indifference"),
         "emotion_intensity": clamp_float(raw.get("emotion_intensity"), 0.5),
         "topics": topics,
-        "keywords": safe_list(raw.get("keywords", []), 5, str),
+        "keywords": safe_list(raw.get("keywords", []), 4, str),
         "risk": risk,
         "satisfaction_dimensions": {key: sd(key, 0.5) for key in SD_KEYS},
         "severity": severity,

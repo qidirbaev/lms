@@ -4,10 +4,16 @@ import re
 import time
 import random
 import asyncio
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, Tuple, List
 
-from google import genai
-from google.genai import types as genai_types
+try:
+    from google import genai
+    from google.genai import types as genai_types
+except Exception:
+    genai = None
+    genai_types = None
 
 from . import config
 from . import logger_service as logger
@@ -101,7 +107,7 @@ Severity describes operational urgency, not emotional tone.
 
 Do NOT mark severity high/critical only because sentiment is negative.
 
-7. requires_attention_from should be true only when:
+7. requires_attention_from should be a non-empty array only when:
 - severity is high or critical
 - risk.probability >= 0.50
 - issue involves fairness_concern with specific evidence
@@ -119,9 +125,9 @@ Risk probability:
 Positive feedback should normally have:
 - risk.types = []
 - risk.probability = 0.0
-- risk.impact_scope = "none"
+- risk.impact_scopes = []
 - severity = "low"
-- requires_attention_from = "none"
+- requires_attention_from = []
 - recommended_action = "no_action_needed"
 
 9. Satisfaction dimensions
@@ -162,7 +168,7 @@ Return this exact JSON structure:
   "risk": {
     "types": ["safety_risk|harassment_abuse|discrimination_bias|corruption_allegation|academic_misconduct|grading_integrity_issue|policy_violation|system_abuse|retaliation_whistleblowing|data_privacy_breach|mental_health_crisis|negligence_malpractice|exploitation_of_students|misinformation_disinformation|legal_ethical_breach"],
     "probability": 0.0,
-    "impact_scope": "individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"
+    "impact_scopes": ["individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"]
   },
   "satisfaction_dimensions": {
     "teaching_quality": 0,
@@ -181,7 +187,7 @@ Return this exact JSON structure:
   "confidence": 0.0,
   "summary_uz": "string",
   "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
-  "requires_attention_from": "none|teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership",
+  "requires_attention_from": ["teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
   "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
 }
 """
@@ -219,7 +225,7 @@ Return this exact structure:
             "risk": {
                 "types": ["safety_risk|harassment_abuse|discrimination_bias|corruption_allegation|academic_misconduct|grading_integrity_issue|policy_violation|system_abuse|retaliation_whistleblowing|data_privacy_breach|mental_health_crisis|negligence_malpractice|exploitation_of_students|misinformation_disinformation|legal_ethical_breach"],
                 "probability": 0.0,
-                "impact_scope": "individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"
+                "impact_scopes": ["individual_student|group_of_students|course_section|teacher_instructor|staff_admin|department|faculty|institute|education_system|external_community|digital_platform"]
             },
             "satisfaction_dimensions": {
                 "teaching_quality": 0,
@@ -238,7 +244,7 @@ Return this exact structure:
             "confidence": 0.0,
             "summary_uz": "string",
             "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
-            "requires_attention_from": "none|teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership",
+            "requires_attention_from": ["teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
             "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
         }
       }
@@ -250,7 +256,7 @@ Rules:
 - Treat each feedback independently.
 - raw_text is primary evidence.
 - Never infer corruption, harassment, discrimination, abuse, or policy violation unless raw_text explicitly suggests it.
-- Positive feedback should normally have low severity, no risk, and no admin attention.
+- Positive feedback should normally have low severity, no risk, and requires_attention_from [].
 - If a field is missing, analyze conservatively.
 - summary_uz must always be Uzbek.
 - topics max 3.
@@ -336,16 +342,19 @@ def prepare_google_credentials() -> str:
     if "private_key" in data:
         data["private_key"] = data["private_key"].replace("\\n", "\n")
 
-    path = "/tmp/gcp-sa.json"
+    path = Path(tempfile.gettempdir()) / "gcp-sa.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False)
 
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
-    return path
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(path)
+    return str(path)
 
 
 def get_genai_client():
     global _client
+
+    if genai is None or genai_types is None:
+        raise RuntimeError("google-genai is not installed. Install dependencies from requirements.txt or use AI_PROVIDER=mock.")
 
     if _client is None:
         prepare_google_credentials()

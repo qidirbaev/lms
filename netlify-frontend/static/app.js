@@ -29,7 +29,7 @@ let activeBatchPoller = null;
 const API_BASE =
   localStorage.getItem('lms_api_base') ||
   window.LMS_API_BASE ||
-  'https://begzatkidirbaev-lms.hf.space';
+  window.location.origin;
 
 const SENTPRO_RUNTIME = {
   provider: 'Vertex AI Endpoint',
@@ -3685,6 +3685,10 @@ function attentionFromOf(x) {
     return out.requires_attention_from.filter(Boolean);
   }
 
+  if (typeof out.requires_attention_from === 'string' && out.requires_attention_from !== 'none') {
+    return [out.requires_attention_from];
+  }
+
   return out.requires_admin_attention ? ['admin'] : [];
 }
 
@@ -3826,7 +3830,7 @@ function renderRecordsMetrics(items) {
   const negative = items.filter(r => recordOutput(r).sentiment === 'negative').length;
   const positive = items.filter(r => recordOutput(r).sentiment === 'positive').length;
   const highRisk = items.filter(r => ['high', 'critical'].includes(String(recordOutput(r).severity || '').toLowerCase())).length;
-  const admin = items.filter(r => recordOutput(r).requires_admin_attention === true).length;
+  const admin = items.filter(r => requiresAttentionOf(recordOutput(r))).length;
 
   const avgConfidence = total
     ? items.reduce((s, r) => s + num01(recordOutput(r).confidence ?? recordOutput(r).confidence_score ?? 0), 0) / total
@@ -4976,7 +4980,9 @@ function renderTestResult(d) {
   const credibilityPct = pct(credibility.score);
   const fairnessPct = pct(fairness.score);
 
-  const adminAttention = out.requires_admin_attention ? "Ha" : "Yo‘q";
+  const attentionTargets = attentionFromOf(out);
+  const riskScopes = riskScopesOf(out);
+  const adminAttention = attentionTargets.length ? "Ha" : "Yo‘q";
   const corrections = d.corrections || [];
 
   $('test-result-panel').innerHTML = `
@@ -5002,7 +5008,7 @@ function renderTestResult(d) {
         ${insightCard('flame', 'Emotsiya', out.emotion || 'indifference', `intensivlik ${pct(out.emotion_intensity)}%`)}
         ${insightCard('gauge', 'Jiddiylik', severityText(out.severity), `rank ${severityRank(out.severity)}/4`, `severity-${out.severity || 'low'}`)}
         ${insightCard('shield-alert', 'Xavf ehtimoli', `${riskPct}%`, riskTypes.length ? riskTypes.join(', ') : 'xavf turi aniqlanmadi', riskPct >= 50 ? 'severity-high' : '')}
-        ${insightCard('user-check', 'Admin e’tibori', adminAttention, actionHuman(out.recommended_action), out.requires_admin_attention ? 'severity-high' : 'signal-positive')}
+        ${insightCard('user-check', 'Admin e’tibori', adminAttention, attentionTargets.length ? attentionTargets.join(', ') : actionHuman(out.recommended_action), attentionTargets.length ? 'severity-high' : 'signal-positive')}
         ${insightCard('brain-circuit', 'SentoPro runtime', SENTPRO_RUNTIME.model, `${SENTPRO_RUNTIME.provider} · ${SENTPRO_RUNTIME.endpoint}`, 'signal-positive' )}
       </div>
 
@@ -5017,7 +5023,7 @@ function renderTestResult(d) {
 
           ${scoreBar('Sentiment score', out.sentiment_score, out.sentiment || 'neutral')}
           ${scoreBar('Confidence', out.confidence, 'model ishonchliligi')}
-          ${scoreBar('Risk probability', risk.probability, risk.impact_scope || 'none')}
+          ${scoreBar('Risk probability', risk.probability, riskScopes.length ? riskScopes.join(', ') : 'none')}
           ${scoreBar('Credibility', credibility.score, 'feedback ishonchliligi')}
           ${scoreBar('Fairness signal', fairness.score, fairness.is_one_sided ? 'bir tomonlama signal' : 'balanced signal')}
         </div>
@@ -6795,7 +6801,7 @@ async function buildSPilotContext() {
       total_loaded: records.length,
       latest: records.slice(0, 20),
       negative_count: records.filter(r => r.sentiment === 'negative').length,
-      admin_attention_count: records.filter(r => r.requires_admin_attention).length,
+      admin_attention_count: records.filter(r => attentionFromOf(r).length).length,
       high_or_critical_count: records.filter(r => ['high', 'critical'].includes(String(r.severity || '').toLowerCase())).length
     },
     logs: {
@@ -6922,7 +6928,7 @@ function buildExecutiveReportData(dashboard, records) {
 
   const riskRecords = records
     .map(r => ({ r, out: recordOut(r) }))
-    .filter(x => ['high', 'critical'].includes(String(x.out.severity || '').toLowerCase()) || x.out.requires_admin_attention)
+    .filter(x => ['high', 'critical'].includes(String(x.out.severity || '').toLowerCase()) || attentionFromOf(x.out).length)
     .slice(0, 4);
 
   const issuePairs = topPairs(
@@ -7614,7 +7620,7 @@ async function evaluateNotifierRules(s, dashboard, records, logs) {
   }
 
   if (s.rules.adminAttention) {
-    for (const o of outputs.filter(x => x.requires_admin_attention)) {
+    for (const o of outputs.filter(x => attentionFromOf(x).length)) {
       await sendNotifierMessage(
         'Admin attention required',
         `Feedback ID: ${o.feedback_id || 'unknown'}\nIssue: ${o.issue_category || 'unknown'}\nAction: ${o.recommended_action || 'review'}\nSummary: ${o.summary_uz || 'No summary'}`,

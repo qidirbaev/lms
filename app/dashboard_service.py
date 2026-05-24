@@ -216,7 +216,7 @@ def aggregate_overview() -> dict:
     confidences = [r.get("output", {}).get("confidence", 0.5) for r in records]
 
     high_critical = severities.get("high", 0) + severities.get("critical", 0)
-    admin_attention = sum(1 for r in records if r.get("output", {}).get("requires_admin_attention", False))
+    admin_attention = sum(1 for r in records if r.get("output", {}).get("requires_attention_from"))
 
     top_issue = issues.most_common(1)[0][0] if issues else "none"
 
@@ -375,7 +375,7 @@ def aggregate_teachers() -> dict:
         clarity_vals = [r.get("output", {}).get("satisfaction_dimensions", {}).get("clarity") for r in recs]
         fairness_issues = sum(1 for r in recs if r.get("output", {}).get("issue_category") == "fairness_concern")
         high_count = severities.get("high", 0) + severities.get("critical", 0)
-        admin_count = sum(1 for r in recs if r.get("output", {}).get("requires_admin_attention", False))
+        admin_count = sum(1 for r in recs if r.get("output", {}).get("requires_attention_from"))
 
         name = recs[0].get("teacher_fullname", tid)
         role = recs[0].get("teacher_role", "")
@@ -481,13 +481,15 @@ def aggregate_risks() -> dict:
             "risk_types": risk.get("types", []),
             "probability": risk.get("probability", 0.0),
             "impact_scope": risk.get("impact_scope", "none"),
+            "impact_scopes": risk.get("impact_scopes", []),
             "severity": r.get("output", {}).get("severity"),
             "course_id": r.get("course_id"),
             "teacher_id": r.get("teacher_id"),
             "teacher_fullname": r.get("teacher_fullname"),
             "recommended_action": r.get("output", {}).get("recommended_action"),
             "summary_uz": r.get("output", {}).get("summary_uz", ""),
-            "requires_admin_attention": r.get("output", {}).get("requires_admin_attention", False),
+            "requires_attention_from": r.get("output", {}).get("requires_attention_from", []),
+            "requires_admin_attention": bool(r.get("output", {}).get("requires_attention_from")),
             "confidence": r.get("output", {}).get("confidence", 0),
         })
 

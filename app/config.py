@@ -3,7 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-STATIC_DIR = BASE_DIR / "static"
+STATIC_DIR = Path(os.getenv("STATIC_DIR", str(BASE_DIR / "netlify-frontend")))
 
 # AI provider: "gemma" or "mock"
 AI_PROVIDER = os.getenv("AI_PROVIDER", "mock").lower()
