@@ -7499,16 +7499,26 @@ function addSPilotThinking() {
   el.dataset.thinking = 'true';
   el.innerHTML = `
     <div class="spilot-bubble">
-      <span class="spilot-thinking">
-        Running SentoPro reasoning pipeline
-        <span></span><span></span><span></span>
-      </span>
+      <div class="spilot-thinking-card" role="status" aria-live="polite">
+        <div class="spilot-thinking-mark">
+          <i data-lucide="sparkles"></i>
+        </div>
+        <div class="spilot-thinking-copy">
+          <b>Thinking through your question</b>
+          <span>Reading context, signals, and recent records</span>
+        </div>
+        <div class="spilot-thinking-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="spilot-thinking-rail" aria-hidden="true"><i></i></div>
+      </div>
     </div>
     <div class="spilot-meta">SentoPro Runtime · live inference</div>
   `;
 
   box.appendChild(el);
   box.scrollTop = box.scrollHeight;
+  renderIcons();
   return el;
 }
 

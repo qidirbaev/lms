@@ -7808,22 +7808,99 @@ body.is-loading::after {
   color: var(--text);
 }
 
-.spilot-thinking {
-  display: inline-flex;
+.spilot-thinking-card {
+  position: relative;
+  width: min(100%, 340px);
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
-  gap: .35rem;
+  gap: .72rem;
+  padding: .72rem .8rem .86rem;
+  overflow: hidden;
 }
 
-.spilot-thinking span {
-  width: 5px;
-  height: 5px;
+.spilot-thinking-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-text);
+  background:
+    linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--info) 48%, var(--accent)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 24%, transparent),
+    0 14px 30px color-mix(in srgb, var(--info) 18%, transparent);
+}
+
+.spilot-thinking-mark svg {
+  width: 17px !important;
+  height: 17px !important;
+}
+
+.spilot-thinking-copy {
+  display: grid;
+  gap: .18rem;
+  min-width: 0;
+}
+
+.spilot-thinking-copy b {
+  color: var(--text);
+  font-size: .84rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.spilot-thinking-copy span {
+  color: var(--text-3);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.spilot-thinking-dots {
+  display: inline-flex;
+  gap: .25rem;
+  align-items: center;
+  justify-content: center;
+  padding-left: .25rem;
+}
+
+.spilot-thinking-dots span {
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
-  background: var(--text-3);
+  background: color-mix(in srgb, var(--info) 60%, var(--text-3));
   animation: dotPulse 1s ease-in-out infinite;
 }
 
-.spilot-thinking span:nth-child(2) { animation-delay: .14s; }
-.spilot-thinking span:nth-child(3) { animation-delay: .28s; }
+.spilot-thinking-dots span:nth-child(2) { animation-delay: .14s; }
+.spilot-thinking-dots span:nth-child(3) { animation-delay: .28s; }
+
+.spilot-thinking-rail {
+  position: absolute;
+  left: .8rem;
+  right: .8rem;
+  bottom: .46rem;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  overflow: hidden;
+}
+
+.spilot-thinking-rail i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--info), var(--pos), var(--accent));
+  animation: spilotThinkingSweep 1.35s cubic-bezier(.4,0,.2,1) infinite;
+}
+
+@keyframes spilotThinkingSweep {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(260%); }
+}
 
 .spilot-suggestions {
   padding: .75rem 1rem;
@@ -7912,18 +7989,14 @@ body:not(.authenticated) .spilot-drawer {
 }
 
 .spilot-msg.assistant[data-thinking="true"] .spilot-bubble {
-  min-height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: .85rem 1rem;
-}
-
-.spilot-thinking {
-  width: 100%;
-  justify-content: center;
-  color: var(--text-2);
-  font-size: .82rem;
+  min-height: 86px;
+  padding: 0;
+  border-color: color-mix(in srgb, var(--info) 22%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 94%, var(--info)), var(--bg-2));
+  box-shadow:
+    0 14px 34px color-mix(in srgb, var(--info) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
 }
 
 #overview-body > div > div.overview-grid-main > div.card.overview-map-card > div.overview-health-layout > div.overview-health-orb.positive {
