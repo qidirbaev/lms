@@ -70,6 +70,7 @@ Use student_context to improve interpretation:
 - Rating 1–2 usually supports negative interpretation unless raw_text is clearly positive.
 - If text and rating conflict, lower confidence and mention the conflict briefly in summary_uz.
 - Rating alone must not create severe risk.
+- If raw_text explicitly alleges corruption, bribery, harassment, safety, or other serious risk, do not let a positive/random rating reduce the risk, severity, or escalation.
 
 4. Credibility scoring
 feedback_credibility.score means how actionable/reliable this single feedback is.
@@ -122,6 +123,8 @@ Do NOT mark severity high/critical only because sentiment is negative.
 
 8. Risk rules
 Risk types must be empty [] unless explicit evidence exists in raw_text.
+- Money-request wording involving a teacher/instructor (for example "pul so'radi", "pul soravotti", "pul talab", "pora", "pul evaziga", "domla pul") is corruption_allegation, not confirmed corruption.
+- corruption_allegation should use impact_scopes including teacher_instructor and department, severity high or critical, and human follow-up.
 
 Risk probability:
 - 0.00 if no explicit risk
@@ -136,6 +139,7 @@ Positive feedback should normally have:
 - severity = "low"
 - requires_attention_from = []
 - recommended_action = "no_action_needed"
+Exception: explicit risk evidence in raw_text overrides a positive or random-looking rating.
 
 9. Satisfaction dimensions
 Use both text and context.
@@ -194,8 +198,8 @@ Return this exact JSON structure:
   "confidence": 0.0,
   "summary_uz": "string",
   "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
-  "requires_attention_from": ["teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
-  "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
+  "requires_attention_from": ["teacher_instructor|department_head|academic_affairs|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
+  "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_incident|investigate_misconduct|emergency_intervention|no_action_needed"
 }
 """
 
@@ -251,8 +255,8 @@ Return this exact structure:
             "confidence": 0.0,
             "summary_uz": "string",
             "representative_label": "complaint|praise|suggestion|incident|query|concern|other",
-            "requires_attention_from": ["teacher_instructor|department_head|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
-            "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_misconduct|emergency_intervention|no_action_needed"
+            "requires_attention_from": ["teacher_instructor|department_head|academic_affairs|student_affairs|disability_support|counseling_mental_health|academic_integrity_office|legal_compliance|it_platform_team|executive_leadership"],
+            "recommended_action": "improve_teaching|adjust_assessment|update_content|clarify_communication|provide_student_support|address_wellbeing|fix_infrastructure|investigate_incident|investigate_misconduct|emergency_intervention|no_action_needed"
         }
       }
     }
@@ -265,7 +269,8 @@ Rules:
 - Numeric scores are backend-authoritative; return conservative placeholders only.
 - Do not invent satisfaction dimensions. Use null when raw_text does not directly mention that dimension.
 - Never infer corruption, harassment, discrimination, abuse, or policy violation unless raw_text explicitly suggests it.
-- Positive feedback should normally have low severity, no risk, and requires_attention_from [].
+- Money-request wording involving a teacher/instructor ("pul so'radi", "pul soravotti", "pul talab", "pora", "domla pul") is corruption_allegation and needs human investigation, not a factual conclusion.
+- Positive feedback should normally have low severity, no risk, and requires_attention_from []; explicit risk evidence overrides a positive/random-looking rating.
 - If a field is missing, analyze conservatively.
 - summary_uz must always be Uzbek.
 - topics max 3.
@@ -441,7 +446,8 @@ def build_context_signals(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     ]
 
     risk_markers = [
-        "pora", "pul so'radi", "pul soradi", "korrupsiya",
+        "pora", "pul so'radi", "pul soradi", "pul soravot", "pul sorayap",
+        "pul talab", "pul evaziga", "domla pul", "haq so'radi", "otkat", "korrupsiya",
         "haqorat", "kamsit", "tahdid", "bosim",
         "corruption", "bribe", "harassment", "discrimination"
     ]
@@ -600,7 +606,11 @@ def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     negative_words = ["yomon", "qiyin", "tushunmadim", "chummadim", "chunmadim", "tushunarsiz", "adolatsiz", "nohaq", "muammo", "zerikarli", "shikoyat", "bad"]
     assessment_words = ["baho", "baholash", "ball", "imtihon", "test", "grading", "assessment", "mezon"]
     technical_words = ["platforma", "login", "xato", "texnik", "server", "lms", "kirmayapti"]
-    corruption_words = ["pora", "pul so'radi", "pul soradi", "korrupsiya", "corruption"]
+    corruption_words = [
+        "pora", "pul so'radi", "pul soradi", "pul soravot", "pul sorayap",
+        "pul talab", "pul evaziga", "domla pul", "haq so'radi", "otkat",
+        "korrupsiya", "corruption"
+    ]
     harassment_words = ["haqorat", "qo'pol", "qopol", "kamsit", "bosim", "harassment"]
 
     pos = any(w in text for w in positive_words)
@@ -660,10 +670,10 @@ def mock_analyze(input_to_system: Dict[str, Any]) -> Dict[str, Any]:
     if any(w in text for w in corruption_words):
         risk_types.append("corruption_allegation")
         risk_probability = 0.8
-        impact_scopes = ["teacher_instructor"]
-        severity = "critical"
-        requires_attention_from = ["department_head", "legal_compliance"]
-        recommended_action = "investigate_misconduct"
+        impact_scopes = ["teacher_instructor", "department"]
+        severity = "high"
+        requires_attention_from = ["department_head", "academic_affairs"]
+        recommended_action = "investigate_incident"
     elif any(w in text for w in harassment_words):
         risk_types.append("harassment_abuse")
         risk_probability = 0.75
@@ -754,7 +764,7 @@ def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, 
     if is_vague and guarded.get("severity") in {"high", "critical"}:
         guarded["severity"] = "medium" if guarded.get("sentiment") == "negative" else "low"
         guarded["requires_attention_from"] = []
-        if guarded.get("recommended_action") in {"investigate_misconduct", "emergency_intervention"}:
+        if guarded.get("recommended_action") in {"investigate_misconduct", "investigate_incident", "emergency_intervention"}:
             guarded["recommended_action"] = "clarify_communication"
         corrections.append("context_guardrail: reduced severity for vague feedback")
 
@@ -770,7 +780,7 @@ def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, 
         cred = guarded.get("feedback_credibility", {}) or {}
         cred["score"] = min(float(cred.get("score", 0.6) or 0.6), 0.50)
         guarded["feedback_credibility"] = cred
-        if guarded.get("recommended_action") in {"investigate_misconduct", "emergency_intervention"}:
+        if guarded.get("recommended_action") in {"investigate_misconduct", "investigate_incident", "emergency_intervention"}:
             guarded["recommended_action"] = "clarify_communication"
         corrections.append("context_guardrail: lowered confidence for vague feedback with low attendance context")
 
@@ -789,7 +799,7 @@ def apply_context_guardrails(output: Dict[str, Any], input_to_system: Dict[str, 
     if guarded.get("severity") in {"high", "critical"} or final_risk_prob >= 0.5:
         if not guarded.get("requires_attention_from"):
             guarded["requires_attention_from"] = ["department_head"]
-    elif guarded.get("recommended_action") in {"investigate_misconduct", "emergency_intervention"}:
+    elif guarded.get("recommended_action") in {"investigate_misconduct", "investigate_incident", "emergency_intervention"}:
         if not guarded.get("requires_attention_from"):
             guarded["requires_attention_from"] = ["department_head"]
     else:

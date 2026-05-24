@@ -91,6 +91,31 @@ class DeterministicScoringTests(unittest.TestCase):
         self.assertEqual(output["risk"], {"types": [], "probability": 0.0, "impact_scopes": []})
         self.assertEqual(dims["overall_satisfaction"], 0.756)
 
+    def test_corruption_allegation_slang_triggers_risk_even_with_positive_rating(self):
+        item = input_to_system(
+            "Umuman chummadim mandan pul soravottu yu domla",
+            4,
+            attendance=0.91,
+            gpa=4.36,
+            year=5,
+            feedback_id="custom-446116",
+        )
+        output, _ = apply_deterministic_scores(
+            model_output("custom-446116", "negative", "confusion"),
+            item,
+        )
+
+        self.assertIn("corruption_allegation", output["risk"]["types"])
+        self.assertEqual(output["risk"]["impact_scopes"], ["teacher_instructor", "department"])
+        self.assertGreaterEqual(output["risk"]["probability"], 0.80)
+        self.assertGreaterEqual(output["risk_impact_score"], 0.70)
+        self.assertEqual(output["severity"], "high")
+        self.assertEqual(output["requires_attention_from"], ["department_head", "academic_affairs"])
+        self.assertEqual(output["recommended_action"], "investigate_incident")
+        self.assertEqual(output["sentiment_score"], 0.2)
+        self.assertTrue(output["score_audit"]["components"]["rating_ignored_for_risk"])
+        self.assertEqual(output["score_audit"]["components"]["rating_weight"], 0.0)
+
     def test_same_input_same_labels_is_byte_stable(self):
         item = input_to_system("chummadim", 2, feedback_id="stable-1")
         raw = model_output("stable-1", "negative", "confusion")

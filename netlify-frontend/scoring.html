@@ -153,7 +153,7 @@
           <div class="method-card-icon"><i data-lucide="weight"></i></div>
           <h3>rating_weight</h3>
           <code>0.25 if vague · 0.15 if specific · 0 if no rating</code>
-          <p>If rating and text strongly conflict, rating weight is capped at <b>0.10</b>.</p>
+          <p>If rating and text strongly conflict, rating weight is capped at <b>0.10</b>. For explicit risk allegations with random-positive ratings, rating_weight becomes <b>0</b>.</p>
         </article>
       </div>
     </section>
@@ -230,13 +230,13 @@
         </article>
         <article>
           <h3>Dimension score</h3>
-          <code>null if no direct evidence; otherwise clip(0.80*polarity + 0.15*sentiment_score + 0.05*rating_score + context_modifier)</code>
+          <code>null if no direct evidence; otherwise clip(0.80*polarity + 0.15*sentiment_score + 0.05*effective_rating_score + context_modifier)</code>
           <p>Only dimensions with direct raw-text evidence contribute to their dashboard average.</p>
         </article>
         <article>
           <h3>Overall satisfaction</h3>
-          <code>clip(0.70*sentiment_score + 0.20*rating_score + 0.10*mean(non_null_dimensions or sentiment_score))</code>
-          <p>Overall always exists because it summarizes the feedback as a whole.</p>
+          <code>clip(0.70*sentiment_score + 0.20*effective_rating_score + 0.10*mean(non_null_dimensions or sentiment_score))</code>
+          <p>Overall always exists. If explicit risk evidence appears, a positive/random rating is replaced by the text-derived sentiment score.</p>
         </article>
       </div>
     </section>
@@ -262,7 +262,7 @@
         <article class="method-risk-card accent">
           <h3>Explicit risk probability</h3>
           <code>clip(base_by_evidence_level + 0.10*specificity + 0.03*min(type_count,3))</code>
-          <p>Evidence bases: weak 0.35, explicit 0.55, serious 0.75.</p>
+          <p>Evidence bases: weak 0.35, explicit 0.55, serious 0.75. Teacher money-request wording is treated as corruption_allegation and routed to teacher_instructor + department for investigation.</p>
         </article>
 
         <article class="method-risk-card">

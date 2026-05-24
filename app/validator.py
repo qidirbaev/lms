@@ -84,7 +84,7 @@ LABEL_ALLOWED = {"complaint", "praise", "suggestion", "incident", "query", "conc
 ACTION_ALLOWED = {
     "improve_teaching", "adjust_assessment", "update_content", "clarify_communication",
     "provide_student_support", "address_wellbeing", "fix_infrastructure",
-    "investigate_misconduct", "emergency_intervention", "no_action_needed",
+    "investigate_misconduct", "investigate_incident", "emergency_intervention", "no_action_needed",
 }
 RISK_TYPE_ALLOWED = {
     "safety_risk", "harassment_abuse", "discrimination_bias", "corruption_allegation",
@@ -110,7 +110,7 @@ SCOPE_ALLOWED = {
     "none", "course", "teacher", "system",
 }
 ATTENTION_ALLOWED = {
-    "none", "teacher_instructor", "department_head", "student_affairs",
+    "none", "teacher_instructor", "department_head", "academic_affairs", "student_affairs",
     "disability_support", "counseling_mental_health", "academic_integrity_office",
     "legal_compliance", "it_platform_team", "executive_leadership",
 }
@@ -241,7 +241,7 @@ def validate_output(raw: dict, feedback_id: str) -> tuple[dict, list]:
         if output["severity"] not in {"none", "low"}:
             output["severity"] = "low"
             corrections.append("Fixed severity: positive non-risk feedback set to low")
-        if output["recommended_action"] in {"investigate_misconduct", "emergency_intervention"}:
+        if output["recommended_action"] in {"investigate_misconduct", "investigate_incident", "emergency_intervention"}:
             output["recommended_action"] = "no_action_needed"
             corrections.append("Fixed recommended_action: removed escalation for positive non-risk feedback")
         output["requires_attention_from"] = []

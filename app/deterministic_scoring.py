@@ -139,6 +139,11 @@ RISK_MARKERS = [
     ("pora", "corruption_allegation", "serious", "teacher_instructor"),
     ("pul soradi", "corruption_allegation", "serious", "teacher_instructor"),
     ("pul so'radi", "corruption_allegation", "serious", "teacher_instructor"),
+    ("pul talab", "corruption_allegation", "serious", "teacher_instructor"),
+    ("pul evaziga", "corruption_allegation", "serious", "teacher_instructor"),
+    ("haq soradi", "corruption_allegation", "serious", "teacher_instructor"),
+    ("haq so'radi", "corruption_allegation", "serious", "teacher_instructor"),
+    ("otkat", "corruption_allegation", "serious", "teacher_instructor"),
     ("korrupsiya", "corruption_allegation", "serious", "department"),
     ("corruption", "corruption_allegation", "serious", "department"),
     ("bribe", "corruption_allegation", "serious", "teacher_instructor"),
@@ -156,6 +161,18 @@ RISK_MARKERS = [
     ("suicide", "mental_health_crisis", "serious", "individual_student"),
     ("ozimga zarar", "mental_health_crisis", "serious", "individual_student"),
 ]
+
+RISK_REGEX_MARKERS = [
+    (r"\b(?:pul|pora|haq)\s+(?:so'?ra\w*|sora\w*|soravot\w*|sorayap\w*|talab\s+qil\w*)", "money request wording", "corruption_allegation", "serious", "teacher_instructor"),
+    (r"\b(?:domla|ustoz|muallim|teacher|o'?qit\w*|oqit\w*)\b.{0,48}\b(?:pul|pora|haq)\b", "teacher money mention", "corruption_allegation", "serious", "teacher_instructor"),
+    (r"\b(?:pul|pora|haq)\b.{0,48}\b(?:domla|ustoz|muallim|teacher|o'?qit\w*|oqit\w*)\b", "money teacher mention", "corruption_allegation", "serious", "teacher_instructor"),
+    (r"\bpul\s+(?:ber\w*|yig'?\w*)\b.{0,48}\b(?:domla|ustoz|muallim|teacher|o'?qit\w*|oqit\w*)\b", "money given to teacher", "corruption_allegation", "serious", "teacher_instructor"),
+]
+
+CORRUPTION_RISK_TYPE = "corruption_allegation"
+CORRUPTION_REQUIRED_SCOPES = ["teacher_instructor", "department"]
+CORRUPTION_ATTENTION = ["department_head", "academic_affairs"]
+CORRUPTION_RECOMMENDED_ACTION = "investigate_incident"
 
 RISK_LEVEL_BASE = {
     "weak": 0.35,
@@ -283,14 +300,26 @@ def _dimension_hits(text: str) -> dict[str, dict[str, Any]]:
 
 def _risk_hits(text: str) -> list[dict[str, str]]:
     hits = []
+    seen = set()
+
+    def add_hit(marker: str, risk_type: str, level: str, scope: str) -> None:
+        key = (marker, risk_type, scope)
+        if key in seen:
+            return
+        seen.add(key)
+        hits.append({
+            "marker": marker,
+            "type": risk_type,
+            "level": level,
+            "scope": scope,
+        })
+
     for phrase, risk_type, level, scope in RISK_MARKERS:
         if _contains(text, phrase):
-            hits.append({
-                "marker": phrase,
-                "type": risk_type,
-                "level": level,
-                "scope": scope,
-            })
+            add_hit(phrase, risk_type, level, scope)
+    for pattern, marker, risk_type, level, scope in RISK_REGEX_MARKERS:
+        if re.search(pattern, text, flags=re.UNICODE):
+            add_hit(marker, risk_type, level, scope)
     return hits
 
 
@@ -334,7 +363,9 @@ def _text_features(input_to_system: dict, output: dict) -> dict[str, Any]:
 
     sentiment = str(output.get("sentiment") or "neutral").lower()
     label_score = LABEL_SCORES.get(sentiment, 0.5)
+    rating = _rating_value(input_to_system)
     rating_score = _rating_score(input_to_system)
+    rating_ignored_for_risk = rating is not None and rating_score >= 0.5 and bool(risk_hits)
     alignment = clip(1.0 - abs(label_score - rating_score))
 
     return {
@@ -355,8 +386,9 @@ def _text_features(input_to_system: dict, output: dict) -> dict[str, Any]:
         "context_modifier": context_modifier,
         "sentiment_label": sentiment,
         "label_score": label_score,
-        "rating": _rating_value(input_to_system),
+        "rating": rating,
         "rating_score": rating_score,
+        "rating_ignored_for_risk": rating_ignored_for_risk,
         "alignment": round4(alignment),
         "rating_extremity": round4(abs(rating_score - 0.5) * 2),
     }
@@ -364,6 +396,8 @@ def _text_features(input_to_system: dict, output: dict) -> dict[str, Any]:
 
 def _rating_weight(features: dict[str, Any]) -> float:
     if features["rating"] is None:
+        return 0.0
+    if features.get("rating_ignored_for_risk"):
         return 0.0
     weight = 0.25 if features["is_vague"] else 0.15
     if abs(features["label_score"] - features["rating_score"]) > 0.45:
@@ -388,7 +422,7 @@ def _dimension_polarity(key: str, evidence: dict[str, Any], sentiment_score: flo
 def _calculate_dimensions(features: dict[str, Any], sentiment_score: float) -> tuple[dict[str, float | None], dict[str, Any]]:
     dims: dict[str, float | None] = {}
     audit: dict[str, Any] = {}
-    rating_score = features["rating_score"]
+    rating_score = sentiment_score if features.get("rating_ignored_for_risk") else features["rating_score"]
     context_modifier = features["context_modifier"]
 
     for key in SD_KEYS:
@@ -446,10 +480,14 @@ def _calculate_risk(output: dict, features: dict[str, Any]) -> tuple[dict[str, A
     strongest = max((hit["level"] for hit in hits), key=lambda x: level_order.get(x, 1))
     base = RISK_LEVEL_BASE.get(strongest, 0.35)
     probability = round4(base + (0.10 * features["specificity"]) + (0.03 * min(len(risk_types), 3)))
+    if CORRUPTION_RISK_TYPE in risk_types:
+        probability = max(probability, 0.80 if strongest in {"explicit", "serious"} else 0.65)
 
     model_scopes = raw_risk.get("impact_scopes") if isinstance(raw_risk.get("impact_scopes"), list) else []
     hit_scopes = [hit["scope"] for hit in hits]
     scopes = [scope for scope in hit_scopes + model_scopes if scope in SCOPE_WEIGHTS]
+    if CORRUPTION_RISK_TYPE in risk_types:
+        scopes.extend(CORRUPTION_REQUIRED_SCOPES)
     scopes = list(dict.fromkeys(scopes))[:5]
     if not scopes:
         scopes = ["individual_student"]
@@ -465,14 +503,43 @@ def _calculate_risk(output: dict, features: dict[str, Any]) -> tuple[dict[str, A
         "base_by_evidence_level": base,
         "max_scope_weight": max_scope_weight,
         "severity_weight": severity_weight,
+        "policy_overrides": ["corruption_allegation_scope_floor"] if CORRUPTION_RISK_TYPE in risk_types else [],
         "risk_impact_score": risk_impact_score,
     }
+
+
+def _severity_at_least(current: Any, minimum: str) -> str:
+    order = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+    current_value = str(current or "low").lower()
+    return current_value if order.get(current_value, 1) >= order[minimum] else minimum
+
+
+def _risk_types_from_features(features: dict[str, Any]) -> set[str]:
+    return {str(hit.get("type") or "").strip().lower() for hit in features.get("risk_hits", []) if hit.get("type")}
+
+
+def _merge_unique(existing: Any, additions: list[str]) -> list[str]:
+    base = existing if isinstance(existing, list) else []
+    return list(dict.fromkeys([str(x).strip().lower() for x in base + additions if x]))[:6]
+
+
+def _apply_risk_policy(scored: dict, features: dict[str, Any], corrections: list[str]) -> None:
+    risk_types = _risk_types_from_features(features)
+    if CORRUPTION_RISK_TYPE not in risk_types:
+        return
+
+    previous_severity = scored.get("severity")
+    scored["severity"] = _severity_at_least(previous_severity, "high")
+    scored["recommended_action"] = CORRUPTION_RECOMMENDED_ACTION
+    scored["requires_attention_from"] = _merge_unique(scored.get("requires_attention_from"), CORRUPTION_ATTENTION)
+    corrections.append("deterministic_scoring: escalated explicit corruption allegation for human investigation")
 
 
 def apply_deterministic_scores(output: dict, input_to_system: dict) -> tuple[dict, list[str]]:
     corrections: list[str] = []
     scored = dict(output or {})
     features = _text_features(input_to_system, scored)
+    _apply_risk_policy(scored, features, corrections)
 
     rating_weight = _rating_weight(features)
     sentiment_score = round4(
@@ -515,7 +582,7 @@ def apply_deterministic_scores(output: dict, input_to_system: dict) -> tuple[dic
     risk, risk_impact_score, risk_audit = _calculate_risk(scored, features)
 
     if not risk["types"]:
-        if scored.get("recommended_action") in {"investigate_misconduct", "emergency_intervention"}:
+        if scored.get("recommended_action") in {"investigate_misconduct", "investigate_incident", "emergency_intervention"}:
             scored["recommended_action"] = "clarify_communication"
             corrections.append("deterministic_scoring: downgraded escalation action without explicit risk evidence")
         if scored.get("severity") not in {"high", "critical"}:
@@ -553,6 +620,8 @@ def apply_deterministic_scores(output: dict, input_to_system: dict) -> tuple[dic
             "alignment": features["alignment"],
             "context_modifier": features["context_modifier"],
             "rating_weight": rating_weight,
+            "rating_ignored_for_risk": features["rating_ignored_for_risk"],
+            "effective_rating_score": sentiment_score if features["rating_ignored_for_risk"] else features["rating_score"],
             "attendance_signal": features["attendance_signal"],
             "domain_evidence": features["domain_evidence"],
             "is_vague": features["is_vague"],
@@ -563,13 +632,13 @@ def apply_deterministic_scores(output: dict, input_to_system: dict) -> tuple[dic
         "dimension_evidence": dimension_audit,
         "risk": risk_audit,
         "formulas": {
-            "sentiment_score": "clip((1-rating_weight)*label_score + rating_weight*rating_score + context_modifier)",
+            "sentiment_score": "clip((1-rating_weight)*label_score + rating_weight*rating_score + context_modifier); rating_weight=0 for explicit risk with non-negative/random-positive rating",
             "credibility": "clip(0.10 + 0.35*specificity + 0.25*alignment + 0.15*attendance_signal + 0.15*domain_evidence), capped for vague/spam-like text",
             "confidence": "clip(0.20 + 0.35*specificity + 0.20*alignment + 0.25*domain_evidence), capped for vague text",
             "emotion_intensity": "clip(0.55*emotion_base + 0.25*abs(sentiment_score-0.5)*2 + 0.10*rating_extremity + 0.10*specificity)",
-            "dimension_score": "null if no direct evidence; otherwise clip(0.80*dimension_evidence_polarity + 0.15*sentiment_score + 0.05*rating_score + context_modifier)",
-            "overall_satisfaction": "clip(0.70*sentiment_score + 0.20*rating_score + 0.10*mean(non_null_dimension_scores or sentiment_score))",
-            "risk_probability": "0 if no explicit risk; otherwise clip(base_by_evidence_level + 0.10*specificity + 0.03*min(type_count,3))",
+            "dimension_score": "null if no direct evidence; otherwise clip(0.80*dimension_evidence_polarity + 0.15*sentiment_score + 0.05*effective_rating_score + context_modifier)",
+            "overall_satisfaction": "clip(0.70*sentiment_score + 0.20*effective_rating_score + 0.10*mean(non_null_dimension_scores or sentiment_score)); if rating_ignored_for_risk, effective_rating_score=sentiment_score",
+            "risk_probability": "0 if no explicit risk; otherwise clip(base_by_evidence_level + 0.10*specificity + 0.03*min(type_count,3)); corruption_allegation floor applies for explicit/serious teacher money-request evidence",
             "risk_impact_score": "0 if no risk; otherwise clip(0.55*risk_probability + 0.30*max_scope_weight + 0.15*severity_weight)",
         },
         "scores": {

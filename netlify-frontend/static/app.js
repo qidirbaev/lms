@@ -982,6 +982,7 @@ const TAXONOMY_LABELS = {
       provide_student_support: 'Talabaga yordam berish',
       address_wellbeing: 'Farovonlik masalasini ko‘rish',
       fix_infrastructure: 'Infratuzilmani tuzatish',
+      investigate_incident: 'Hodisani tekshirish',
       investigate_misconduct: 'Nojo‘ya holatni tekshirish',
       emergency_intervention: 'Shoshilinch aralashuv'
     },
@@ -1002,6 +1003,7 @@ const TAXONOMY_LABELS = {
     attention_role: {
       teacher_instructor: 'O‘qituvchi',
       department_head: 'Kafedra mudiri',
+      academic_affairs: 'Akademik ishlar',
       student_affairs: 'Talabalar bilan ishlash',
       disability_support: 'Inklyuziv yordam',
       counseling_mental_health: 'Psixologik yordam',
@@ -1085,6 +1087,7 @@ const TAXONOMY_LABELS = {
       provide_student_support: 'Provide student support',
       address_wellbeing: 'Address wellbeing',
       fix_infrastructure: 'Fix infrastructure',
+      investigate_incident: 'Investigate incident',
       investigate_misconduct: 'Investigate misconduct',
       emergency_intervention: 'Emergency intervention'
     },
@@ -1105,6 +1108,7 @@ const TAXONOMY_LABELS = {
     attention_role: {
       teacher_instructor: 'Teacher / instructor',
       department_head: 'Department head',
+      academic_affairs: 'Academic affairs',
       student_affairs: 'Student affairs',
       disability_support: 'Disability support',
       counseling_mental_health: 'Counseling / mental health',
@@ -1209,6 +1213,7 @@ const TAXONOMY_LABELS = {
       provide_student_support: 'Оказать поддержку студенту',
       address_wellbeing: 'Разобрать вопрос благополучия',
       fix_infrastructure: 'Исправить инфраструктуру',
+      investigate_incident: 'Проверить инцидент',
       investigate_misconduct: 'Проверить неправомерное поведение',
       emergency_intervention: 'Срочное вмешательство'
     },
@@ -1229,6 +1234,7 @@ const TAXONOMY_LABELS = {
     attention_role: {
       teacher_instructor: 'Преподаватель',
       department_head: 'Заведующий кафедрой',
+      academic_affairs: 'Академические вопросы',
       student_affairs: 'Работа со студентами',
       disability_support: 'Инклюзивная поддержка',
       counseling_mental_health: 'Психологическая поддержка',
