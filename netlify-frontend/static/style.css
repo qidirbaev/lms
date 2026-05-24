@@ -224,9 +224,9 @@ select {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: .35rem .45rem .35rem 0;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--text-4) 58%, transparent) transparent;
+  padding: .35rem 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   mask-image: linear-gradient(
     to bottom,
@@ -238,64 +238,12 @@ select {
 }
 
 .sidebar-nav-scroll::-webkit-scrollbar {
-  width: 7px;
-}
-
-.sidebar-nav-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-nav-scroll::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-4) 46%, transparent);
-  border: 2px solid transparent;
-  border-radius: 999px;
-  background-clip: padding-box;
-}
-
-.sidebar-nav-scroll:hover::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-3) 64%, transparent);
-  background-clip: padding-box;
+  display: none;
 }
 
 .sidebar-header {
   padding: 1.1rem;
   border-bottom: 1px solid var(--border);
-}
-
-.sidebar-scroll-cue {
-  margin: .65rem .85rem .15rem;
-  padding: .36rem .55rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--bg-3) 84%, transparent), var(--bg-2));
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  font-size: .62rem;
-  font-weight: 850;
-  letter-spacing: .055em;
-  text-transform: uppercase;
-}
-
-.sidebar-scroll-cue [data-lucide],
-.sidebar-scroll-cue svg {
-  width: 13px !important;
-  height: 13px !important;
-  color: var(--accent);
-  animation: sidebarCueNudge 2.3s ease-in-out infinite;
-}
-
-@keyframes sidebarCueNudge {
-  0%,
-  100% {
-    transform: translateY(-1px);
-  }
-
-  50% {
-    transform: translateY(1px);
-  }
 }
 
 #app-title {

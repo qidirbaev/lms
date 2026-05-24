@@ -7346,7 +7346,7 @@ async function health() {
     };
 
     safeEl('platform-status-badge', el => {
-      el.textContent = 'Deterministic scoring v1.1';
+      el.textContent = 'v1.1';
     });
 
     safeEl('s-provider', el => { el.textContent = s.provider; });
