@@ -7345,9 +7345,8 @@ async function health() {
       processed_count: h.processed_count ?? h.count ?? '—'
     };
 
-    safeEl('ai-badge', el => {
-      el.innerHTML = `<span class="pulse-dot"></span> SentoPro`;
-      el.className = `ai-badge ai-badge-online sentpro-badge`;
+    safeEl('platform-status-badge', el => {
+      el.textContent = 'Deterministic scoring v1.1';
     });
 
     safeEl('s-provider', el => { el.textContent = s.provider; });

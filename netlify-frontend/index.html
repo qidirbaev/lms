@@ -78,16 +78,14 @@
           <div class="brand-copy">
             <div id="app-title">Sentiment Tahlil Tizimi</div>
             <div id="app-domain" class="brand-domain">www.sentiment.uz</div>
-            <div id="app-version" class="version">SI`ga asoslangan fikr-mulohazalarni tahlil qilish tizim</div>
+            <div id="app-version" class="version">Fikr-mulohazalarni tahlil qilish tizimi</div>
           </div>
         </div>
+      </div>
 
-        <div class="brand-status-row">
-          <div id="ai-badge" class="ai-badge ai-badge-online">
-            <span class="pulse-dot"></span>
-            SI online
-          </div>
-        </div>
+      <div class="sidebar-scroll-cue" aria-hidden="true">
+        <i data-lucide="chevrons-up-down"></i>
+        <span>Scroll menu</span>
       </div>
 
       <div class="sidebar-nav-scroll">
@@ -157,6 +155,7 @@
 
           <button class="nav-item" onclick="showPage('notifier')" id="nav-notifier">
             <i data-lucide="bell-ring" class="nav-svg"></i><span>Notifier</span>
+            <span class="nav-status-badge">Test</span>
           </button>
 
           <button class="nav-item" onclick="showPage('logs')" id="nav-logs">
@@ -189,30 +188,31 @@
       <div class="topbar">
         <div class="topbar-left">
           <span class="system-dot"></span>
-          <span>AI Feedback Intelligence Platform</span>
+          <span>Feedback Intelligence Platform</span>
+          <span id="platform-status-badge" class="topbar-status-pill">Deterministic scoring v1.1</span>
         </div>
 
         <div class="topbar-actions">
-          <select id="lang-select" class="select topbar-select">
+          <select id="lang-select" class="select topbar-select" aria-label="Language">
             <option value="uz">UZ</option>
             <option value="en">EN</option>
             <option value="ru">RU</option>
           </select>
 
-          <button id="theme-toggle" class="btn btn-secondary btn-sm" type="button">
+          <button id="theme-toggle" class="btn btn-secondary btn-sm" type="button" title="Toggle theme" aria-label="Toggle theme">
             <i data-lucide="sun-moon"></i>
           </button>
 
-          <button class="btn btn-secondary btn-sm" type="button" onclick="loadDashboard()">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="loadDashboard()" title="Refresh dashboard" aria-label="Refresh dashboard">
             <i data-lucide="refresh-cw"></i>
           </button>
 
-          <a class="btn btn-secondary btn-sm topbar-method-link" href="/scoring-methodology" target="_blank" rel="noopener">
+          <a class="btn btn-secondary btn-sm topbar-method-link" href="/scoring-methodology" target="_blank" rel="noopener" title="Scoring methodology" aria-label="Open scoring methodology">
             <i data-lucide="calculator"></i>
-            <span>Scoring</span>
+            <span></span>
           </a>
 
-          <button class="btn btn-primary btn-sm" type="button" id="executive-pdf-btn" onclick="generateExecutivePDF()">
+          <button class="btn btn-primary btn-sm" type="button" id="executive-pdf-btn" onclick="generateExecutivePDF()" title="Export executive PDF" aria-label="Export executive PDF">
             <i data-lucide="file-down"></i>
           </button>
         </div>
