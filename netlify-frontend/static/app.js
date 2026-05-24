@@ -29,7 +29,7 @@ let activeBatchPoller = null;
 const API_BASE =
   localStorage.getItem('lms_api_base') ||
   window.LMS_API_BASE ||
-  window.location.origin;
+  'https://begzatkidirbaev-lms.hf.space';
 
 const SENTPRO_RUNTIME = {
   provider: 'Vertex AI Endpoint',
