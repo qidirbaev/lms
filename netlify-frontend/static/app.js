@@ -5727,14 +5727,26 @@ function applyIntegrationPreset() {
 function renderIntegrationCurl() {
   const base = API_BASE.replace(/\/$/, '');
   const payloadText = $('integration-sample-payload')?.value || JSON.stringify(getIntegrationPresetPayload(), null, 2);
+  let payloadObject = getIntegrationPresetPayload();
 
-  const curl = `curl -X POST "${base}/integrations/ingest-feedback" \\
+  try {
+    payloadObject = JSON.parse(payloadText);
+  } catch {
+    payloadObject = getIntegrationPresetPayload();
+  }
+
+  const json = JSON.stringify(payloadObject);
+  const cmdJson = json.replace(/"/g, '\\"');
+  const copyCurl = `curl -X POST "${base}/integrations/ingest-feedback" -H "Content-Type: application/json" -H "X-Integration-Token: ${integrationLastToken}" -d "${cmdJson}"`;
+  const displayCurl = `curl -X POST "${base}/integrations/ingest-feedback" \\
   -H "Content-Type: application/json" \\
   -H "X-Integration-Token: ${integrationLastToken}" \\
-  -d '${payloadText.replaceAll("'", "\\'")}'`;
+  -d '${JSON.stringify(payloadObject, null, 2).replaceAll("'", "\\'")}'`;
 
-  if ($('integration-curl-box')) {
-    $('integration-curl-box').textContent = curl;
+  const box = $('integration-curl-box');
+  if (box) {
+    box.textContent = displayCurl;
+    box.dataset.copyCurl = copyCurl;
   }
 }
 
@@ -5991,9 +6003,10 @@ async function runIntegrationTest() {
 
 function copyIntegrationCurl() {
   renderIntegrationCurl();
-  const text = $('integration-curl-box')?.textContent || '';
+  const box = $('integration-curl-box');
+  const text = box?.dataset.copyCurl || box?.textContent || '';
   navigator.clipboard.writeText(text);
-  toast('cURL copied', 'success');
+  toast('Windows-safe cURL copied', 'success');
 }
 
 
