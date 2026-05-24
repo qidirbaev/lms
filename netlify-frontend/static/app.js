@@ -4810,43 +4810,97 @@ function setTestExample(type) {
 
 function generateRandomContext() {
   const courses = [
-    ['CS-101', 'Algorithms'],
-    ['AM-201', 'Linear Algebra'],
-    ['IT-202', 'Linux Systems'],
-    ['DS-202', 'Statistics for DS'],
-    ['AI-301', 'Artificial Intelligence'],
-    ['DB-204', 'Database Systems']
+    { id: 'CS-101', name: 'Algorithms', dept: 'Computer Science', depId: 'DEP-CS', groupPrefix: 'CS' },
+    { id: 'CS-204', name: 'Data Structures', dept: 'Computer Science', depId: 'DEP-CS', groupPrefix: 'CS' },
+    { id: 'AM-201', name: 'Linear Algebra', dept: 'Applied Mathematics', depId: 'DEP-AM', groupPrefix: 'AM' },
+    { id: 'IT-202', name: 'Linux Systems', dept: 'Information Technologies', depId: 'DEP-IT', groupPrefix: 'IT' },
+    { id: 'DS-202', name: 'Statistics for DS', dept: 'Data Science', depId: 'DEP-DS', groupPrefix: 'DS' },
+    { id: 'AI-301', name: 'Artificial Intelligence', dept: 'Data Science', depId: 'DEP-DS', groupPrefix: 'AI' },
+    { id: 'DB-204', name: 'Database Systems', dept: 'Software Engineering', depId: 'DEP-SE', groupPrefix: 'SE' },
+    { id: 'SE-305', name: 'Software Architecture', dept: 'Software Engineering', depId: 'DEP-SE', groupPrefix: 'SE' }
   ];
 
   const teachers = [
-    ['T-01', 'Aziz Karimov'],
-    ['T-07', 'Xasanova Zulfiya'],
-    ['T-18', 'Nazarova Maftuna'],
-    ['T-09', 'Mirzayeva Feruza'],
-    ['T-12', 'Rustamov Akmal'],
-    ['T-23', 'Saidova Madina']
+    { id: 'T-01', name: 'Aziz Karimov', role: 'lecturer', exp: 8 },
+    { id: 'T-07', name: 'Xasanova Zulfiya', role: 'lecturer', exp: 5 },
+    { id: 'T-18', name: 'Nazarova Maftuna', role: 'assistant', exp: 3 },
+    { id: 'T-09', name: 'Mirzayeva Feruza', role: 'lecturer', exp: 6 },
+    { id: 'T-12', name: 'Rustamov Akmal', role: 'professor', exp: 14 },
+    { id: 'T-23', name: 'Saidova Madina', role: 'assistant', exp: 2 },
+    { id: 'T-31', name: 'Rahimov Dilshod', role: 'lecturer', exp: 9 },
+    { id: 'T-44', name: 'Oripova Madina', role: 'professor', exp: 17 }
   ];
 
-  const c = courses[Math.floor(Math.random() * courses.length)];
-  const teacher = teachers[Math.floor(Math.random() * teachers.length)];
+  const channels = ['', 'jury_test_form', 'midterm_survey', 'final_survey', 'lms_feedback', 'teacher_review'];
+  const deliveryModes = ['', 'offline', 'online', 'hybrid'];
+  const courseLevels = ['', 'undergraduate', 'graduate'];
+  const genders = ['', 'male', 'female'];
+  const anonymousValues = ['', 'true', 'false'];
+  const semesters = ['2025-FALL', '2026-SPRING', '2026-FALL'];
 
-  $('test-fid').value = `custom-${Date.now().toString().slice(-6)}`;
-  $('test-course').value = c[0];
-  $('test-cname').value = c[1];
-  $('test-teacher').value = teacher[0];
-  $('test-tname').value = teacher[1];
-  $('test-dept').value = [
-    'Computer Science',
-    'Applied Mathematics',
-    'Information Technologies',
-    'Data Science',
-    'Software Engineering'
-  ][Math.floor(Math.random() * 5)];
-  $('test-gpa').value = (2.8 + Math.random() * 2.1).toFixed(1);
-  $('test-att').value = (0.55 + Math.random() * 0.45).toFixed(2);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const weightedPick = pairs => {
+    const total = pairs.reduce((sum, x) => sum + x[1], 0);
+    let roll = Math.random() * total;
+    for (const [value, weight] of pairs) {
+      roll -= weight;
+      if (roll <= 0) return value;
+    }
+    return pairs[pairs.length - 1][0];
+  };
+  const setValue = (id, value) => {
+    const el = $(id);
+    if (!el) return;
 
-  const channel = $('test-channel');
-  if (channel) channel.value = 'jury_test_form';
+    el.value = value ?? '';
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+
+    if (el.matches('select.select')) {
+      const wrapper = el.closest('.custom-select');
+      const btnText = wrapper?.querySelector('.custom-select-btn span');
+      const selected = el.options[el.selectedIndex];
+      if (btnText && selected) btnText.textContent = selected.textContent || '';
+      wrapper?.querySelectorAll('.custom-select-option').forEach(option => {
+        option.classList.toggle('active', option.textContent === selected?.textContent);
+      });
+    }
+  };
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+  const course = pick(courses);
+  const teacher = pick(teachers);
+  const year = Math.floor(1 + Math.random() * 5);
+  const admissionYear = 26 - year;
+  const groupNo = String(Math.floor(1 + Math.random() * 4)).padStart(2, '0');
+  const attendance = clamp(0.48 + Math.random() * 0.50, 0, 0.99);
+  const gpa = clamp(2.25 + attendance * 2.2 + (Math.random() - 0.5) * 0.9, 1.8, 4.9);
+  const coursePoints = clamp(Math.round(45 + gpa * 10 + attendance * 18 + (Math.random() - 0.5) * 16), 45, 100);
+  const rating = weightedPick([[1, 8], [2, 14], [3, 24], [4, 34], [5, 20]]);
+
+  setValue('test-fid', `custom-${Date.now().toString().slice(-6)}`);
+  setValue('test-rating', rating);
+  setValue('test-course', course.id);
+  setValue('test-cname', course.name);
+  setValue('test-teacher', teacher.id);
+  setValue('test-tname', teacher.name);
+  setValue('test-dept', course.dept);
+  setValue('test-gpa', gpa.toFixed(2));
+  setValue('test-att', attendance.toFixed(2));
+  setValue('test-channel', weightedPick(channels.map((x, i) => [x, i === 0 ? 1 : 3])));
+  setValue('test-gender', weightedPick(genders.map((x, i) => [x, i === 0 ? 2 : 4])));
+  setValue('test-year', year);
+  setValue('test-group', `${course.groupPrefix}-${admissionYear}-${groupNo}`);
+  setValue('test-course-points', coursePoints);
+  setValue('test-course-level', weightedPick(courseLevels.map((x, i) => [x, i === 0 ? 2 : x === 'undergraduate' ? 10 : 2])));
+  setValue('test-delivery-mode', weightedPick(deliveryModes.map((x, i) => [x, i === 0 ? 2 : 4])));
+  setValue('test-teacher-role', weightedPick([[teacher.role, 8], ['', 2], ['lecturer', 3], ['assistant', 2], ['professor', 2]]));
+  setValue('test-teacher-exp', clamp(teacher.exp + Math.floor(Math.random() * 5) - 2, 0, 35));
+  setValue('test-teacher-dep', course.depId);
+  setValue('test-semester', pick(semesters));
+  setValue('test-anonymous', weightedPick(anonymousValues.map((x, i) => [x, i === 0 ? 2 : 5])));
+
+  renderIcons();
+  toast('Tasodifiy kontekst to‘ldirildi', 'success');
 }
 
 function pct(value) {
